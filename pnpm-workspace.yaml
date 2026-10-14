@@ -1,0 +1,6 @@
+# pnpm bloquea los scripts de instalacion por defecto desde la v10. Estos dos los
+# necesitan: better-sqlite3 para bajar su binario nativo (sin el, el servidor
+# falla al primer import con un error de bindings) y esbuild para su ejecutable.
+allowBuilds:
+  better-sqlite3: true
+  esbuild: true
