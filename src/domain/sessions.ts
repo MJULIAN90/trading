@@ -1,4 +1,4 @@
-import { MARKET_UTC_OFFSET_HOURS } from '../config.js';
+import { marketOffsetAt } from './clock.js';
 
 /**
  * Las mismas ventanas que dibuja el indicador KillZones en el grafico. Si las
@@ -15,15 +15,21 @@ export const SESSIONS = [
 
 export type SessionName = (typeof SESSIONS)[number]['name'] | 'OUTSIDE';
 
-/** Hora de mercado en decimal (9.5 = 09:30) a partir de un epoch en ms UTC. */
+/**
+ * Hora de mercado en decimal (9.5 = 09:30) a partir de un epoch en ms UTC.
+ *
+ * El desfase se calcula POR FECHA, no es una constante: Nueva York cambia dos
+ * veces al ano y con un valor fijo las operaciones de invierno acabarian en la
+ * killzone equivocada.
+ */
 export function marketHour(tsMs: number): number {
-  const d = new Date(tsMs + MARKET_UTC_OFFSET_HOURS * 3600_000);
+  const d = new Date(tsMs + marketOffsetAt(tsMs) * 3600_000);
   return d.getUTCHours() + d.getUTCMinutes() / 60 + d.getUTCSeconds() / 3600;
 }
 
 /** Fecha de mercado en formato YYYY-MM-DD. */
 export function marketDate(tsMs: number): string {
-  const d = new Date(tsMs + MARKET_UTC_OFFSET_HOURS * 3600_000);
+  const d = new Date(tsMs + marketOffsetAt(tsMs) * 3600_000);
   return d.toISOString().slice(0, 10);
 }
 

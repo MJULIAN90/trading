@@ -1,4 +1,6 @@
 import { CONTEXT_DIR, JOURNAL_DB, findQuantowerTradesDb } from '../config.js';
+import { refreshBars } from '../domain/bars.js';
+import { ingestCalendar } from './calendar.js';
 import { ingestContextLog } from './context.js';
 import { ingestQuantower } from './quantower.js';
 
@@ -34,6 +36,22 @@ async function main() {
     console.log('  (sin ficheros todavia: activa "Guardar contexto para el diario" en j_Flujo)');
   } else {
     console.log(`  ${ctx.files} ficheros, ${ctx.read} lineas leidas, ${ctx.added} nuevas, ${ctx.bad} descartadas`);
+  }
+
+  // Las velas se derivan del JSON crudo a columnas tipadas. Va al final porque
+  // depende de que el contexto ya este ingerido.
+  const bars = refreshBars();
+  console.log(`velas derivadas: ${bars.written} escritas de ${bars.scanned} snapshots revisados`);
+
+  const cal = ingestCalendar();
+  if (cal.files === 0) {
+    console.log(`calendario economico: sin ficheros en ${cal.dir}`);
+    console.log('  (exporta el calendario en .ics o .csv y dejalo ahi)');
+  } else {
+    console.log(`calendario economico: ${cal.files} ficheros, ${cal.read} eventos, ${cal.added} nuevos`);
+    if (cal.floating > 0) {
+      console.log(`  aviso: ${cal.floating} eventos del ICS sin zona horaria, tomados como UTC`);
+    }
   }
 }
 

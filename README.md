@@ -1,96 +1,196 @@
 # Diario de trading
 
-Ingiere las operaciones de Quantower y el contexto de order flow de los indicadores
-propios, los normaliza en una base de datos propia y los expone por API y dashboard.
+Ingiere las operaciones de Quantower y el contexto de order flow de los
+indicadores propios, los normaliza en una base de datos propia y los expone por
+API y dashboard: métricas, gráfico reconstruido de cada operación, MAE/MFE,
+comisiones, calendario económico y tendencia de los marcos grandes.
 
-## Requisitos
+---
 
-**Node 20 LTS o superior** (recomendado 22 LTS). No es opcional: Fastify 5 lo
-exige, Vite necesita `styleText` de `node:util` (Node 20+) y tsx depende de
-`tracingChannel` (Node 19.9+). Con Node 19 fallan los tres con errores que no
-mencionan la versión y despistan mucho.
+## Montaje en un ordenador nuevo
 
-```bash
-node -v    # debe decir v20.x o superior
+### Resumen
+
+```powershell
+# 1. Instala Node 22 LTS desde https://nodejs.org
+# 2. Clona o copia el proyecto
+cd trading-journal
+# 3. Un solo comando
+powershell -ExecutionPolicy Bypass -File scripts\setup.ps1
 ```
 
-## Arranque
+El script instala dependencias, crea el `.env`, reapunta los proyectos de los
+indicadores a la instalación de Quantower de esa máquina, compila el front,
+hace la primera ingesta y termina con un diagnóstico que dice qué falta.
+
+Si prefieres ir paso a paso, o no estás en Windows, sigue leyendo.
+
+### 1. Qué hay que instalar
+
+| Herramienta | Para qué | Obligatorio |
+|---|---|---|
+| **Node 22 LTS** (20 mínimo) | el diario entero | sí |
+| **Quantower** | de donde salen las operaciones | sí, para capturar datos nuevos |
+| **Visual Studio 2022** con *.NET desktop development* | compilar los tres indicadores | solo si vas a tocar o instalar los indicadores |
+| **.NET 10 SDK** | lo exigen los `.csproj` | lo instala Visual Studio |
+| pnpm | opcional, `npm` sirve igual | no |
+
+**Node 20 es el mínimo real, no una recomendación.** Fastify 5 lo exige, Vite
+necesita `styleText` de `node:util` y tsx depende de `tracingChannel`. Con Node
+19 fallan los tres con errores que no mencionan la versión, y se pierde mucho
+rato buscando por el sitio equivocado.
 
 ```bash
-pnpm install
-pnpm build         # compila el front de React a web/
-pnpm dev           # dashboard en http://127.0.0.1:4321
+node -v    # v20.x o superior
+```
+
+### 2. Dependencias
+
+```bash
+pnpm install        # o npm install
+pnpm build          # compila el front de React a web/
 ```
 
 > **Con pnpm, `better-sqlite3` necesita permiso para ejecutar su postinstall.**
 > pnpm bloquea los scripts de instalación por defecto desde la v10, y sin ese
 > script el paquete se queda sin su binario nativo: el servidor falla al primer
-> import con un error de bindings. Está autorizado en `pnpm-workspace.yaml`
-> (`allowBuilds`), que es donde pnpm lo busca cuando hay un workspace — el
-> `pnpm.onlyBuiltDependencies` del `package.json` solo se aplica si no lo hay.
->
-> Si la instalación ya existía, repárala con `pnpm rebuild better-sqlite3`.
-> Con npm no hace falta nada de esto.
+> import con un error de *bindings* que no dice la causa. Está autorizado en
+> `pnpm-workspace.yaml` (`allowBuilds`), que es donde pnpm lo busca cuando hay
+> un workspace — el `pnpm.onlyBuiltDependencies` del `package.json` solo se
+> aplica si no lo hay. Si la instalación ya existía:
+> `pnpm rebuild better-sqlite3`. Con npm no hace falta nada de esto.
+
+### 3. Configuración
+
+```bash
+cp .env.example .env     # en Windows: copy .env.example .env
+```
+
+Todo tiene valores por defecto que funcionan en una instalación normal de
+Quantower en Windows, así que el `.env` puede quedarse casi vacío. Lo que sí
+conviene revisar:
+
+- **`REAL_TRADING_SINCE`** — el día en que empezaste a operar de verdad en esa
+  cuenta. Todo lo anterior queda marcado como prueba y fuera de las métricas.
+  Mezclar pruebas de plataforma con operativa real distorsiona cualquier
+  conclusión, y es un error que no se nota hasta que las cifras ya están mal.
+- **`QUANTOWER_TRADES_DB`** — solo si tienes más de una cuenta. Ver abajo.
+
+La lista completa está comentada en `.env.example`.
+
+### 4. Los indicadores
+
+Los tres proyectos (`j_Flujo`, `KillZones`, `QuaEmas`) viven en carpetas
+hermanas de esta, normalmente bajo `...\source\repos\`. Sus `.csproj` llevan
+**dos rutas absolutas con el número de versión de Quantower dentro**: la
+referencia a `TradingPlatform.BusinessLayer.dll` y la carpeta donde dejan el
+DLL compilado. Esas rutas cambian con cada actualización de Quantower y con
+cada ordenador, y cuando están mal el error de Visual Studio habla de una
+referencia que falta, no de una ruta, así que cuesta de encontrar.
+
+```bash
+pnpm setup:indicators            # las reapunta solas
+pnpm setup:indicators -- --dry   # enseña qué cambiaría sin tocar nada
+```
+
+Busca la versión instalada (la mayor, comparando número a número, porque en
+texto `v1.9` iría después de `v1.146`) y reescribe las dos rutas. Si los
+proyectos están en otro sitio: `-- --repos "D:\codigo"`.
+
+Después, en Visual Studio: abrir cada `.csproj` y compilar en **Release**. El
+DLL cae directamente en `Settings\Scripts\Indicators\<nombre>\`. Quantower los
+recoge al reiniciar.
+
+### 5. Comprobar
+
+```bash
+pnpm doctor
+```
+
+Revisa de una pasada: versión de Node, dependencias, binario nativo de
+`better-sqlite3`, front compilado, instalación de Quantower, cuentas
+encontradas, días de contexto capturados, DLL de cada indicador, tablas de la
+base y ficheros de calendario. Cada cosa que falta viene con el comando que la
+arregla.
+
+### 6. Arrancar
+
+```bash
+pnpm dev            # dashboard en http://127.0.0.1:4321
+```
 
 Para tocar el front con recarga en caliente, en dos terminales:
 
 ```bash
-pnpm dev           # API en 4321
-pnpm dev:web       # Vite en 5173, con proxy a la API
+pnpm dev            # API en 4321
+pnpm dev:web        # Vite en 5173, con proxy a la API
 ```
 
 El `build` solo hace falta cuando cambias algo de `client/`. El backend lo
 ejecuta tsx directamente, sin compilar.
 
-Con eso basta. El servidor **se alimenta solo**: cada 15 segundos comprueba si
-Quantower o los indicadores escribieron algo y, si hay novedades, las ingiere.
-La página se refresca sola cada 30 segundos y muestra "en vivo" con la hora de
-la última novedad. Dejas esto levantado mientras operas y al terminar la sesión
-ya está todo dentro.
+---
 
-`npm run ingest` sigue existiendo para una ingesta puntual sin levantar el
-servidor. Es idempotente: se puede lanzar las veces que haga falta sin duplicar
-nada.
+## De dónde salen los datos
 
-**Una posición abierta no aparece hasta que se cierra.** Una operación se da por
-terminada cuando la posición vuelve a plano, así que mientras tengas algo en
-mercado no estará en las métricas. Es correcto: su resultado todavía no existe.
+Hay **tres fuentes** independientes. Que falte una no impide usar las otras.
 
-## Configuración
+```
+Quantower user-trades.db  (solo lectura) ─┐
+j_Flujo → context-YYYYMMDD.jsonl         ─┼→ ingestor → journal.db → API → dashboard
+calendario .ics / .csv                   ─┘
+```
 
-Todo tiene valores por defecto que funcionan en una instalación normal. Se ajusta
-por variables de entorno:
+### Las operaciones: `user-trades.db`
 
-| Variable | Por defecto | Para qué |
-|---|---|---|
-| `QUANTOWER_ROOT` | `C:\Quantower` | raíz de la instalación |
-| `QUANTOWER_TRADES_DB` | se busca sola | ruta a `user-trades.db` |
-| `JOURNAL_DB` | `./data/journal.db` | nuestra base |
-| `CONTEXT_DIR` | `C:\Quantower\journal` | carpeta del log de los indicadores |
-| `CONTEXT_BAR_SECONDS` | (vacío) | temporalidad del contexto a usar: `60` para gráficos de 1 minuto |
-| `REAL_TRADING_SINCE` | `2026-10-12` | antes de esta fecha son pruebas |
-| `MARKET_UTC_OFFSET_HOURS` | `-4` | NY: -4 en verano, -5 en invierno |
-| `PORT` | `4321` | puerto del servidor |
-| `AUTO_INGEST` | `true` | `false` para desactivar la ingesta automática |
-| `AUTO_INGEST_INTERVAL_MS` | `15000` | cada cuánto comprueba si hay novedades |
+Quantower guarda su caché de operaciones en una carpeta **por cuenta**, con un
+nombre generado que incluye el identificador del bróker:
 
-**`REAL_TRADING_SINCE` importa.** Las operaciones anteriores quedan marcadas como
-pruebas y fuera de las métricas. Mezclar pruebas de plataforma con operativa real
-distorsiona cualquier conclusión.
+```
+C:\Quantower\UserTradesCache\AMP47CQG (CQG-AMP47CQG-Default-AMP47CQG)\user-trades.db
+```
 
-**`MARKET_UTC_OFFSET_HOURS` hay que cambiarlo a `-5`** cuando termine el horario de
-verano en Nueva York (primer domingo de noviembre), o las sesiones dejarán de
-coincidir con las del indicador KillZones.
+Como ese nombre no se puede adivinar, el diario busca la primera carpeta que
+contenga un `user-trades.db`. **Con más de una cuenta eso es elegir al azar**
+(por orden alfabético de un nombre generado), así que hay que fijarla:
 
-## Captura de contexto
+```
+QUANTOWER_TRADES_DB=C:\Quantower\UserTradesCache\<la que sea>\user-trades.db
+```
 
-El indicador `j_Flujo` escribe, **al cerrar cada vela**, el estado del mercado a
-`C:\Quantower\journal\context-YYYYMMDD.jsonl`. Se activa con "Guardar contexto
-para el diario" en su configuración.
+`pnpm doctor` lista todas las que encuentra, para no tener que adivinar.
 
-Se graba siempre, no solo cuando operas: sin los momentos en que **no** entraste
-no hay ejemplos negativos, y sin ellos no hay forma de distinguir después qué
-situaciones valían la pena.
+Esa base **se abre siempre en solo lectura**: el diario nunca escribe dentro de
+Quantower.
+
+En un ordenador nuevo el fichero no existe hasta que conectes la cuenta y
+Quantower descargue el historial del bróker. Hasta entonces el diario arranca
+igual, solo que sin operaciones. **Lo que el bróker devuelve suele estar
+limitado a unas semanas**, así que no cuentes con recuperar por aquí todo tu
+histórico: para eso está copiar `journal.db` (ver abajo).
+
+El ingestor no se limita a copiar. Reconstruye las operaciones **por ciclos de
+posición neta**: una operación empieza cuando la posición sale de cero y
+termina cuando vuelve a cero. Emparejar entradas con salidas por orden de
+llegada parece equivalente, pero deja de serlo en cuanto hay entradas parciales
+o promedias a la baja, y produce duraciones que no tienen nada que ver con la
+realidad.
+
+**Una posición abierta no aparece hasta que se cierra.** Su resultado todavía
+no existe.
+
+### El contexto: `context-YYYYMMDD.jsonl`
+
+El indicador `j_Flujo` escribe, al cerrar cada vela, el estado del mercado en
+`C:\Quantower\journal\`. Se activa con **"Guardar contexto para el diario"** en
+su configuración.
+
+Sin esto no hay velas, y sin velas no hay gráfico por operación, ni MAE/MFE, ni
+tendencia de los marcos grandes. Es la mitad del valor del proyecto.
+
+Se graba siempre, no solo cuando operas: sin los momentos en que **no**
+entraste no hay ejemplos negativos, y sin ellos no hay forma de distinguir
+después qué situaciones valían la pena.
 
 El indicador no sabe nada de posiciones. Solo registra el mercado; el cruce con
 tus operaciones lo hace el diario buscando el último snapshot cerrado **antes**
@@ -98,92 +198,178 @@ de cada apertura (`src/domain/context.ts`). Nunca el posterior, aunque esté má
 cerca: una vela que cerró después de que abrieras contiene información que no
 existía cuando decidiste.
 
-### Una sola temporalidad
+#### Una sola temporalidad
 
-El indicador escribe al cerrar **cada vela del gráfico donde esté puesto**. Si lo
-tienes en varios gráficos a la vez, los snapshots de 1m y de 4h acaban mezclados
-en el mismo fichero, y describen cosas distintas: el "rango medio reciente" de un
+El indicador escribe al cerrar cada vela **del gráfico donde esté puesto**. Si
+lo tienes en varios a la vez, los snapshots de 1m y de 4h acaban mezclados en
+el mismo fichero describiendo cosas distintas: el "rango medio reciente" de un
 gráfico de 4h son 200 velas de cuatro horas, o sea mes y medio.
 
-Dos formas de evitarlo, y conviene usar las dos:
+Dos defensas, y conviene usar las dos:
 
 - Activar "Guardar contexto para el diario" **solo en el gráfico con el que
   decides** las entradas.
-- Fijar `CONTEXT_BAR_SECONDS=60` para que el cruce ignore todo lo que no sea de
-  un minuto. Los registros antiguos sin `barSeconds` siguen aceptándose, para no
+- Poner `CONTEXT_BAR_SECONDS=60` para que el cruce ignore lo que no sea de un
+  minuto. Los registros antiguos sin `barSeconds` se siguen aceptando, para no
   invalidar lo ya grabado.
 
-El parámetro "Contexto: mínimo entre escrituras (s)" (30 por defecto) limita el
-volumen en gráficos rápidos. Con velas de un minuto o más no tiene efecto.
-
-### Features crudas, no conclusiones
+#### Features crudas, nunca conclusiones
 
 En el JSONL no aparece `"absorcion": true`. Aparecen el delta, el rango de la
 vela, el rango medio reciente, el tamaño medio por operación y la forma del
-libro. La absorción se **deriva** de ahí en `derive()`, con sus umbrales en el
-código del diario.
+libro. La absorción se **deriva** de ahí, con sus umbrales en el código del
+diario.
 
-Esto es lo que permite cambiar de opinión: el día que afinemos qué cuenta como
-absorción, se toca una función y los miles de snapshots ya grabados se releen con
-la definición nueva. Si se guardara ya calculada, todo el histórico quedaría
-inservible.
+Eso es lo que permite cambiar de opinión: el día que se afine qué cuenta como
+absorción, se toca una función y los miles de snapshots ya grabados se releen
+con la definición nueva. Si se guardara ya calculada, todo el histórico
+quedaría inservible.
 
-Una línea cortada (un cierre de Quantower a mitad de escritura) se descarta sola
-y el resto del fichero sigue siendo válido.
+Una línea cortada (un cierre de Quantower a mitad de escritura) se descarta
+sola y el resto del fichero sigue siendo válido.
 
-## Revisión por operación
+### El calendario económico
+
+Ficheros `.ics` o `.csv` en `C:\Quantower\journal\calendar\`. Quantower no trae
+calendario económico, así que los eventos entran por aquí. Es opcional: sin
+ellos la pestaña Noticias sale vacía y todo lo demás funciona igual. El formato
+está documentado en `LEEME.txt` dentro de esa carpeta.
+
+Ojo con la zona horaria: un CSV no la lleva dentro, y leer "08:30" de Nueva
+York como UTC coloca el aviso cuatro horas antes. `CALENDAR_TZ_OFFSET_HOURS` lo
+resuelve; por defecto asume hora de mercado.
+
+### Cuándo se cargan
+
+Dejando el servidor levantado **se alimenta solo**: cada 15 segundos comprueba
+si Quantower o los indicadores escribieron algo y, si hay novedades, las
+ingiere. La página se refresca sola cada 30 segundos y muestra "en vivo" con la
+hora de la última novedad.
+
+`pnpm ingest` hace una ingesta puntual sin levantar el servidor. Es idempotente:
+se puede lanzar las veces que haga falta sin duplicar nada.
+
+La detección de novedades mira la fecha de modificación de `user-trades.db` **y
+también la de sus ficheros `-wal` y `-shm`**. Con WAL activo —que es como
+trabaja Quantower— las escrituras van al `-wal` y el fichero principal puede
+quedarse igual durante minutos, así que vigilar solo ese llega tarde.
+
+---
+
+## Llevarse el proyecto a otro ordenador
+
+Qué copiar, por orden de importancia:
+
+| Qué | Dónde | Por qué |
+|---|---|---|
+| **`data/journal.db`** (+ `-wal` si existe) | la base del diario | **es el sistema de registro**: operaciones, velas, notas, etiquetas. Lo único que no se puede reconstruir desde ningún otro sitio |
+| El repositorio | el código | obvio |
+| `C:\Quantower\journal\*.jsonl` | contexto crudo | permite volver a derivar `bars` si mañana se añade una columna. Son cientos de MB; si no caben, la base ya lleva lo derivado |
+| `C:\Quantower\journal\calendar\` | calendario | pequeño, cómodo de llevar |
+| Los tres proyectos de indicadores | `source\repos\` | hay que recompilarlos allí |
+
+**No copies `node_modules` ni `web/`**: se regeneran, y `node_modules` lleva un
+binario nativo compilado para esa máquina concreta.
+
+Si copias el `-wal`, cópialo **junto** al `.db` y con el mismo nombre base. Es
+donde SQLite guarda lo más reciente: la base sola puede ir minutos por detrás.
+
+Orden en la máquina nueva:
+
+1. `scripts\setup.ps1` con el proyecto ya copiado
+2. pegar `data/journal.db` encima del que se haya creado
+3. `pnpm doctor` para confirmar que las cuentas de las tablas cuadran
+
+---
+
+## Configuración
+
+| Variable | Por defecto | Para qué |
+|---|---|---|
+| `QUANTOWER_ROOT` | `C:\Quantower` | raíz de la instalación |
+| `QUANTOWER_TRADES_DB` | se busca sola | ruta a `user-trades.db` |
+| `JOURNAL_DB` | `./data/journal.db` | nuestra base |
+| `CONTEXT_DIR` | `C:\Quantower\journal` | carpeta del log de los indicadores |
+| `CALENDAR_DIR` | `C:\Quantower\journal\calendar` | ficheros del calendario |
+| `CONTEXT_BAR_SECONDS` | (vacío) | temporalidad del contexto: `60` para gráficos de 1 minuto |
+| `CONTEXT_RETENTION_DAYS` | `0` (todo) | días de JSON crudo que se conservan |
+| `REAL_TRADING_SINCE` | `2026-10-12` | antes de esta fecha son pruebas |
+| `CALENDAR_TZ_OFFSET_HOURS` | hora de mercado | zona en la que viene escrito el calendario |
+| `MARKET_UTC_OFFSET_HOURS` | `-4` | ancla; el cambio de hora se calcula solo |
+| `NEWS_BLACKOUT_BEFORE_MIN` | `5` | silencio antes del dato |
+| `NEWS_BLACKOUT_AFTER_MIN` | `10` | silencio después |
+| `PORT` | `4321` | puerto del servidor |
+| `AUTO_INGEST` | `true` | `false` para desactivar la ingesta automática |
+| `AUTO_INGEST_INTERVAL_MS` | `15000` | cada cuánto comprueba si hay novedades |
+
+Se leen del `.env` de la raíz, o del entorno. **El entorno manda sobre el
+fichero**, para poder levantar una segunda instancia en otro puerto sin tocar
+nada.
+
+El cambio de horario de verano **ya no se configura**: `src/domain/clock.ts`
+aplica las reglas reales de Estados Unidos (segundo domingo de marzo, primer
+domingo de noviembre, a las 02:00 locales). Antes era una constante fija, y
+habría empezado a clasificar mal las sesiones el 1 de noviembre sin avisar.
+
+---
+
+## Cómo está hecho
+
+### Tablas
+
+- `fills` — ejecuciones crudas tal como vinieron del bróker
+- `operations` — operaciones reconstruidas, clasificadas por sesión killzone
+- `context_snapshots` — estado del mercado según los indicadores (JSON crudo)
+- `bars` — el contexto pasado a columnas tipadas; de aquí salen los gráficos
+- `economic_events` — calendario importado
+- `operation_notes` / `operation_tags` — lo que escribes tú
+- `meta`, `ingest_runs` — control
+
+Los `fills` se guardan sin interpretar a propósito: si mañana cambia la forma de
+agrupar operaciones, se recalcula todo desde ahí sin volver a tocar Quantower.
+Lo mismo con `context_snapshots` frente a `bars`.
+
+### Revisión por operación
 
 Cada operación pasa por un motor de reglas (`src/domain/review.ts`) que la marca
 con banderas objetivas. Todo lo que sale de ahí es determinista y verificable:
-cada bandera dice un hecho medible con su cifra al lado. No hay interpretación ni
-narrativa, a propósito — una explicación inventada sobre por qué falló una
+cada bandera dice un hecho medible con su cifra al lado. No hay narrativa
+inventada, a propósito — una explicación plausible sobre por qué falló una
 entrada se lee igual de bien que una real, y eso es justo lo que la hace
 peligrosa.
 
 Las banderas se separan en dos tipos:
 
-- **decisión** — solo miran lo que se podía saber al abrir (reentrada inmediata,
-  racha de pérdidas, fuera de killzone, apertura de sesión, número de operación
-  del día)
-- **resultado** — miran cómo acabó (pérdida fuera de tamaño, se fue en contra al
-  instante)
+- **decisión** — solo miran lo que se podía saber al abrir (reentrada
+  inmediata, racha de pérdidas, fuera de killzone, apertura de sesión, número
+  de operación del día)
+- **resultado** — miran cómo acabó (pérdida fuera de tamaño, se fue en contra
+  al instante)
 
 Separarlas evita juzgar una entrada por su desenlace: una buena decisión puede
-perder y una mala puede ganar. Los umbrales están en `DEFAULT_REVIEW_CONFIG` y
-conviene ajustarlos con los datos en la mano, no por intuición.
+perder y una mala puede ganar.
 
-El panel "qué cuesta dinero" suma el resultado de las operaciones que llevan cada
-bandera. Es la forma de comprobar si una regla captura algo real: si una bandera
-acumula P&L positivo, el umbral está mal puesto o la regla no sirve.
+**Los umbrales de `DEFAULT_REVIEW_CONFIG` son inventados, no medidos.** Dos
+minutos para la reentrada, tres pérdidas seguidas, doce operaciones al día: son
+puntos de partida razonables, no conclusiones sacadas de ningún dato.
+Ajústalos con el histórico delante.
 
-## Arquitectura
+El panel "qué cuesta dinero" suma el resultado de las operaciones que llevan
+cada bandera. Es la forma de comprobar si una regla captura algo real: si una
+bandera acumula P&L positivo, el umbral está mal puesto o la regla no sirve.
 
-```
-Quantower user-trades.db (SQLite, solo lectura) ─┐
-                                                 ├─→ ingestor ─→ journal.db ─→ API ─→ dashboard
-indicadores → context.jsonl (pendiente)         ─┘
-```
+### Tendencia de los marcos grandes
 
-El ingestor no se limita a copiar: reconstruye las operaciones **por ciclos de
-posición neta** — una operación empieza cuando la posición sale de cero y termina
-cuando vuelve a cero. Emparejar entradas con salidas por orden de llegada parece
-equivalente pero no lo es en cuanto hay entradas parciales, y produce duraciones
-que no tienen nada que ver con la realidad.
+`src/domain/trend.ts` arma velas semanales, diarias y de 4h agrupando las de un
+minuto, y clasifica cada marco por el cociente **avance neto ÷ rango
+recorrido**. Por debajo de 0,30 es rango; por encima de 0,60, tendencia clara.
+Los cortes salen de medir 100 días de MNQ, no de un libro.
 
-### Tablas
+El día de futuros empieza a las 18:00 hora de mercado, como en CME y en
+Quantower. Solo entran velas ya cerradas antes de la entrada: incluir la vela
+en curso sería mirar el futuro.
 
-- `fills` — ejecuciones crudas tal como vinieron del broker
-- `operations` — operaciones reconstruidas, clasificadas por sesión killzone
-- `context_snapshots` — estado del mercado según los indicadores (features crudas, JSON)
-- `ingest_runs` — control de ingestas
-
-La detección de novedades mira la fecha de modificación de `user-trades.db`
-**y también la de sus ficheros `-wal` y `-shm`**. Con WAL activo —que es como
-trabaja Quantower— las escrituras van al `-wal` y el fichero principal puede
-quedarse igual durante minutos, así que vigilar solo ese llega tarde.
-
-Los `fills` se guardan sin interpretar a propósito: si mañana cambia la forma de
-agrupar operaciones, se recalcula todo desde ahí sin volver a tocar Quantower.
+---
 
 ## API
 
@@ -191,7 +377,8 @@ agrupar operaciones, se recalcula todo desde ahí sin volver a tocar Quantower.
 |---|---|
 | `GET /api/dashboard` | todo de una vez (lo que consume la página) |
 | `GET /api/summary` | métricas globales |
-| `GET /api/operations` | listado de operaciones |
+| `GET /api/operations` | listado paginado |
+| `GET /api/operations/:id/replay` | velas, ejecuciones, killzones y tendencia |
 | `GET /api/breakdown` | desglose por sesión, día, hora y dirección |
 | `GET /api/equity` | curva de capital |
 | `GET /api/behaviour` | reentradas rápidas tras pérdida y rachas |
@@ -199,22 +386,15 @@ agrupar operaciones, se recalcula todo desde ahí sin volver a tocar Quantower.
 Filtros comunes por query string: `from`, `to` (YYYY-MM-DD, fecha de mercado),
 `session`, `includeTests=true`.
 
-## Pendiente
+---
 
-1. **Captura de contexto en los indicadores** — que `j_Flujo` escriba a
-   `context.jsonl` el estado del order flow en cada vela cerrada y en cada
-   apertura o cierre de posición. Es la pieza que convierte esto en algo que
-   ninguna plataforma comercial puede dar, y la base de cualquier modelo futuro.
-2. Cálculo de etiquetas (MFE/MAE) sobre datos de velas, para tener objetivo
-   independiente de cómo se gestionó cada operación.
-3. Exportación a Parquet para análisis en Python.
+## Problemas conocidos
 
-### Dos reglas para que el dataset siga siendo entrenable
-
-Guardar **features crudas, nunca conclusiones**: no `"absorcion": true`, sino el
-delta, el rango, el tamaño medio y el estado del libro. La absorción es una
-definición nuestra con umbrales que vamos a afinar, y si se guarda ya calculada,
-todo el histórico queda inservible al cambiarla.
-
-Registrar también los momentos **sin** operación. Si el log solo tiene las
-entradas, no hay ejemplos negativos y no hay forma de aprender a distinguir.
+- **El contexto histórico se repite.** De las velas capturadas, la inmensa
+  mayoría vienen de un relleno hacia atrás y llevan el mismo flujo repetido. El
+  OHLC es correcto (los gráficos y el MAE/MFE no se ven afectados), pero
+  cualquier agregación de delta entre días distintos no sirve. Sin resolver.
+- **La muestra es pequeña.** Con un centenar de operaciones en pocos días y un
+  solo instrumento, casi cualquier diferencia entre grupos cabe dentro del
+  azar. Las cifras sirven para mirar operaciones concretas, no para sacar
+  reglas.

@@ -91,8 +91,10 @@ export function Breakdown({ data }: { data: Dashboard }) {
             <th>Por op.</th>
             <th>Gan. media</th>
             <th>Perd. media</th>
-            <th>Payoff / min.</th>
-            <th>Min gan/perd</th>
+            <th title="Cuanto ganas por cada unidad que pierdes, y al lado el minimo que necesitas con ese acierto">
+              Payoff / necesario
+            </th>
+            <th title="Duracion media en minutos: ganadoras / perdedoras">Minutos gan/perd</th>
           </tr>
         </thead>
         <tbody>
@@ -112,9 +114,12 @@ export function Breakdown({ data }: { data: Dashboard }) {
       </table>
 
       <div className="note">
-        <b>Payoff / mínimo</b>: lo que ganas por cada unidad que pierdes, y al lado el mínimo que
+        <b>Payoff / necesario</b>: lo que ganas por cada unidad que pierdes, y al lado el mínimo que
         haría falta para no perder dinero con ese porcentaje de acierto. En verde cuando lo supera,
         y sin color cuando hay menos de cinco operaciones, que es cuando el dato todavía no dice nada.
+        <br />
+        <b>Minutos gan/perd</b>: cuánto duran de media las ganadoras y cuánto las perdedoras. Si las
+        perdedoras duran más, las estás dejando correr más que las buenas.
       </div>
     </>
   );

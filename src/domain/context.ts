@@ -1,5 +1,6 @@
 import { CONTEXT_BAR_SECONDS } from '../config.js';
 import { db } from '../db/index.js';
+import { normalizeSymbol } from './bars.js';
 
 /**
  * Lo que el indicador graba en cada cierre de vela. Son features crudas: la
@@ -59,8 +60,13 @@ export function snapshotAt(
   const params: unknown[] = [ts, ts - maxAgeMs];
 
   if (symbol) {
+    // Normalizado obligatorio: Quantower llama a sus operaciones `F.US.MNQZ26` y
+    // el indicador escribe `MNQZ26`. Comparando los dos literales no coincidia
+    // NINGUNA operacion, y el fallo era silencioso: no daba error, simplemente
+    // devolvia null y toda la lectura de flujo (absorcion, libro cargado,
+    // liquidez retirandose) no se activaba nunca en ninguna operacion.
     conditions.push('symbol = ?');
-    params.push(symbol);
+    params.push(normalizeSymbol(symbol));
   }
 
   if (barSeconds !== null) {

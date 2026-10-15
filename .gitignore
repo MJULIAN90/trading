@@ -3,3 +3,7 @@ data/
 test-fixtures/
 web/
 *.log
+
+# Configuracion de ESTA maquina: rutas y puertos. El .env.example es la
+# plantilla que si se comparte.
+.env

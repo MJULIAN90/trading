@@ -74,3 +74,105 @@ CREATE TABLE IF NOT EXISTS ingest_runs (
   rows_new      INTEGER NOT NULL,
   cursor        TEXT
 );
+
+-- ---------------------------------------------------------------------------
+-- Vela normalizada, derivada de context_snapshots.
+--
+-- context_snapshots guarda el JSON crudo tal cual lo escribe el indicador, y eso
+-- esta bien como archivo: permite cambiar las features sin migrar nada. Pero
+-- para dibujar un grafico hay que leer cientos de velas y parsear JSON en cada
+-- una, y eso no escala.
+--
+-- Esta tabla es la MISMA informacion en columnas tipadas. No se guarda nada que
+-- no estuviera ya en el JSON, asi que se puede borrar y reconstruir entera en
+-- cualquier momento. La clave es (symbol, ts): el indicador corre en varios
+-- graficos a la vez (MNQ, NQ, MES) y cada uno escribe su propia vela al mismo
+-- instante.
+-- ---------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS bars (
+  symbol                 TEXT NOT NULL,
+  ts                     INTEGER NOT NULL,       -- epoch ms UTC, apertura de la vela
+  o                      REAL NOT NULL,
+  h                      REAL NOT NULL,
+  l                      REAL NOT NULL,
+  c                      REAL NOT NULL,
+  tick_size              REAL,
+
+  buy                    REAL,
+  sell                   REAL,
+  delta                  REAL,
+  buy_trades             REAL,
+  sell_trades            REAL,
+  avg_size               REAL,
+  max_one_trade          REAL,                   -- la operacion individual mas grande
+
+  -- Las referencias que tenia el indicador EN ESE MOMENTO. Son lo que permite
+  -- reproducir los filtros exactos que estaban activos cuando decidiste, en vez
+  -- de recalcularlos hoy con otros datos y ver un grafico que nunca viste.
+  base_avg_range         REAL,
+  base_max_abs_delta     REAL,
+  base_typical_abs_delta REAL,
+  base_avg_trade_size    REAL,
+
+  book_bid_size          REAL,
+  book_ask_size          REAL,
+  book_pulled            INTEGER,
+
+  PRIMARY KEY (symbol, ts)
+);
+
+CREATE INDEX IF NOT EXISTS idx_bars_ts ON bars (ts);
+
+-- Clave/valor interno. De momento solo el cursor de derivacion de bars, para no
+-- releer los 111.000 snapshots en cada ingesta.
+CREATE TABLE IF NOT EXISTS meta (
+  key   TEXT PRIMARY KEY,
+  value TEXT NOT NULL
+);
+
+-- ---------------------------------------------------------------------------
+-- Notas y etiquetas por operacion.
+--
+-- En tablas aparte y no como columnas de operations a proposito: operations se
+-- regenera desde los fills, y si las notas vivieran ahi se perderian en cuanto
+-- cambiemos como se agrupan las operaciones.
+-- ---------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS operation_notes (
+  operation_id INTEGER PRIMARY KEY REFERENCES operations (id) ON DELETE CASCADE,
+  note         TEXT NOT NULL DEFAULT '',
+  updated_at   INTEGER NOT NULL
+);
+
+-- Las etiquetas las defines tu sobre la marcha. Una fila por etiqueta y no una
+-- lista separada por comas: asi se puede agrupar por etiqueta en SQL y ver
+-- cuanto dinero cuesta cada una.
+CREATE TABLE IF NOT EXISTS operation_tags (
+  operation_id INTEGER NOT NULL REFERENCES operations (id) ON DELETE CASCADE,
+  tag          TEXT NOT NULL,
+  PRIMARY KEY (operation_id, tag)
+);
+
+CREATE INDEX IF NOT EXISTS idx_optags_tag ON operation_tags (tag);
+
+-- ---------------------------------------------------------------------------
+-- Calendario economico.
+--
+-- Entra por fichero (.ics o .csv) y no por API: Quantower no tiene calendario
+-- economico -- lo que ofrece es un feed de titulares, sin prevision, sin dato
+-- real y sin eventos futuros -- y las APIs de calendario piden clave y cambian
+-- de plan gratuito cada temporada. Un ICS exportado no depende de nadie.
+--
+-- El id es hora + titulo normalizado, asi reimportar el mismo fichero o uno
+-- actualizado que repita eventos no duplica nada.
+-- ---------------------------------------------------------------------------
+CREATE TABLE IF NOT EXISTS economic_events (
+  id       TEXT PRIMARY KEY,
+  ts       INTEGER NOT NULL,          -- epoch ms UTC
+  title    TEXT NOT NULL,
+  impact   TEXT,                      -- high | medium | low | NULL
+  currency TEXT,
+  source   TEXT,                      -- fichero del que salio
+  detail   TEXT
+);
+
+CREATE INDEX IF NOT EXISTS idx_events_ts ON economic_events (ts);
