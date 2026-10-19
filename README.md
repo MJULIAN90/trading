@@ -129,6 +129,71 @@ pnpm dev:web        # Vite en 5173, con proxy a la API
 El `build` solo hace falta cuando cambias algo de `client/`. El backend lo
 ejecuta tsx directamente, sin compilar.
 
+### Arrancarlo con un icono en la barra de tareas (Windows)
+
+Para no escribir comandos cada día:
+
+```
+scripts\anclar-a-la-barra.cmd      doble clic, una sola vez
+```
+
+Compila un lanzador (`Diario de trading.exe`, en la raíz del proyecto) y crea
+un acceso directo con ese nombre en el escritorio y en el menú de inicio.
+Después, botón derecho sobre él → *Anclar a la barra de tareas* (ese último paso
+hay que darlo a mano: Windows no deja que un script ancle nada a la barra).
+
+A partir de ahí, un clic en el icono compila el front, arranca el servidor y
+abre el navegador cuando el servidor responde de verdad. Cerrar la ventana para
+el servidor.
+
+**Por qué hace falta un `.exe` para algo tan tonto.** El problema tiene dos
+capas, y la segunda es la que engaña:
+
+1. Windows no permite anclar un `.bat` ni un `.cmd` a la barra de tareas. Al
+   intentarlo ancla el *Explorador de archivos*, porque el Explorador es el
+   programa asociado a esos ficheros.
+2. El arreglo obvio —un acceso directo a `cmd.exe` pasándole el `.cmd` como
+   argumento— **tampoco funciona**, y falla de la peor manera: se deja anclar,
+   parece correcto, y al pulsarlo abre una consola vacía en `C:\Users\<usuario>`.
+   Windows trata `cmd.exe`, `explorer.exe` y `powershell.exe` como casos
+   especiales: al anclar se queda con el programa y **tira los argumentos**.
+
+Por eso el anclaje apunta a un `.exe` propio. No hace nada más que ejecutar
+`scripts\trading.cmd`, pero al no ser un ejecutable del sistema, Windows lo
+ancla como lo que es. Se compila con el compilador de C# que viene dentro de
+.NET Framework —presente en cualquier Windows, no hay que instalar nada— y
+busca el `.cmd` a partir de su propia ubicación, así que el proyecto se puede
+mover o clonar sin recompilarlo. Está en `.gitignore`: es un binario generado.
+
+**El icono.** `scripts\diario.ico`: tres velas —caída, giro, impulso— sobre un
+nivel horizontal, con los colores del propio dashboard. Se incrusta *dentro*
+del `.exe` al compilarlo (`/win32icon`), no se enlaza desde fuera: la barra de
+tareas se queda con el icono del momento en que anclas, así que depender de un
+`.ico` suelto significaría que moverlo o borrarlo deja el icono en blanco.
+
+El `.ico` está en el repositorio ya generado, pero no es un binario caído del
+cielo: `scripts\_crear-icono.py` lo dibuja, y ejecutarlo reproduce exactamente
+el mismo fichero. Para cambiar el icono se edita ese script (necesita Pillow) y
+se vuelve a ejecutar `anclar-a-la-barra.cmd`. Cada tamaño se dibuja por
+separado con coordenadas enteras en lugar de reescalar uno grande: a 16 px, que
+es como se ve de verdad en la barra, medio píxel es media vela.
+
+Lo que hace `scripts\trading.cmd` además de `pnpm build && pnpm dev`:
+
+- Se coloca solo en la raíz del proyecto, calculada desde su propia ruta, así
+  que sigue funcionando si mueves el proyecto o lo clonas en otra máquina.
+- Mata un servidor anterior que se haya quedado con el puerto cogido. Al cerrar
+  la ventana con la X, node no siempre muere, y el siguiente arranque falla con
+  un `EADDRINUSE` que no explica de dónde viene.
+- Instala las dependencias si no están.
+- Para si la compilación falla, en vez de arrancar un servidor que sirve el
+  front viejo sin avisar.
+- Abre el navegador **sondeando el puerto**, no tras una espera fija: el primer
+  arranque del día tarda más y una espera fija abre la pestaña en un error.
+
+Si cambias el puerto en `.env` (variable `PORT`), cámbialo también en la
+primera línea de `scripts\trading.cmd`.
+
 ---
 
 ## De dónde salen los datos
@@ -371,6 +436,84 @@ en curso sería mirar el futuro.
 
 ---
 
+## Cómo funciona por dentro
+
+El proyecto son tres capas y una regla que las separa: **lo que llega, lo que se
+deriva y lo que se enseña**. Nada de la capa de abajo sabe nada de la de arriba.
+
+### 1. Ingesta — `src/ingest/`
+
+| Fichero | Qué hace |
+|---|---|
+| `quantower.ts` | lee `user-trades.db` (solo lectura) y reconstruye las operaciones por ciclos de posición neta |
+| `context.ts` | lee los `.jsonl` del indicador y los guarda tal cual en `context_snapshots` |
+| `calendar.ts` | lee los `.ics` / `.csv` del calendario |
+| `watch.ts` | vigila las fechas de modificación y lanza la ingesta cuando algo cambia |
+| `run.ts` | lo mismo, pero a mano: `pnpm ingest` |
+
+Todo aquí es **idempotente**: lanzarlo mil veces no duplica nada.
+
+### 2. Dominio — `src/domain/`
+
+Donde está el conocimiento. Nada de esto toca HTTP ni sabe que existe una
+pantalla.
+
+**Lo básico**
+
+- `clock.ts` — horario de verano de Estados Unidos. De aquí sale el desfase de cada instante
+- `sessions.ts` — las killzones, y a cuál pertenece un momento
+- `instruments.ts` — tick, valor del punto, multiplicador por contrato
+- `bars.ts` — pasa el JSON crudo a la tabla `bars`, con columnas tipadas
+
+**Sobre tus operaciones**
+
+- `metrics.ts` — acierto, payoff, esperanza, rachas, desgloses, y la consulta con filtros
+- `costs.ts` — ticks, comisión y neto
+- `excursion.ts` — MAE, MFE, captura y lo devuelto
+- `review.ts` — las banderas objetivas (reentrada, racha, fuera de killzone…)
+- `narrative.ts` — las frases de la pestaña Lectura, armadas desde esos números
+- `scratch.ts` — salidas en plano y qué habría pasado aguantando
+- `notes.ts` — tus notas y etiquetas
+
+**Sobre el mercado, no sobre ti**
+
+Esta es la parte nueva y la más fiable, porque no depende de que acertaras:
+
+- `trend.ts` — tendencia o rango en semanal, diaria y 4h
+- `pattern.ts` — el patrón de la vela de 15m
+- `sessionStats.ts` — cuánto se mueve cada killzone; de aquí salen el stop y el objetivo sugeridos
+- `study.ts` — el estudio de patrones a favor de la 4h, con su línea base y su p-valor
+
+**Servicio**
+
+- `replay.ts` — arma el gráfico de una operación: velas, ejecuciones, killzones, tendencia, patrón y estadística de la franja
+- `prefs.ts` — las preferencias de presentación
+- `storage.ts` — tamaño de la base y purga del crudo
+
+### 3. API y pantalla
+
+`src/api/server.ts` es la única capa que habla HTTP. `/api/dashboard` devuelve
+todo de una vez para que la página cargue con una sola petición; el resto de
+endpoints existen para lo que se pide aparte (el replay, el calendario, los
+estudios).
+
+El cliente (`client/src/`) es React con un componente por panel. `api.ts` tiene
+los tipos y las llamadas, y es el único sitio que conoce las rutas.
+
+### La regla que lo sostiene
+
+**Crudo abajo, derivado arriba, y lo derivado se puede tirar y recalcular.**
+
+- `fills` se guarda sin interpretar → si cambia cómo agrupamos operaciones, se recalcula sin volver a tocar Quantower
+- `context_snapshots` se guarda sin interpretar → si cambia qué cuenta como absorción, se recalcula sin perder histórico
+- `bars` se deriva de los snapshots → `pnpm ingest` lo reconstruye
+- Las métricas no se guardan: se calculan al pedirlas
+
+Lo único irrecuperable es el crudo. Por eso `CONTEXT_RETENTION_DAYS` viene
+apagado y la purga no se ejecuta sola.
+
+---
+
 ## API
 
 | Endpoint | Devuelve |
@@ -378,7 +521,12 @@ en curso sería mirar el futuro.
 | `GET /api/dashboard` | todo de una vez (lo que consume la página) |
 | `GET /api/summary` | métricas globales |
 | `GET /api/operations` | listado paginado |
-| `GET /api/operations/:id/replay` | velas, ejecuciones, killzones y tendencia |
+| `GET /api/operations/:id/replay` | velas, ejecuciones, killzones, tendencia, patrón y estadística de la franja |
+| `GET /api/operations/:id/reading` | solo la lectura en prosa, sin velas |
+| `GET /api/sessions/stats` | cuánto se mueve el mercado en cada killzone |
+| `GET /api/study/patterns` | estudio de patrones a favor de la 4h |
+| `GET /api/calendar/events` | búsqueda en el calendario (texto, impacto, fechas) |
+| `GET`/`PUT` `/api/prefs/chart` | preferencias de presentación |
 | `GET /api/breakdown` | desglose por sesión, día, hora y dirección |
 | `GET /api/equity` | curva de capital |
 | `GET /api/behaviour` | reentradas rápidas tras pérdida y rachas |

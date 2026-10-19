@@ -5,10 +5,12 @@ import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { AUTO_INGEST, AUTO_INGEST_INTERVAL_MS, MARKET_UTC_OFFSET_HOURS, PORT } from '../config.js';
 import { startAutoIngest } from '../ingest/watch.js';
+import { db } from '../db/index.js';
 import {
   type Filter,
   bySession,
   byDay,
+  byWeekday,
   byDirection,
   byHour,
   equityCurve,
@@ -21,12 +23,26 @@ import { DEFAULT_REVIEW_CONFIG, flagImpact, reviewOperations } from '../domain/r
 import { barsBySymbol, refreshBars } from '../domain/bars.js';
 import { marketDate } from '../domain/sessions.js';
 import { replay } from '../domain/replay.js';
+import { patternReport } from '../domain/pattern.js';
+import { TIMEFRAMES, getChartPrefs, setChartPrefs } from '../domain/prefs.js';
+import { sessionStats } from '../domain/sessionStats.js';
+import { patternStudy } from '../domain/study.js';
+import { patternGrid } from '../domain/grid.js';
+import { accounts } from '../domain/metrics.js';
 import { allTags, getNote, saveNote, tagImpact } from '../domain/notes.js';
 import { applyCosts, costSummary, getCostSettings, setCostSettings } from '../domain/costs.js';
 import { excursionOf, excursionSummary } from '../domain/excursion.js';
 import { narrate } from '../domain/narrative.js';
 import { DEFAULT_SCRATCH, scratchReport } from '../domain/scratch.js';
-import { blackoutAt, calendarStatus, eventsBetween, newsImpact } from '../domain/calendar.js';
+import {
+  blackoutAt,
+  calendarStatus,
+  clearEvents,
+  eventsBetween,
+  newsImpact,
+  searchEvents,
+  upcomingHolidays,
+} from '../domain/calendar.js';
 import { ingestCalendar } from '../ingest/calendar.js';
 import { pruneContext, storageReport } from '../domain/storage.js';
 
@@ -53,8 +69,13 @@ await app.register(fastifyStatic, { root: webRoot });
 
 /**
  * Los filtros son los mismos en todos los endpoints, asi que se parsean una vez.
- * includeTests por defecto es false: las pruebas de plataforma distorsionan
- * cualquier metrica y solo deberian verse si se piden explicitamente.
+ *
+ * Por defecto entra TODO lo de la cuenta elegida. Antes se escondian las
+ * operaciones anteriores a `REAL_TRADING_SINCE`, pero esa fecha la elegi yo a
+ * ojo y resulto coincidir exactamente con un cambio de cuenta: la cuenta la
+ * dice el broker, asi que filtrar por ella es un hecho y filtrar por la fecha
+ * era una suposicion. Para dejar fuera un dia concreto de pruebas dentro de una
+ * misma cuenta estan el filtro de fechas y el calendario.
  */
 /**
  * Sobre que cifra se calculan las metricas. Neto por defecto: operar cuesta
@@ -64,6 +85,19 @@ function parseBasis(query: Record<string, unknown>): 'gross' | 'net' {
   return query.basis === 'gross' ? 'gross' : 'net';
 }
 
+/**
+ * El simbolo con mas velas capturadas.
+ *
+ * Los estudios se hacen sobre UN instrumento: mezclar MNQ con ENQ sumaria
+ * ticks que valen dinero distinto y rangos que no son comparables.
+ */
+function defaultSymbol(): string {
+  const row = db()
+    .prepare('SELECT symbol FROM bars GROUP BY symbol ORDER BY COUNT(*) DESC LIMIT 1')
+    .get() as { symbol: string } | undefined;
+  return row?.symbol ?? 'MNQZ26';
+}
+
 /** Operaciones ya con ticks, comision y neto aplicados. */
 function loadOperations(query: Record<string, unknown>) {
   return applyCosts(listOperations(parseFilter(query)), getCostSettings(), parseBasis(query));
@@ -71,10 +105,11 @@ function loadOperations(query: Record<string, unknown>) {
 
 function parseFilter(query: Record<string, unknown>): Filter {
   return {
-    includeTests: query.includeTests === 'true',
+    excludeTests: query.excludeTests === 'true',
     from: typeof query.from === 'string' ? query.from : undefined,
     to: typeof query.to === 'string' ? query.to : undefined,
     session: typeof query.session === 'string' ? query.session : undefined,
+    account: typeof query.account === 'string' && query.account ? query.account : undefined,
   };
 }
 
@@ -91,6 +126,12 @@ app.get('/api/operations', async (req) => {
 
   const direction = q.direction === 'LONG' || q.direction === 'SHORT' ? q.direction : null;
 
+  // Ganadoras / perdedoras se decide DESPUES de aplicar comisiones, no en la
+  // consulta: una operacion de +0,50 en bruto es perdedora en neto, y filtrar
+  // por el bruto ensenaria en verde algo que la tabla pinta en rojo. El cero va
+  // con las perdedoras: salir en plano no es ganar.
+  const result = q.result === 'win' || q.result === 'loss' ? q.result : null;
+
   // Varias sesiones separadas por coma. Lista vacia = sin filtrar, para que
   // deseleccionar el ultimo boton devuelva el listado completo en vez de dejarlo
   // en blanco.
@@ -103,6 +144,7 @@ app.get('/api/operations', async (req) => {
   const beforeDays = ordered
     .filter((o) => (q.onlyFlagged === 'true' ? (reviews.get(o.id)?.decisionAlerts ?? 0) > 0 : true))
     .filter((o) => (direction ? o.direction === direction : true))
+    .filter((o) => (result === 'win' ? o.gross_pnl > 0 : result === 'loss' ? o.gross_pnl <= 0 : true))
     .filter((o) => (sessions ? sessions.has(o.session) : true));
 
   // El catalogo de dias se saca ANTES de aplicar el filtro de dias. Si se sacara
@@ -166,6 +208,7 @@ app.get('/api/breakdown', async (req) => {
   return {
     bySession: bySession(ops),
     byDay: byDay(ops),
+    byWeekday: byWeekday(ops),
     byHour: byHour(ops),
     byDirection: byDirection(ops),
   };
@@ -181,6 +224,17 @@ app.get('/api/behaviour', async (req) => {
   const gap = q.gap ? Number(q.gap) : 2;
   return { ...revengeSplit(ops, gap), ...streaks(ops) };
 });
+
+/**
+ * Preferencias de presentacion. GET para leerlas, PUT para guardarlas.
+ *
+ * Se validan en el servidor y no en la pantalla: la pantalla es una de varias
+ * formas de llegar aqui, y un color invalido guardado una vez rompe el grafico
+ * en todas las sesiones siguientes.
+ */
+app.get('/api/prefs/chart', async () => getChartPrefs());
+
+app.put('/api/prefs/chart', async (req) => setChartPrefs(req.body as Record<string, unknown>));
 
 /** Todo de una vez, para que el dashboard cargue con una sola peticion. */
 app.get('/api/dashboard', async (req) => {
@@ -201,11 +255,15 @@ app.get('/api/dashboard', async (req) => {
     summary: { ...summarize(ops), ...streaks(ops) },
     bySession: bySession(ops),
     byDay: byDay(ops),
+    byWeekday: byWeekday(ops),
     byHour: byHour(ops),
     byDirection: byDirection(ops),
     equity: equityCurve(ops),
     behaviour: revengeSplit(ops, 2),
     flagImpact: flagImpact(ops, reviewOperations(ops)),
+    patterns: patternReport(ops),
+    accounts: accounts(),
+    chartPrefs: getChartPrefs(),
     range: ops.length ? { from: ops[0]!.opened_at, to: ops[ops.length - 1]!.opened_at } : null,
     count: ops.length,
   };
@@ -227,7 +285,24 @@ app.get('/api/operations/:id/replay', async (req, reply) => {
     return Number.isFinite(n) && n > 0 ? Math.min(n, max) : def;
   };
 
-  const data = replay(Number(id), clamp(q.before, 45, 600), clamp(q.after, 30, 600));
+  const prefs = getChartPrefs();
+
+  // La temporalidad manda sobre la ventana: pedir "180 velas" significa cosas
+  // muy distintas en 1m y en 4h, y lo que el usuario quiere ver siempre es un
+  // numero de velas, no un numero de minutos.
+  const tf = (TIMEFRAMES as readonly number[]).includes(Number(q.timeframe))
+    ? Number(q.timeframe)
+    : prefs.timeframe;
+
+  const candles = clamp(q.candles, prefs.candles, 1000);
+  const span = candles * tf;
+
+  const data = replay(
+    Number(id),
+    clamp(q.before, Math.round(span * prefs.beforeShare), 200_000),
+    clamp(q.after, Math.round(span * (1 - prefs.beforeShare)), 200_000),
+    tf,
+  );
   if (!data) return reply.code(404).send({ error: 'operacion no encontrada' });
 
   // La operacion se devuelve ya con ticks, comision y neto, y con el recorrido
@@ -245,6 +320,78 @@ app.get('/api/operations/:id/replay', async (req, reply) => {
 });
 
 /** Ajustes editables desde la propia aplicacion. */
+/**
+ * Solo la lectura en prosa de una operacion.
+ *
+ * Existe para no pedir el replay entero cuando lo unico que se quiere son las
+ * frases: la pestana de lectura no necesita ni una vela, y arrastrarlas hacia
+ * el navegador para tirarlas es gratis en 1m y carisimo en 4h.
+ */
+app.get('/api/operations/:id/reading', async (req, reply) => {
+  const { id } = req.params as { id: string };
+
+  const op = db().prepare('SELECT * FROM operations WHERE id = ?').get(Number(id)) as
+    | Parameters<typeof narrate>[0]
+    | undefined;
+
+  if (!op) return reply.code(404).send({ error: 'operacion no encontrada' });
+
+  const [enriched] = applyCosts([op as never], getCostSettings(), 'gross');
+  return narrate(enriched!);
+});
+
+/**
+ * Cuanto se mueve el mercado en cada killzone. No mide tus operaciones: mide
+ * las velas, asi que vale aunque no hayas operado nunca esa franja.
+ */
+app.get('/api/sessions/stats', async (req) => {
+  const q = req.query as Record<string, unknown>;
+  const symbol = typeof q.symbol === 'string' && q.symbol ? q.symbol : defaultSymbol();
+
+  return sessionStats(symbol, {
+    horizonMin: Number(q.horizonMin) || undefined,
+    stopPct: Number(q.stopPct) || undefined,
+    targetR: Number(q.targetR) || undefined,
+  });
+});
+
+/** Estudio de patrones a favor de la 4h sobre todo el historico de velas. */
+app.get('/api/study/patterns', async (req) => {
+  const q = req.query as Record<string, unknown>;
+  const symbol = typeof q.symbol === 'string' && q.symbol ? q.symbol : defaultSymbol();
+
+  const oneOf = <T extends string>(v: unknown, allowed: readonly T[], def: T): T =>
+    typeof v === 'string' && (allowed as readonly string[]).includes(v) ? (v as T) : def;
+
+  return patternStudy(symbol, {
+    timeframe: Number(q.timeframe) || 15,
+    targetTicks: Number(q.targetTicks) || 40,
+    horizonMin: Number(q.horizonMin) || 60,
+    trendMinutes: Number(q.trendMinutes) || 240,
+    trendLookback: Number(q.trendLookback) || 6,
+    trendMode: oneOf(q.trendMode, ['rango', 'emas'] as const, 'rango'),
+    retest: oneOf(q.retest, ['ninguno', 'ema8', 'ema21', 'cualquiera'] as const, 'ninguno'),
+    requireStack: q.requireStack === 'true',
+    stopMode: oneOf(q.stopMode, ['fijo', 'estructural'] as const, 'fijo'),
+    targetR: Number(q.targetR) || 2,
+  });
+});
+
+/**
+ * Todas las combinaciones de patron, temporalidad, tendencia y sentido, con la
+ * correccion por numero de pruebas incluida.
+ */
+app.get('/api/study/grid', async (req) => {
+  const q = req.query as Record<string, unknown>;
+  const symbol = typeof q.symbol === 'string' && q.symbol ? q.symbol : defaultSymbol();
+
+  return patternGrid(symbol, {
+    targetTicks: Number(q.targetTicks) || 40,
+    horizonMin: Number(q.horizonMin) || 60,
+    minSamples: Number(q.minSamples) || 120,
+  });
+});
+
 app.get('/api/settings', async () => getCostSettings());
 
 app.put('/api/settings', async (req) => {
@@ -283,6 +430,35 @@ app.get('/api/calendar', async (req) => {
 
 /** Relee la carpeta de calendarios. Se llama al pulsar "importar" en la pagina. */
 app.post('/api/calendar/import', async () => ingestCalendar());
+
+/**
+ * Busqueda sobre el calendario: texto, impacto, fechas y paginas.
+ *
+ * Endpoint aparte y no dentro de `/api/dashboard` a proposito: los filtros de
+ * la cabecera (cuenta, sesion, base) son de OPERACIONES y no tienen nada que
+ * ver con los eventos economicos. Mezclarlos haria que elegir una cuenta
+ * cambiara el calendario, que es justo lo que no debe pasar.
+ */
+app.get('/api/calendar/events', async (req) => {
+  const q = req.query as Record<string, unknown>;
+  const str = (v: unknown) => (typeof v === 'string' && v.length > 0 ? v : undefined);
+
+  return searchEvents({
+    q: str(q.q),
+    impact: q.impact === 'high' || q.impact === 'medium' || q.impact === 'low' ? q.impact : undefined,
+    from: str(q.from),
+    to: str(q.to),
+    page: Number(q.page) || 1,
+    pageSize: Number(q.pageSize) || 25,
+    includePast: q.includePast === 'true',
+  });
+});
+
+/** Festivos y medias sesiones que vienen. */
+app.get('/api/calendar/holidays', async () => upcomingHolidays());
+
+/** Vacia el calendario. Se recupera reimportando los ficheros, que siguen ahi. */
+app.delete('/api/calendar/events', async () => clearEvents());
 
 /** Si un instante concreto cae dentro de una ventana de noticia. */
 app.get('/api/calendar/blackout', async (req) => {

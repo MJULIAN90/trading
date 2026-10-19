@@ -4,6 +4,10 @@ test-fixtures/
 web/
 *.log
 
+# El lanzador de la barra de tareas, que compila scripts\anclar-a-la-barra.cmd
+# en cada maquina. Es un binario generado, no codigo fuente.
+*.exe
+
 # Configuracion de ESTA maquina: rutas y puertos. El .env.example es la
 # plantilla que si se comparte.
 .env

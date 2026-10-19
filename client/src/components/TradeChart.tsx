@@ -1,6 +1,6 @@
 import { createChart, ColorType, CrosshairMode, type IChartApi, type ISeriesApi, type UTCTimestamp } from 'lightweight-charts';
 import { useEffect, useRef, useState } from 'react';
-import type { Replay } from '../api';
+import type { ChartPrefs, Replay } from '../api';
 import { marketOffsetAt } from '../format';
 
 /**
@@ -47,8 +47,45 @@ function toChartTime(ms: number): UTCTimestamp {
   return Math.floor((ms + marketOffsetAt(ms) * 3600_000) / 1000) as UTCTimestamp;
 }
 
-export function TradeChart({ data, offsetHours }: { data: Replay; offsetHours: number }) {
-  const [showSessions, setShowSessions] = useState(true);
+/**
+ * Media movil exponencial sobre los cierres.
+ *
+ * Se calcula sobre las velas que se estan VIENDO, no sobre las de un minuto:
+ * una EMA de 21 en un grafico de 4 horas es otra linea completamente distinta
+ * de una EMA de 21 en uno de un minuto, y es la primera la que se mira cuando
+ * se cambia a 4h. Las primeras `period` velas no tienen media fiable y se
+ * dejan sin dibujar en vez de rellenarlas con el precio: una linea que arranca
+ * pegada a la vela y se va separando parece una senal y no lo es.
+ */
+function ema(values: number[], period: number): Array<number | null> {
+  const out: Array<number | null> = new Array(values.length).fill(null);
+  if (values.length < period) return out;
+
+  const k = 2 / (period + 1);
+  let acc = 0;
+  for (let i = 0; i < period; i++) acc += values[i]!;
+
+  let prev = acc / period;
+  out[period - 1] = prev;
+
+  for (let i = period; i < values.length; i++) {
+    prev = values[i]! * k + prev * (1 - k);
+    out[i] = prev;
+  }
+
+  return out;
+}
+
+export function TradeChart({
+  data,
+  offsetHours,
+  prefs,
+}: {
+  data: Replay;
+  offsetHours: number;
+  prefs: ChartPrefs;
+}) {
+  const [showSessions, setShowSessions] = useState(prefs.showSessions);
   const box = useRef<HTMLDivElement | null>(null);
   const chartRef = useRef<IChartApi | null>(null);
 
@@ -105,6 +142,36 @@ export function TradeChart({ data, offsetHours }: { data: Replay; offsetHours: n
     });
 
     chart.priceScale('delta').applyOptions({ scaleMargins: { top: 0.82, bottom: 0 } });
+
+    // Las EMAs van en la MISMA escala que las velas, sin marcador en el eje:
+    // cuatro etiquetas de precio mas a la derecha tapan la de entrada y la de
+    // salida, que son las dos que de verdad se consultan.
+    const closes = data.bars.map((b) => b.c);
+
+    for (const e of prefs.emas) {
+      if (!e.on) continue;
+
+      const values = ema(closes, e.period);
+      if (values.every((v) => v === null)) continue;
+
+      const line = chart.addLineSeries({
+        color: e.color,
+        lineWidth: 1,
+        priceLineVisible: false,
+        lastValueVisible: false,
+        crosshairMarkerVisible: false,
+        // Sin `title`: lightweight-charts pinta el titulo como etiqueta en el
+        // eje de precios, y cuatro etiquetas mas tapan las de entrada y salida,
+        // que son las dos que de verdad se consultan. Que EMA es cada una se
+        // dice en la leyenda de abajo, con su color.
+      });
+
+      line.setData(
+        data.bars
+          .map((b, i) => ({ time: toChartTime(b.ts), value: values[i] }))
+          .filter((p): p is { time: UTCTimestamp; value: number } => p.value !== null),
+      );
+    }
 
     candles.setData(
       data.bars.map((b) => ({
@@ -293,7 +360,11 @@ export function TradeChart({ data, offsetHours }: { data: Replay; offsetHours: n
       chart.remove();
       chartRef.current = null;
     };
-  }, [data, offsetHours, showSessions]);
+    // `prefs` entra por contenido y no por identidad: el grafico entero se
+    // reconstruye en cada cambio de esta lista, y con la identidad del objeto se
+    // redibujaba en cada refresco, perdiendo el zoom y el desplazamiento.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data, offsetHours, showSessions, JSON.stringify(prefs.emas)]);
 
   if (data.bars.length === 0) {
     return (
@@ -314,9 +385,32 @@ export function TradeChart({ data, offsetHours }: { data: Replay; offsetHours: n
           killzones
         </label>
         {' · '}
-        {data.bars.length} velas de {data.symbol} · ventana {data.coverage.before} min antes y{' '}
-        {data.coverage.after} despues
-        {data.coverage.found < data.coverage.expected * 0.7 && (
+        {data.bars.length} velas de {data.timeframe >= 60 ? `${data.timeframe / 60}h` : `${data.timeframe}m`} ·{' '}
+        {data.symbol}
+        {prefs.emas.some((e) => e.on) && (
+          <>
+            {' · '}
+            {prefs.emas
+              .filter((e) => e.on)
+              .map((e) => {
+                // Una EMA de 200 sobre 113 velas no se puede calcular. Se dice
+                // en vez de dejar la linea sin aparecer y que parezca un fallo.
+                const faltan = data.bars.length < e.period;
+                return (
+                  <span key={e.period} className={`ema-tag${faltan ? ' off' : ''}`}>
+                    <i style={{ background: e.color }} />
+                    {e.period}
+                    {faltan && ' (faltan velas)'}
+                  </span>
+                );
+              })}
+          </>
+        )}
+        {/* El umbral es bajo a proposito. La ventana se mide en tiempo de reloj
+            y el mercado para una hora al dia y los fines de semana, asi que
+            tener la mitad de las velas "esperadas" es lo normal en una ventana
+            larga. Solo por debajo de un tercio hay de verdad un hueco. */}
+        {data.coverage.found < data.coverage.expected * 0.33 && (
           <> · <span style={{ color: '#f1c40f' }}>faltan velas en la captura de ese tramo</span></>
         )}
       </div>

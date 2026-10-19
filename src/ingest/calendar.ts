@@ -2,6 +2,39 @@ import { existsSync, readFileSync, readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { CALENDAR_DIR, CALENDAR_TZ_OFFSET_HOURS } from '../config.js';
 import { db } from '../db/index.js';
+import { marketOffsetAt } from '../domain/clock.js';
+import { importInvestingJson } from './investing.js';
+
+/**
+ * Hora local de Nueva York a UTC, RESPETANDO EL CAMBIO DE HORA.
+ *
+ * Este era un fallo de verdad y explica los eventos duplicados con una hora de
+ * diferencia que llevabamos arrastrando. El desfase estaba fijo en -4, que solo
+ * vale de marzo a noviembre: un dato de enero entraba una hora antes de cuando
+ * ocurre, y el MISMO evento importado desde dos ficheros distintos acababa en
+ * dos filas, porque el identificador lleva la hora dentro.
+ *
+ * Las webs de calendario exportan en hora de Nueva York, que cambia dos veces
+ * al ano. Lo correcto es preguntar el desfase PARA ESA FECHA, y eso es justo lo
+ * que hace el resto del diario con marketOffsetAt.
+ *
+ * Hay un huevo y la gallina: para saber el desfase hace falta el instante, y
+ * para el instante hace falta el desfase. Se resuelve en dos pasos — una
+ * estimacion y una correccion — que solo puede fallar en la hora exacta del
+ * cambio, de madrugada un domingo, cuando no hay datos economicos.
+ *
+ * Si el usuario fija CALENDAR_TZ_OFFSET_HOURS a algo distinto de -4 (que es el
+ * valor por defecto, es decir "no lo he tocado"), manda lo que diga: su
+ * calendario puede venir de otra zona.
+ */
+function localToUtc(wallClockUtc: number): number {
+  if (CALENDAR_TZ_OFFSET_HOURS !== -4) {
+    return wallClockUtc - CALENDAR_TZ_OFFSET_HOURS * 3600_000;
+  }
+
+  const estimado = wallClockUtc - marketOffsetAt(wallClockUtc) * 3600_000;
+  return wallClockUtc - marketOffsetAt(estimado) * 3600_000;
+}
 
 /**
  * Importa el calendario economico desde ficheros que dejas en una carpeta.
@@ -63,9 +96,9 @@ function parseIcsDate(value: string): { ts: number; floating: boolean } | null {
   const utc = Date.UTC(Number(y), Number(mo) - 1, Number(d), Number(h), Number(mi), Number(s));
 
   return {
-    // Con Z la hora ya es UTC y no se toca. Sin Z hay que restar el desfase
-    // para pasar de hora local a UTC.
-    ts: z ? utc : utc - CALENDAR_TZ_OFFSET_HOURS * 3600_000,
+    // Con Z la hora ya es UTC y no se toca. Sin Z es hora local y hay que
+    // convertirla teniendo en cuenta si esa fecha cae en horario de verano.
+    ts: z ? utc : localToUtc(utc),
     floating: !z,
   };
 }
@@ -255,7 +288,7 @@ function parseCsvDateTime(date: string, time: string): number | null {
   const t = /^(\d{1,2}):(\d{2})/.exec(time.trim());
   if (t) { h = Number(t[1]); mi = Number(t[2]); }
 
-  const ts = Date.UTC(y, mo - 1, d, h, mi) - CALENDAR_TZ_OFFSET_HOURS * 3600_000;
+  const ts = localToUtc(Date.UTC(y, mo - 1, d, h, mi));
   return Number.isFinite(ts) ? ts : null;
 }
 
@@ -271,17 +304,32 @@ export interface CalendarIngestResult {
   dir: string;
   /** Desfase aplicado a las horas sin zona, para poder comprobarlo. */
   tzOffsetHours: number;
+  /** Festivos y medias sesiones leidos del JSON de Investing. */
+  holidays: number;
+  /** Ocurrencias de Investing que aun no tienen nombre: falta el catalogo. */
+  unnamed: number;
+  /** Entradas de catalogo aplicadas. */
+  named: number;
 }
 
 export function ingestCalendar(dir: string = CALENDAR_DIR): CalendarIngestResult {
   const result: CalendarIngestResult = {
     files: 0, read: 0, added: 0, skipped: 0, floating: 0, dir,
     tzOffsetHours: CALENDAR_TZ_OFFSET_HOURS,
+    holidays: 0, unnamed: 0, named: 0,
   };
+
+  // Los eventos marcados como 'prueba' son datos SINTETICOS que se generaron
+  // para tener algo que ensenar en la pantalla mientras se construia el panel.
+  // No son reales: repiten CPI y FOMC cada dos o tres dias, cosa que no ocurre.
+  // Se borran en cuanto hay una importacion de verdad para que no convivan con
+  // los datos buenos, que es como se acaba tomando una decision con un dato
+  // inventado.
+  db().prepare("DELETE FROM economic_events WHERE source = 'prueba'").run();
 
   if (!existsSync(dir) || !statSync(dir).isDirectory()) return result;
 
-  const files = readdirSync(dir).filter((f) => /\.(ics|csv)$/i.test(f));
+  const files = readdirSync(dir).filter((f) => /\.(ics|csv|json)$/i.test(f));
   if (files.length === 0) return result;
 
   const target = db();
@@ -324,6 +372,19 @@ export function ingestCalendar(dir: string = CALENDAR_DIR): CalendarIngestResult
     try {
       text = readFileSync(join(dir, file), 'utf8');
     } catch {
+      continue;
+    }
+
+    // El JSON de Investing va por su cuenta: trae prevision, dato anterior y
+    // festivos, que no caben en la forma plana de un ICS. Y sus horas ya vienen
+    // en UTC, asi que no pasa por la conversion de zona de aqui.
+    if (/\.json$/i.test(file)) {
+      const inv = importInvestingJson(text, file);
+      result.read += inv.occurrences;
+      result.skipped += inv.skipped;
+      result.holidays += inv.holidays;
+      result.unnamed += inv.unnamed;
+      result.named += inv.catalogue;
       continue;
     }
 

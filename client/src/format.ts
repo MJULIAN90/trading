@@ -55,6 +55,49 @@ export const pct = (n: number) => `${(n * 100).toFixed(0)}%`;
 export const ticks = (n: number) =>
   `${n > 0 ? '+' : ''}${n.toLocaleString('es', { maximumFractionDigits: 1 })}`;
 
+/**
+ * Una DISTANCIA en ticks, sin signo.
+ *
+ * Existe aparte de `ticks` por un motivo que costo una ronda de confusion: el
+ * signo de `ticks` esta pensado para un RESULTADO, y pegado a un stop o a un
+ * objetivo se lee como dinero ganado. Un stop de 167 ticks escrito "+167"
+ * parece una ganancia. Una distancia no tiene signo.
+ */
+export const dist = (n: number) =>
+  Math.abs(n).toLocaleString('es', { maximumFractionDigits: 1 });
+
+export type Unit = 'ticks' | 'puntos' | 'dolares';
+
+export const UNIT_LABEL: Record<Unit, string> = {
+  ticks: 'ticks',
+  puntos: 'puntos',
+  dolares: '$ por contrato',
+};
+
+/**
+ * Convierte una distancia en ticks a la unidad elegida y la escribe.
+ *
+ * El dinero es siempre por UN contrato. Multiplicar por el tamano de la
+ * posicion es decision de quien lee, y meterlo aqui volveria a esconder la
+ * unidad, que es justo lo que se quiere evitar.
+ */
+export function inUnit(t: number, unit: Unit, tickSize: number, tickValue: number): string {
+  if (unit === 'puntos')
+    return (Math.abs(t) * tickSize).toLocaleString('es', { maximumFractionDigits: 2 });
+  if (unit === 'dolares')
+    return (Math.abs(t) * tickValue).toLocaleString('es', {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
+  return dist(t);
+}
+
+/** Lo mismo, pero conservando el signo: para resultados y esperanzas. */
+export function signedInUnit(t: number, unit: Unit, tickSize: number, tickValue: number): string {
+  const sign = t > 0 ? '+' : t < 0 ? '-' : '';
+  return `${sign}${inUnit(t, unit, tickSize, tickValue)}`;
+}
+
 export const signClass = (n: number) => (n > 0 ? 'pos' : n < 0 ? 'neg' : '');
 
 export function duration(seconds: number): string {

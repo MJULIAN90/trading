@@ -1,7 +1,18 @@
 import { useEffect, useState } from 'react';
-import { api, type Filters, type Narrative, type Operation, type Page, type Replay } from '../api';
+import {
+  api,
+  TIMEFRAMES,
+  timeframeLabel,
+  type ChartPrefs,
+  type Filters,
+  type Narrative,
+  type Operation,
+  type Page,
+  type Replay,
+} from '../api';
 import { dateTime, duration, num, sessionLabel, signClass, ticks } from '../format';
 import { DayCalendar } from './DayCalendar';
+import { Diagnosis } from './Diagnosis';
 import { TradeChart } from './TradeChart';
 import { TradeNotes } from './TradeNotes';
 import { TrendStrip } from './TrendStrip';
@@ -43,35 +54,60 @@ function orderFlags(op: Operation) {
   });
 }
 
-function Replayer({ id, offsetHours }: { id: number; offsetHours: number }) {
-  const [before, setBefore] = useState(45);
-  const [after, setAfter] = useState(30);
+function Replayer({
+  id,
+  offsetHours,
+  prefs,
+}: {
+  id: number;
+  offsetHours: number;
+  prefs: ChartPrefs;
+}) {
+  // La temporalidad arranca en la de los ajustes, pero se puede cambiar sin
+  // guardarla: mirar una operacion en 4h un momento no deberia cambiar como se
+  // abren todas las demas a partir de ahora.
+  const [timeframe, setTimeframe] = useState(prefs.timeframe);
+  const [candles, setCandles] = useState(prefs.candles);
   const [data, setData] = useState<Replay | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  // Depende de los VALORES, no del objeto: si dependiera del objeto, cualquier
+  // recarga del panel —aunque los ajustes no hubieran cambiado— devolveria el
+  // grafico a su temporalidad por defecto mientras lo estas mirando.
+  useEffect(() => { setTimeframe(prefs.timeframe); }, [prefs.timeframe]);
+  useEffect(() => { setCandles(prefs.candles); }, [prefs.candles]);
 
   useEffect(() => {
     let cancelled = false;
     setData(null);
     api
-      .replay(id, before, after)
+      .replay(id, timeframe, candles)
       .then((d) => { if (!cancelled) { setData(d); setError(null); } })
       .catch((e: Error) => { if (!cancelled) setError(e.message); });
     return () => { cancelled = true; };
-  }, [id, before, after]);
+  }, [id, timeframe, candles]);
 
   return (
     <div className="replay">
       <div className="filters" style={{ marginBottom: 8 }}>
+        <div className="tf-switch">
+          {TIMEFRAMES.map((t) => (
+            <button key={t} className={timeframe === t ? 'on' : ''} onClick={() => setTimeframe(t)}>
+              {timeframeLabel(t)}
+            </button>
+          ))}
+        </div>
         <label>
-          antes
-          <select value={before} onChange={(e) => setBefore(Number(e.target.value))}>
-            {[15, 30, 45, 90, 180, 360].map((n) => <option key={n} value={n}>{n} min</option>)}
-          </select>
-        </label>
-        <label>
-          despues
-          <select value={after} onChange={(e) => setAfter(Number(e.target.value))}>
-            {[5, 15, 30, 60, 120].map((n) => <option key={n} value={n}>{n} min</option>)}
+          velas
+          {/* La lista incluye SIEMPRE el valor actual, aunque no sea uno de los
+              de siempre. Un <select> cuyo valor no coincide con ninguna opcion
+              ensena la primera: con 250 guardado en los ajustes, el desplegable
+              decia 60 mientras el grafico pedia 250. Mentia sobre lo que
+              estabas viendo. */}
+          <select value={candles} onChange={(e) => setCandles(Number(e.target.value))}>
+            {[...new Set([60, 120, 180, 300, 500, candles])]
+              .sort((a, b) => a - b)
+              .map((n) => <option key={n} value={n}>{n}</option>)}
           </select>
         </label>
         {data?.excursion && data.excursion.mae !== null && (
@@ -85,8 +121,9 @@ function Replayer({ id, offsetHours }: { id: number; offsetHours: number }) {
 
       {error && <div className="error">No se pudo cargar el grafico: {error}</div>}
       {!error && !data && <div className="empty">cargando grafico...</div>}
-      {data && <TradeChart data={data} offsetHours={offsetHours} />}
-      {data && <TrendStrip trend={data.trend} direction={String(data.operation.direction)} />}
+      {data && <TradeChart data={data} offsetHours={offsetHours} prefs={prefs} />}
+      {data && <TrendStrip trend={data.trend} pattern={data.pattern} direction={String(data.operation.direction)} />}
+      {data && <Diagnosis data={data} />}
     </div>
   );
 }
@@ -220,17 +257,19 @@ function ExcursionNote({ op }: { op: Operation }) {
   return null;
 }
 
-function Detail({ op, offsetHours }: { op: Operation; offsetHours: number }) {
+function Detail({ op, offsetHours, prefs }: { op: Operation; offsetHours: number; prefs: ChartPrefs }) {
   const [tab, setTab] = useState<'grafico' | 'lectura' | 'numeros' | 'notas' | 'observaciones'>('grafico');
   const [reading, setReading] = useState<Narrative | null>(null);
   const flags = orderFlags(op);
 
-  // La lectura viaja con el replay, asi que se pide una sola vez por operacion
-  // y no al abrir cada pestana.
+  // Endpoint propio, minimo. Antes esto se traia el replay ENTERO —todas las
+  // velas, la tendencia, el patron— para quedarse solo con la narrativa y tirar
+  // el resto. Con 300 velas de 4h eso son decenas de miles de velas de un
+  // minuto pedidas dos veces por cada operacion que abres.
   useEffect(() => {
     let cancelled = false;
     setReading(null);
-    api.replay(op.id).then((d) => { if (!cancelled) setReading(d.narrative); }).catch(() => {});
+    api.reading(op.id).then((d) => { if (!cancelled) setReading(d); }).catch(() => {});
     return () => { cancelled = true; };
   }, [op.id]);
 
@@ -258,7 +297,7 @@ function Detail({ op, offsetHours }: { op: Operation; offsetHours: number }) {
 
       {/* La clave fuerza a React a reconstruir el grafico al cambiar de
           operacion, en vez de reutilizar el anterior con datos nuevos. */}
-      {tab === 'grafico' && <Replayer key={op.id} id={op.id} offsetHours={offsetHours} />}
+      {tab === 'grafico' && <Replayer key={op.id} id={op.id} offsetHours={offsetHours} prefs={prefs} />}
       {tab === 'lectura' && (reading ? <Reading narrative={reading} /> : <div className="empty">leyendo la operacion...</div>)}
       {tab === 'numeros' && <Numbers op={op} />}
       {tab === 'notas' && <TradeNotes key={op.id} operationId={op.id} />}
@@ -283,7 +322,15 @@ function Detail({ op, offsetHours }: { op: Operation; offsetHours: number }) {
   );
 }
 
-export function Operations({ filters, offsetHours = -4 }: { filters: Filters; offsetHours?: number }) {
+export function Operations({
+  filters,
+  offsetHours = -4,
+  prefs,
+}: {
+  filters: Filters;
+  offsetHours?: number;
+  prefs: ChartPrefs;
+}) {
   const [page, setPage] = useState(1);
   // 15 por defecto: con esa cantidad el listado entra entero sin barra de
   // scroll, y una pagina que se ve de un vistazo se repasa; una de cincuenta
@@ -291,6 +338,9 @@ export function Operations({ filters, offsetHours = -4 }: { filters: Filters; of
   const [pageSize, setPageSize] = useState(15);
   const [onlyFlagged, setOnlyFlagged] = useState(false);
   const [direction, setDirection] = useState<'' | 'LONG' | 'SHORT'>('');
+  // Ganadoras / perdedoras. Se decide sobre el NETO, igual que lo que pinta la
+  // tabla, no sobre el bruto.
+  const [result, setResult] = useState<'' | 'win' | 'loss'>('');
   // Sesiones en multiple: comparar "NY AM contra NY PM" es una pregunta normal,
   // y con un desplegable de una sola opcion habria que mirarlas por separado y
   // sumar de cabeza.
@@ -302,7 +352,7 @@ export function Operations({ filters, offsetHours = -4 }: { filters: Filters; of
 
   // Cambiar filtros reinicia la paginacion: quedarse en la pagina 7 de un
   // listado que ahora tiene 2 no muestra nada y parece un fallo.
-  useEffect(() => { setPage(1); }, [filters, onlyFlagged, pageSize, direction, sessions, days]);
+  useEffect(() => { setPage(1); }, [filters, onlyFlagged, pageSize, direction, result, sessions, days]);
 
   useEffect(() => {
     let cancelled = false;
@@ -312,6 +362,7 @@ export function Operations({ filters, offsetHours = -4 }: { filters: Filters; of
           ...filters,
           onlyFlagged,
           direction: direction || undefined,
+          result: result || undefined,
           // El filtro de la cabecera sigue mandando si esta puesto; estos
           // botones son para afinar dentro de lo que ya se esta mirando.
           sessions: sessions.length ? sessions : undefined,
@@ -330,7 +381,7 @@ export function Operations({ filters, offsetHours = -4 }: { filters: Filters; of
       })
       .catch((e: Error) => { if (!cancelled) setError(e.message); });
     return () => { cancelled = true; };
-  }, [filters, page, pageSize, onlyFlagged, direction, sessions, days]);
+  }, [filters, page, pageSize, onlyFlagged, direction, result, sessions, days]);
 
   if (error) return <div className="error">No se pudo cargar: {error}</div>;
   if (!data) return <div className="empty">cargando...</div>;
@@ -349,6 +400,18 @@ export function Operations({ filters, offsetHours = -4 }: { filters: Filters; of
               key={v}
               className={`${direction === v ? 'on' : ''} ${v === 'LONG' ? 'buy' : v === 'SHORT' ? 'sell' : ''}`}
               onClick={() => setDirection(v)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+
+        <div className="side-filter">
+          {([['', 'Todas'], ['win', 'Ganadoras'], ['loss', 'Perdedoras']] as const).map(([v, label]) => (
+            <button
+              key={v}
+              className={`${result === v ? 'on' : ''} ${v === 'win' ? 'buy' : v === 'loss' ? 'sell' : ''}`}
+              onClick={() => setResult(v)}
             >
               {label}
             </button>
@@ -454,7 +517,7 @@ export function Operations({ filters, offsetHours = -4 }: { filters: Filters; of
       </div>
 
       {current ? (
-        <Detail op={current} offsetHours={offsetHours} />
+        <Detail op={current} offsetHours={offsetHours} prefs={prefs} />
       ) : (
         <div className="detail"><div className="empty">selecciona una operacion</div></div>
       )}

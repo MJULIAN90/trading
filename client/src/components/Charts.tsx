@@ -87,6 +87,57 @@ export function EquityChart({ points }: { points: Dashboard['equity'] }) {
  * Barras divergentes alrededor del cero. El color refuerza el signo, que ademas
  * va escrito al lado de cada barra: la identidad nunca depende solo del color.
  */
+/**
+ * El mismo grafico de barras, pero quedandose con los N ultimos grupos.
+ *
+ * Existe para la vista por fecha, que es la unica que crece sin tope: hoy son
+ * siete dias y dentro de un ano son doscientos cincuenta, y un grafico de
+ * doscientas cincuenta barras no se lee. Se muestran los mas RECIENTES, que
+ * son los que importan, y el selector permite abrir la ventana cuando hace
+ * falta mirar atras.
+ *
+ * No lleva paginacion a proposito: pasar paginas hacia atras en un grafico de
+ * barras obliga a recordar lo de la pagina anterior para comparar. Alargar la
+ * ventana enseña todo junto, que es como se compara de verdad.
+ */
+export function RecentBarsChart({
+  rows,
+  label,
+  defaultCount = 7,
+}: {
+  rows: Group[];
+  label: (k: string | number) => string;
+  defaultCount?: number;
+}) {
+  const [count, setCount] = useState(defaultCount);
+
+  const total = rows.length;
+  const shown = count >= total ? rows : rows.slice(total - count);
+
+  return (
+    <>
+      <div className="filters" style={{ marginBottom: 8 }}>
+        <label>
+          Ultimos
+          <select value={count} onChange={(e) => setCount(Number(e.target.value))}>
+            {[7, 14, 30, 60, 90].map((n) => (
+              <option key={n} value={n}>{n} dias</option>
+            ))}
+            <option value={100000}>todos</option>
+          </select>
+        </label>
+        <span className="note">
+          {total <= count
+            ? `${total} con operaciones`
+            : `mostrando ${shown.length} de ${total} con operaciones`}
+        </span>
+      </div>
+
+      <BarsChart rows={shown} label={label} />
+    </>
+  );
+}
+
 export function BarsChart({ rows, label }: { rows: Group[]; label: (k: string | number) => string }) {
   const [tip, setTip] = useState<Tip | null>(null);
   if (!rows.length) return <div className="empty">sin datos</div>;

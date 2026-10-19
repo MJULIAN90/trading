@@ -16,25 +16,37 @@ export interface Operation {
   session: string;
   market_hour: number;
   is_real: number;
+  account_id: string | null;
 }
 
 export interface Filter {
-  /** Incluir las operaciones marcadas como pruebas de plataforma. */
-  includeTests?: boolean;
+  /**
+   * Dejar fuera las operaciones marcadas como prueba por la fecha de corte.
+   * Por defecto entran TODAS: quien separa ahora el material es el selector de
+   * cuenta, que dice lo que dijo el broker en vez de una fecha elegida a mano.
+   */
+  excludeTests?: boolean;
   from?: string;
   to?: string;
   session?: string;
+  /** Cuenta del broker. Vacio = todas. */
+  account?: string;
 }
 
 export function listOperations(f: Filter = {}): Operation[] {
   const where: string[] = [];
   const params: unknown[] = [];
 
-  if (!f.includeTests) where.push('is_real = 1');
+  if (f.excludeTests) where.push('is_real = 1');
   if (f.session) {
     where.push('session = ?');
     params.push(f.session);
   }
+  if (f.account) {
+    where.push('account_id = ?');
+    params.push(f.account);
+  }
+
 
   const rows = db()
     .prepare(
@@ -124,6 +136,28 @@ export function byDay(ops: Operation[]) {
   return groupBy(ops, (o) => marketDate(o.opened_at)).sort((a, b) => String(a.key).localeCompare(String(b.key)));
 }
 
+/**
+ * Por dia de la SEMANA, no por fecha.
+ *
+ * `byDay` ya agrupa por fecha, que sirve para repasar una jornada concreta
+ * pero no para ver un habito: con 128 operaciones repartidas en 7 fechas no
+ * hay nada que comparar. Agrupando por lunes, martes... se ve si hay un dia
+ * que sistematicamente va peor, igual que `byHour` enseña la hora mala.
+ *
+ * El dia se saca en HORA DE MERCADO, no en la del navegador: una operacion de
+ * las once de la noche de un lunes en Colombia es martes en el grafico, y
+ * contarla en el dia equivocado es justo el error que esta tabla buscaria.
+ */
+export function byWeekday(ops: Operation[]) {
+  return groupBy(ops, (o) => {
+    const d = marketDate(o.opened_at);
+    // marketDate devuelve YYYY-MM-DD ya desplazado; se interpreta a mediodia
+    // UTC para que ningun desfase lo mueva de dia al construir la fecha.
+    const [y, m, day] = d.split('-').map(Number);
+    return new Date(Date.UTC(y!, m! - 1, day!, 12)).getUTCDay();
+  }).sort((a, b) => Number(a.key) - Number(b.key));
+}
+
 export function byHour(ops: Operation[]) {
   return groupBy(ops, (o) => Math.floor(marketHour(o.opened_at))).sort((a, b) => Number(a.key) - Number(b.key));
 }
@@ -200,4 +234,32 @@ export function streaks(ops: Operation[]) {
   }
 
   return { maxWinStreak: maxWin, maxLossStreak: maxLoss };
+}
+
+export interface AccountInfo {
+  id: string;
+  operations: number;
+  /** Primera y ultima operacion de la cuenta, en epoch ms. */
+  from: number;
+  to: number;
+}
+
+/**
+ * Cuentas presentes en la base, para poder elegir una en el panel.
+ *
+ * Se listan SIEMPRE todas, tambien las que solo tienen operaciones marcadas
+ * como prueba: si el selector escondiera una cuenta entera porque su fecha cae
+ * antes del corte, no habria forma de llegar a ella para mirarla.
+ */
+export function accounts(): AccountInfo[] {
+  return db()
+    .prepare(
+      `SELECT account_id AS id, COUNT(*) AS operations,
+              MIN(opened_at) AS "from", MAX(opened_at) AS "to"
+         FROM operations
+        WHERE account_id IS NOT NULL
+        GROUP BY account_id
+        ORDER BY MAX(opened_at) DESC`,
+    )
+    .all() as AccountInfo[];
 }

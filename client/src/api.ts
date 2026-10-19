@@ -76,6 +76,27 @@ export interface EconomicEvent {
   currency: string | null;
   source: string | null;
   detail: string | null;
+  forecast: number | null;
+  previous: number | null;
+  actual: number | null;
+  unit: string | null;
+  precision_digits: number | null;
+  preliminary: number | null;
+  reference_period: string | null;
+  previous_revised_from: number | null;
+  revision: string | null;
+  event_key: string | null;
+}
+
+export interface MarketHoliday {
+  id: string;
+  exchange: string;
+  name: string;
+  day: string;
+  from_ts: number;
+  to_ts: number;
+  full_day: number;
+  source: string | null;
 }
 
 export interface CalendarStatus {
@@ -169,11 +190,15 @@ export interface Dashboard {
   summary: Summary;
   bySession: Group[];
   byDay: Group[];
+  byWeekday: Group[];
   byHour: Group[];
   byDirection: Group[];
   equity: Array<{ ts: number; pnl: number; equity: number }>;
   behaviour: { maxGapMinutes: number; revenge: Summary; rest: Summary };
   flagImpact: FlagImpact[];
+  patterns: PatternReport;
+  accounts: Array<{ id: string; operations: number; from: number; to: number }>;
+  chartPrefs: ChartPrefs;
   count: number;
 }
 
@@ -200,6 +225,45 @@ export interface Narrative {
   takeaway: string | null;
 }
 
+export interface EventPage {
+  items: EconomicEvent[];
+  total: number;
+  page: number;
+  pages: number;
+  grandTotal: number;
+}
+
+export interface EventQuery {
+  q?: string;
+  impact?: string;
+  from?: string;
+  to?: string;
+  page?: number;
+  pageSize?: number;
+  /** Incluir lo que ya ocurrio. Por defecto el servidor lo oculta. */
+  includePast?: boolean;
+}
+
+export interface EmaSetting {
+  period: number;
+  color: string;
+  on: boolean;
+}
+
+export interface ChartPrefs {
+  timeframe: number;
+  candles: number;
+  beforeShare: number;
+  emas: EmaSetting[];
+  showSessions: boolean;
+}
+
+export const TIMEFRAMES = [1, 5, 15, 60, 240] as const;
+
+export function timeframeLabel(minutes: number): string {
+  return minutes >= 60 ? `${minutes / 60}h` : `${minutes}m`;
+}
+
 export interface TrendRead {
   label: 'ALCISTA' | 'BAJISTA' | 'RANGO';
   strength: 'clara' | 'debil' | null;
@@ -220,6 +284,65 @@ export interface TrendSnapshot {
   h4: TrendRead | null;
 }
 
+export interface PatternRead {
+  code: string;
+  label: string;
+  help: string;
+  ts: number;
+  open: number;
+  high: number;
+  low: number;
+  close: number;
+  /** Minutos que la componen: 15 es completa, menos significa huecos de captura. */
+  minutes: number;
+  bodyShare: number;
+  bullish: boolean;
+}
+
+export interface PatternRow {
+  code: string;
+  label: string;
+  help: string;
+  operations: number;
+  wins: number;
+  pnl: number;
+  medianMfe: number | null;
+  medianGivenBack: number | null;
+}
+
+export interface PatternReport {
+  rows: PatternRow[];
+  skipped: number;
+  incomplete: number;
+}
+
+export interface SessionStat {
+  session: string;
+  samples: number;
+  days: number;
+  barRange: number;
+  favP50: number;
+  favP75: number;
+  advP50: number;
+  advP75: number;
+  advP90: number;
+  suggestedStop: number;
+  suggestedTarget: number;
+  ratio: number;
+  trades: number;
+  wins: number;
+  losses: number;
+  timeouts: number;
+  ambiguous: number;
+  hitRate: number;
+  timeoutRate: number;
+  breakEven: number;
+  expectancy: number;
+  longExpectancy: number;
+  shortExpectancy: number;
+  expectancyError: number;
+}
+
 export interface Replay {
   /** Sin `review`: ese calculo solo lo hace el listado, no el replay. */
   operation: Omit<Operation, 'review'>;
@@ -230,6 +353,10 @@ export interface Replay {
   fills: Array<{ ts: number; price: number; quantity: number; side: number }>;
   sessions: Array<{ name: string; from: number; to: number; fullFrom: number; fullTo: number }>;
   trend: TrendSnapshot;
+  pattern: PatternRead | null;
+  timeframe: number;
+  sessionStat: SessionStat | null;
+  minutesIntoSession: number | null;
   coverage: { before: number; after: number; found: number; expected: number };
 }
 
@@ -263,11 +390,15 @@ export interface Filters {
   from?: string;
   to?: string;
   session?: string;
-  includeTests?: boolean;
+  excludeTests?: boolean;
   onlyFlagged?: boolean;
   /** Sobre que cifra se calculan las metricas. Neto por defecto. */
   basis?: 'net' | 'gross';
   direction?: 'LONG' | 'SHORT';
+  /** Cuenta del broker. Vacio = todas. */
+  account?: string;
+  /** Solo ganadoras o solo perdedoras, sobre el neto. */
+  result?: 'win' | 'loss';
   /** Varias sesiones a la vez. Vacio o ausente = todas. */
   sessions?: string[];
   /** Dias de mercado concretos (YYYY-MM-DD). Vacio o ausente = todos. */
@@ -279,10 +410,12 @@ function qs(filters: Filters, extra: Record<string, string | number> = {}): stri
   if (filters.from) p.set('from', filters.from);
   if (filters.to) p.set('to', filters.to);
   if (filters.session) p.set('session', filters.session);
-  if (filters.includeTests) p.set('includeTests', 'true');
+  if (filters.excludeTests) p.set('excludeTests', 'true');
   if (filters.onlyFlagged) p.set('onlyFlagged', 'true');
   if (filters.basis) p.set('basis', filters.basis);
   if (filters.direction) p.set('direction', filters.direction);
+  if (filters.account) p.set('account', filters.account);
+  if (filters.result) p.set('result', filters.result);
   if (filters.sessions?.length) p.set('sessions', filters.sessions.join(','));
   if (filters.days?.length) p.set('days', filters.days.join(','));
   for (const [k, v] of Object.entries(extra)) p.set(k, String(v));
@@ -304,8 +437,43 @@ export const api = {
       '/api/status',
     ),
 
-  replay: (id: number, before = 45, after = 30) =>
-    get<Replay>(`/api/operations/${id}/replay?before=${before}&after=${after}`),
+  replay: (id: number, timeframe?: number, candles?: number) => {
+    const p = new URLSearchParams();
+    if (timeframe) p.set('timeframe', String(timeframe));
+    if (candles) p.set('candles', String(candles));
+    return get<Replay>(`/api/operations/${id}/replay?${p.toString()}`);
+  },
+
+  /** Solo la lectura en prosa, sin arrastrar las velas del grafico. */
+  reading: (id: number) => get<Narrative>(`/api/operations/${id}/reading`),
+
+  chartPrefs: () => get<ChartPrefs>('/api/prefs/chart'),
+
+  calendarEvents: (query: EventQuery) => {
+    const p = new URLSearchParams();
+    for (const [k, v] of Object.entries(query)) {
+      if (v !== undefined && v !== '') p.set(k, String(v));
+    }
+    return get<EventPage>(`/api/calendar/events?${p.toString()}`);
+  },
+
+  holidays: () => get<MarketHoliday[]>('/api/calendar/holidays'),
+
+  clearCalendar: async () => {
+    const res = await fetch('/api/calendar/events', { method: 'DELETE' });
+    if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+    return (await res.json()) as { deleted: number };
+  },
+
+  saveChartPrefs: async (patch: Partial<ChartPrefs>) => {
+    const res = await fetch('/api/prefs/chart', {
+      method: 'PUT',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(patch),
+    });
+    if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+    return (await res.json()) as ChartPrefs;
+  },
 
   notes: (id: number) => get<OperationNote>(`/api/operations/${id}/notes`),
 

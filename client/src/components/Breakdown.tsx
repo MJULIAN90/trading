@@ -2,17 +2,23 @@ import { useState } from 'react';
 import type { Dashboard, Group, Summary } from '../api';
 import { num, pct, sessionLabel, signClass } from '../format';
 
-type Dim = 'session' | 'day' | 'hour' | 'direction';
+type Dim = 'session' | 'weekday' | 'day' | 'hour' | 'direction';
 
 const DIMS: Array<{ key: Dim; label: string; title: string }> = [
   { key: 'session', label: 'Por sesion', title: 'Sesion' },
-  { key: 'day', label: 'Por dia', title: 'Dia' },
+  // "Por dia de la semana" va antes que "Por fecha" porque es la que se mira:
+  // la de fechas sirve para repasar una jornada suelta, no para ver un habito.
+  { key: 'weekday', label: 'Por dia de la semana', title: 'Dia' },
+  { key: 'day', label: 'Por fecha', title: 'Fecha' },
   { key: 'hour', label: 'Por hora', title: 'Hora' },
   { key: 'direction', label: 'Por direccion', title: 'Direccion' },
 ];
 
+const WEEKDAYS = ['Domingo', 'Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes', 'Sabado'];
+
 function labelFor(dim: Dim, key: string | number): string {
   if (dim === 'session') return sessionLabel(String(key));
+  if (dim === 'weekday') return WEEKDAYS[Number(key)] ?? String(key);
   if (dim === 'hour') return `${String(key).padStart(2, '0')}:00`;
   if (dim === 'direction') return key === 'LONG' ? 'Largo' : 'Corto';
   return String(key);
@@ -52,6 +58,7 @@ export function Breakdown({ data }: { data: Dashboard }) {
 
   const groups: Record<Dim, Group[]> = {
     session: data.bySession,
+    weekday: data.byWeekday,
     day: data.byDay,
     hour: data.byHour,
     direction: data.byDirection,

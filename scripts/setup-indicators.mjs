@@ -82,6 +82,7 @@ const INDICATORS = [
   { name: 'j_Flujo', dirs: ['j_flujo', 'j_Flujo'] },
   { name: 'KillZones', dirs: ['KillZones'] },
   { name: 'QuaEmas', dirs: ['QuaEmas'] },
+  { name: 'j_Guardia', dirs: ['j_Guardia', 'j_guardia'] },
 ];
 
 let changed = 0;

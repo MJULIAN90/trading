@@ -39,6 +39,7 @@ CREATE TABLE IF NOT EXISTS operations (
   session        TEXT NOT NULL,            -- ASIA | LONDON | NY_AM | ... | OUTSIDE
   market_hour    REAL NOT NULL,            -- hora de mercado en decimal, para agrupar
   is_real        INTEGER NOT NULL,         -- 0 = pruebas de plataforma
+  account_id     TEXT,                     -- cuenta del broker que la ejecuto
   first_fill_id  TEXT NOT NULL UNIQUE,     -- hace la ingesta idempotente
   last_fill_id   TEXT NOT NULL
 );

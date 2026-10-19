@@ -69,10 +69,10 @@ export function ingestQuantower(tradesDbPath: string): IngestResult {
     `INSERT OR IGNORE INTO operations
        (symbol, opened_at, closed_at, direction, entry_price, exit_price, max_quantity,
         fills_count, gross_pnl, duration_sec, session, market_hour, is_real,
-        first_fill_id, last_fill_id)
+        account_id, first_fill_id, last_fill_id)
      VALUES (@symbol, @opened_at, @closed_at, @direction, @entry_price, @exit_price, @max_quantity,
              @fills_count, @gross_pnl, @duration_sec, @session, @market_hour, @is_real,
-             @first_fill_id, @last_fill_id)`,
+             @account_id, @first_fill_id, @last_fill_id)`,
   );
 
   let fillsNew = 0;
@@ -107,6 +107,7 @@ export function ingestQuantower(tradesDbPath: string): IngestResult {
       pnl: number;
       fills: number;
       maxQuantity: number;
+      accountId: string | null;
       firstFillId: string;
     } | null = null;
 
@@ -125,6 +126,9 @@ export function ingestQuantower(tradesDbPath: string): IngestResult {
           pnl: 0,
           fills: 0,
           maxQuantity: 0,
+          // La cuenta se toma del fill que ABRE. Una operacion no cambia de
+          // cuenta a mitad, y asi el dato viene del broker en vez de inferirse.
+          accountId: r.account_id === null ? null : String(r.account_id),
           firstFillId: String(r.trade_id),
         };
       }
@@ -152,6 +156,7 @@ export function ingestQuantower(tradesDbPath: string): IngestResult {
           session: sessionOf(current.openedAt),
           market_hour: marketHour(current.openedAt),
           is_real: marketDate(current.openedAt) >= REAL_TRADING_SINCE ? 1 : 0,
+          account_id: current.accountId,
           first_fill_id: current.firstFillId,
           last_fill_id: String(r.trade_id),
         });

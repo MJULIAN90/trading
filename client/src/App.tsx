@@ -1,11 +1,21 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { api, type Dashboard, type Filters } from './api';
 import { Breakdown } from './components/Breakdown';
-import { BarsChart, EquityChart } from './components/Charts';
+import { BarsChart, EquityChart, RecentBarsChart } from './components/Charts';
+
+/**
+ * Indices de Date.getUTCDay(): 0 es domingo. El servidor manda ese numero y no
+ * el nombre para que el orden sea el de la semana y no el alfabetico, que
+ * pondria el jueves antes que el lunes.
+ */
+const WEEKDAYS = ['Domingo', 'Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes', 'Sabado'];
 import { CalendarPanel } from './components/CalendarPanel';
 import { CostPanel } from './components/CostPanel';
+import { MarketPanel } from './components/MarketPanel';
 import { Operations } from './components/Operations';
+import { PatternPanel } from './components/PatternPanel';
 import { ScratchPanel } from './components/ScratchPanel';
+import { SettingsPanel } from './components/SettingsPanel';
 import { date, num, pct, sessionLabel, setMarketOffset, signClass, dateTime, ticks } from './format';
 
 function Tiles({ s, costs }: { s: Dashboard['summary']; costs: Dashboard['costs'] }) {
@@ -67,7 +77,7 @@ function CommissionSetting({ value, onChange }: { value: number; onChange: (v: n
   );
 }
 
-type Tab = 'resumen' | 'operaciones' | 'costes' | 'noticias';
+type Tab = 'resumen' | 'operaciones' | 'mercado' | 'costes' | 'noticias' | 'ajustes';
 
 export default function App() {
   const [filters, setFilters] = useState<Filters>({});
@@ -91,12 +101,43 @@ export default function App() {
       .catch(() => { /* el servidor puede estar reiniciando */ });
   }, [filters]);
 
+  /**
+   * Refresco automatico, pero NO en las pestanas donde estorba.
+   *
+   * En Resumen y Noticias interesa que se actualice solo: son numeros que
+   * cambian al cerrar una operacion, y el aviso de "no operar" tiene que
+   * aparecer sin que nadie pulse nada.
+   *
+   * En Operaciones y Ajustes hace dano. Las dos tienen estado propio que el
+   * usuario acaba de poner con la mano —la temporalidad del grafico, un color a
+   * medio elegir— y recargar debajo lo pisa. Perder lo que estabas mirando cada
+   * treinta segundos convierte la pantalla en inutilizable.
+   */
+  const autoRefresh = tab === 'resumen' || tab === 'noticias';
+
   useEffect(() => {
     load();
+    if (!autoRefresh) return;
+
     // El servidor mantiene la base al dia solo; basta con volver a pedir.
     const t = setInterval(load, 30_000);
     return () => clearInterval(t);
-  }, [load]);
+  }, [load, autoRefresh]);
+
+  /**
+   * Preferencias con identidad estable.
+   *
+   * Cada recarga trae un objeto NUEVO aunque el contenido sea identico, y abajo
+   * hay efectos que reaccionan a ese objeto para aplicar los ajustes recien
+   * guardados. Sin esto, el refresco automatico le devolvia el grafico a su
+   * temporalidad por defecto cada treinta segundos mientras lo estabas mirando.
+   *
+   * Comparar por contenido serializado y no por identidad hace que esos efectos
+   * salten solo cuando los ajustes cambian de verdad.
+   */
+  const prefsKey = data ? JSON.stringify(data.chartPrefs) : '';
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const chartPrefs = useMemo(() => data?.chartPrefs ?? null, [prefsKey]);
 
   const set = (patch: Partial<Filters>) => setFilters((f) => ({ ...f, ...patch }));
 
@@ -126,6 +167,22 @@ export default function App() {
             ))}
           </select>
         </label>
+        {/* El selector de cuenta va el primero de la fila: es el filtro que mas
+            cambia lo que ves, porque dos cuentas distintas son dos historiales
+            distintos y mezclarlos no tiene ningun sentido. */}
+        {data && data.accounts.length > 0 && (
+          <label>
+            Cuenta
+            <select value={filters.account ?? ''} onChange={(e) => set({ account: e.target.value || undefined })}>
+              <option value="">todas ({data.accounts.reduce((a, c) => a + c.operations, 0)})</option>
+              {data.accounts.map((a) => (
+                <option key={a.id} value={a.id}>
+                  {a.id} · {a.operations} ops · desde {date(a.from)}
+                </option>
+              ))}
+            </select>
+          </label>
+        )}
         <label>
           Base
           <select value={filters.basis ?? 'net'} onChange={(e) => set({ basis: e.target.value as 'net' | 'gross' })}>
@@ -134,24 +191,37 @@ export default function App() {
           </select>
         </label>
         {data && <CommissionSetting value={data.costSettings.commissionPerContract} onChange={saveCommission} />}
-        <label>
-          <input type="checkbox" checked={!!filters.includeTests} onChange={(e) => set({ includeTests: e.target.checked })} />
-          incluir pruebas
-        </label>
         <button onClick={load}>Actualizar</button>
         <span className="live"><b>en vivo</b> · {live}</span>
       </div>
 
       {error && <div className="error">No se pudo cargar: {error}</div>}
 
+      {/* Elegir una cuenta y ver cero operaciones solo puede pasar ya por el
+          filtro de fechas o el de sesion, no por el de pruebas: la cuenta
+          siempre se ensena entera. */}
+      {data && data.count === 0 && filters.account && (filters.from || filters.to || filters.session) && (
+        <div className="news-alert">
+          <b>Nada que mostrar</b>
+          <span>
+            Esa cuenta no tiene operaciones dentro del filtro de fecha o sesion que tienes puesto.{' '}
+            <button onClick={() => set({ from: undefined, to: undefined, session: undefined })}>
+              Quitar esos filtros
+            </button>
+          </span>
+        </div>
+      )}
+
       {data && (
         <>
           <div className="tabs main">
-            {(['resumen', 'operaciones', 'costes', 'noticias'] as const).map((t) => (
+            {(['resumen', 'operaciones', 'mercado', 'costes', 'noticias', 'ajustes'] as const).map((t) => (
               <button key={t} className={tab === t ? 'on' : ''} onClick={() => setTab(t)}>
                 {t === 'resumen' ? 'Resumen'
                   : t === 'operaciones' ? `Operaciones (${data.count})`
+                  : t === 'mercado' ? 'Mercado'
                   : t === 'costes' ? 'Costes y recorrido'
+                  : t === 'ajustes' ? 'Ajustes'
                   : `Noticias${data.calendar.activeNow.length ? ' ●' : ''}`}
               </button>
             ))}
@@ -170,7 +240,17 @@ export default function App() {
             </div>
           )}
 
+          {tab === 'mercado' && <MarketPanel />}
+
           {tab === 'noticias' && <CalendarPanel data={data.calendar} news={data.news} />}
+
+          {tab === 'ajustes' && (
+            <SettingsPanel
+              prefs={chartPrefs ?? data.chartPrefs}
+              commission={data.costSettings.commissionPerContract}
+              onSaved={load}
+            />
+          )}
 
           {tab === 'resumen' && (
             <>
@@ -192,9 +272,28 @@ export default function App() {
                 </div>
               </div>
 
+              <div className="grid2">
+                <div className="panel">
+                  <h2>P&amp;L por dia de la semana</h2>
+                  <BarsChart rows={data.byWeekday} label={(k) => WEEKDAYS[Number(k)] ?? String(k)} />
+                </div>
+                <div className="panel">
+                  <h2>P&amp;L por fecha</h2>
+                  <RecentBarsChart
+                    rows={data.byDay}
+                    label={(k) => String(k).slice(8) + '/' + String(k).slice(5, 7)}
+                  />
+                </div>
+              </div>
+
               <div className="panel">
                 <h2>Metricas por grupo</h2>
                 <Breakdown data={data} />
+              </div>
+
+              <div className="panel">
+                <h2>Patron de la vela de 15 minutos</h2>
+                <PatternPanel data={data.patterns} />
               </div>
 
               <div className="panel">
@@ -221,7 +320,9 @@ export default function App() {
             </>
           )}
 
-          {tab === 'operaciones' && <Operations filters={filters} offsetHours={data.marketOffsetHours} />}
+          {tab === 'operaciones' && (
+            <Operations filters={filters} offsetHours={data.marketOffsetHours} prefs={chartPrefs ?? data.chartPrefs} />
+          )}
 
           {tab === 'costes' && (
             <>

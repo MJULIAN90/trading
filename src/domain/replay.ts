@@ -1,7 +1,11 @@
 import { db } from '../db/index.js';
 import { barsWindow, normalizeSymbol, type Bar } from './bars.js';
 import { marketOffsetAt } from './clock.js';
+import { DEFAULT_CHART } from './prefs.js';
 import { SESSIONS } from './sessions.js';
+import { patternAt, type PatternRead } from './pattern.js';
+import { statFor, type SessionStat } from './sessionStats.js';
+import { marketHour, sessionOf } from './sessions.js';
 import { trendAt, type TrendSnapshot } from './trend.js';
 
 /**
@@ -38,6 +42,14 @@ export interface Replay {
   sessions: SessionBox[];
   /** Como estaban los marcos grandes en el momento de abrir. */
   trend: TrendSnapshot;
+  /** Patron de la vela de 15m ya cerrada al abrir. */
+  pattern: PatternRead | null;
+  /** Minutos por vela de las que se devuelven. */
+  timeframe: number;
+  /** Lo que el MERCADO hace en esa killzone, para comparar con lo que hiciste. */
+  sessionStat: SessionStat | null;
+  /** Minutos transcurridos desde que abrio la killzone. null si entro fuera. */
+  minutesIntoSession: number | null;
   /** Velas pedidas frente a velas encontradas: si no cuadra, hubo hueco de captura. */
   coverage: { before: number; after: number; found: number; expected: number };
 }
@@ -95,13 +107,63 @@ function sessionBoxes(from: number, to: number): SessionBox[] {
 }
 
 /**
+ * Agrupa velas de un minuto en velas de `minutes` minutos.
+ *
+ * Se agrupa en el SERVIDOR y no en el navegador porque 180 velas de 4 horas
+ * son 43.200 velas de un minuto: mandarlas por la red para que el navegador
+ * las junte y dibuje 180 es tirar treinta megas para ensenar lo mismo.
+ *
+ * El reloj de agrupacion va en hora de MERCADO, no en UTC: una vela de 4h
+ * anclada a UTC empieza a las 20:00 de Nueva York en verano y a las 19:00 en
+ * invierno, asi que las mismas velas cambiarian de sitio al cambiar la hora.
+ */
+function group(bars: Bar[], minutes: number): Bar[] {
+  if (minutes <= 1 || bars.length === 0) return bars;
+
+  const size = minutes * 60_000;
+  const out: Bar[] = [];
+  let current: Bar | null = null;
+  let key = NaN;
+
+  for (const b of bars) {
+    const k = Math.floor((b.ts + marketOffsetAt(b.ts) * 3600_000) / size);
+
+    if (k !== key) {
+      if (current) out.push(current);
+      // Se copia para no tocar la vela original: el mismo objeto se usa luego
+      // para el MAE/MFE y machacarlo aqui falsearia la excursion.
+      current = { ...b };
+      key = k;
+    } else if (current) {
+      current.h = Math.max(current.h, b.h);
+      current.l = Math.min(current.l, b.l);
+      current.c = b.c;
+      // El delta se suma; el resto de campos de flujo se dejan como vinieron de
+      // la primera vela del grupo, que es lo honesto: sumar un "tamano medio"
+      // o un "libro" de cinco minutos distintos no significa nada.
+      if (current.delta !== null && b.delta !== null) current.delta += b.delta;
+      if (current.buy !== null && b.buy !== null) current.buy += b.buy;
+      if (current.sell !== null && b.sell !== null) current.sell += b.sell;
+    }
+  }
+
+  if (current) out.push(current);
+  return out;
+}
+
+/**
  * Ventana de velas alrededor de una operacion.
  *
  * `before` y `after` van en minutos y no en numero de velas a proposito: si el
  * mercado estuvo parado, "60 velas atras" puede ser hora y media o seis horas,
  * y entonces dos graficos de la misma operacion no son comparables entre si.
  */
-export function replay(operationId: number, beforeMin = 45, afterMin = 30): Replay | null {
+export function replay(
+  operationId: number,
+  beforeMin = 45,
+  afterMin = 30,
+  timeframe = DEFAULT_CHART.timeframe,
+): Replay | null {
   const op = db().prepare('SELECT * FROM operations WHERE id = ?').get(operationId) as
     | Record<string, unknown>
     | undefined;
@@ -115,7 +177,12 @@ export function replay(operationId: number, beforeMin = 45, afterMin = 30): Repl
   const from = openedAt - beforeMin * 60_000;
   const to = closedAt + afterMin * 60_000;
 
-  const bars = barsWindow(symbol, from, to);
+  // El limite se calcula sobre velas de UN minuto, que es lo que hay guardado:
+  // para 180 velas de 4h hacen falta 43.200. Se deja un margen porque el
+  // mercado para una hora al dia y los fines de semana, asi que el numero de
+  // velas reales en una ventana de tiempo siempre es menor que los minutos.
+  const minutesSpan = Math.ceil((to - from) / 60_000);
+  const bars = group(barsWindow(symbol, from, to, minutesSpan + 100), timeframe);
 
   const fills = db()
     .prepare(
@@ -134,11 +201,41 @@ export function replay(operationId: number, beforeMin = 45, afterMin = 30): Repl
     // En el instante de ABRIR, no de cerrar: la pregunta es que se veia cuando
     // se tomo la decision.
     trend: trendAt(symbol, openedAt),
+    pattern: patternAt(symbol, openedAt),
+    timeframe,
+    sessionStat: statFor(symbol, sessionOf(openedAt)),
+    minutesIntoSession: minutesIntoSession(openedAt),
     coverage: {
       before: beforeMin,
       after: afterMin,
       found: bars.length,
-      expected: Math.round((to - from) / 60_000),
+      // En VELAS de la temporalidad pedida, no en minutos: cuando se agrupa,
+      // 113 velas de 15m contra 2.700 minutos de ventana siempre parecen un
+      // hueco de captura, y el aviso saltaba en todos los graficos.
+      //
+      // Aun asi es una referencia alta: el mercado para una hora al dia y los
+      // fines de semana, asi que una ventana larga nunca tiene todas sus velas
+      // y por eso el aviso solo se ensena muy por debajo de este numero.
+      expected: Math.max(1, Math.round((to - from) / 60_000 / timeframe)),
     },
   };
+}
+
+/**
+ * Cuantos minutos llevaba abierta la killzone cuando entraste.
+ *
+ * Importa porque no es lo mismo entrar en el primer minuto de Nueva York que
+ * en el ultimo: la apertura tiene el rango concentrado y el final suele ser
+ * arrastre. Sin este numero, "entre en NY AM" tapa dos situaciones opuestas.
+ */
+function minutesIntoSession(ts: number): number | null {
+  const name = sessionOf(ts);
+  const s = SESSIONS.find((x) => x.name === name);
+  if (!s) return null;
+
+  const h = marketHour(ts);
+  // ASIA empieza a las 20:00 y cruza la medianoche: despues de las 00:00 la
+  // hora vuelve a cero y restar sin mas daria un numero negativo.
+  const hours = name === 'ASIA' && h < s.from ? h + 24 - s.from : h - s.from;
+  return Math.round(hours * 60);
 }

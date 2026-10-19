@@ -197,7 +197,7 @@ section('Indicadores');
 
 const scripts = join(qwRoot, 'Settings', 'Scripts', 'Indicators');
 
-for (const name of ['j_Flujo', 'KillZones', 'QuaEmas']) {
+for (const name of ['j_Flujo', 'KillZones', 'QuaEmas', 'j_Guardia']) {
   const dll = join(scripts, name, `${name}.dll`);
   if (existsSync(dll)) {
     const age = (Date.now() - statSync(dll).mtimeMs) / 86_400_000;

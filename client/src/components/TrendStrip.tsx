@@ -1,4 +1,4 @@
-import type { TrendRead, TrendSnapshot } from '../api';
+import type { PatternRead, TrendRead, TrendSnapshot } from '../api';
 
 /**
  * Como estaban los marcos grandes cuando abriste: semanal, diaria y 4h.
@@ -50,7 +50,15 @@ function Cell({ title, lookback, read, direction }: {
   );
 }
 
-export function TrendStrip({ trend, direction }: { trend: TrendSnapshot; direction: string }) {
+export function TrendStrip({
+  trend,
+  pattern,
+  direction,
+}: {
+  trend: TrendSnapshot;
+  pattern: PatternRead | null;
+  direction: string;
+}) {
   return (
     <div className="trend-strip">
       <div className="trend-row">
@@ -58,6 +66,22 @@ export function TrendStrip({ trend, direction }: { trend: TrendSnapshot; directi
         <Cell title="Diaria" lookback="20 días" read={trend.daily} direction={direction} />
         <Cell title="4 horas" lookback="30 velas de 4h" read={trend.h4} direction={direction} />
       </div>
+
+      {pattern && (
+        <div className="trend-cell" style={{ marginTop: 8 }} title={pattern.help}>
+          <div className="trend-k">Vela de 15m cerrada al entrar</div>
+          <div className="trend-v" style={{ color: pattern.bullish ? '#16a47c' : '#d1483a' }}>
+            {pattern.label}
+          </div>
+          <div className="trend-n">
+            {pattern.help}
+            <br />
+            cuerpo {Math.round(pattern.bodyShare * 100)}% del rango · {pattern.low} a {pattern.high}
+            {pattern.minutes < 14 && ` · solo ${pattern.minutes} min capturados`}
+          </div>
+        </div>
+      )}
+
       <div className="note">
         El número es el <b>avance neto dividido entre el rango recorrido</b> en esas velas. Por
         debajo de 0,30 se llama rango: el precio se movió mucho y acabó donde empezó. Por encima de

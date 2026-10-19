@@ -1,3 +1,4 @@
+import { useEffect, useState } from 'react';
 import type { ScratchReport } from '../api';
 import { dateTime, num, sessionLabel, signClass, ticks } from '../format';
 
@@ -9,6 +10,15 @@ import { dateTime, num, sessionLabel, signClass, ticks } from '../format';
  * aguantar significa aguantar tambien las que se van en contra.
  */
 export function ScratchPanel({ data, operations }: { data: ScratchReport; operations: number }) {
+  // Paginado: la lista crece con cada sesion y una tabla de doscientas filas no
+  // se repasa, se hojea. Veinte entran de un vistazo.
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(20);
+
+  // Si cambian los filtros de arriba la lista se encoge; quedarse en la pagina 7
+  // de algo que ahora tiene 2 no ensena nada y parece un fallo.
+  useEffect(() => { setPage(1); }, [data.cases.length, pageSize]);
+
   const { config } = data;
 
   if (data.total === 0) {
@@ -24,6 +34,10 @@ export function ScratchPanel({ data, operations }: { data: ScratchReport; operat
 
   const resolved = data.wouldHaveWorked + data.wouldHaveFailed;
   const hitRate = resolved > 0 ? data.wouldHaveWorked / resolved : null;
+
+  const pages = Math.max(1, Math.ceil(data.cases.length / pageSize));
+  const current = Math.min(page, pages);
+  const visible = data.cases.slice((current - 1) * pageSize, current * pageSize);
 
   return (
     <div className="panel">
@@ -77,7 +91,7 @@ export function ScratchPanel({ data, operations }: { data: ScratchReport; operat
           </tr>
         </thead>
         <tbody>
-          {data.cases.map((c) => (
+          {visible.map((c) => (
             <tr key={c.id}>
               <td>{dateTime(c.openedAt)}</td>
               <td>
@@ -99,6 +113,22 @@ export function ScratchPanel({ data, operations }: { data: ScratchReport; operat
           ))}
         </tbody>
       </table>
+
+      {data.cases.length > pageSize && (
+        <div className="pager">
+          <label>
+            por pagina
+            <select value={pageSize} onChange={(e) => setPageSize(Number(e.target.value))}>
+              {[10, 20, 50, 100].map((n) => <option key={n} value={n}>{n}</option>)}
+            </select>
+          </label>
+          <span className="note">
+            {data.cases.length} salidas en plano · pag {current}/{pages}
+          </span>
+          <button disabled={current <= 1} onClick={() => setPage(current - 1)}>‹</button>
+          <button disabled={current >= pages} onClick={() => setPage(current + 1)}>›</button>
+        </div>
+      )}
 
       <div className="note">
         <p>
