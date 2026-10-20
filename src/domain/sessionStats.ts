@@ -275,7 +275,7 @@ export function sessionStats(symbol: string, options: SessionStatsOptions = {}):
     dir: 1 | -1,
     stopTicks: number,
     targetTicks: number,
-  ): { outcome: 'win' | 'loss' | 'timeout'; ticks: number } | null {
+  ): { outcome: 'win' | 'loss' | 'timeout'; ticks: number; ambiguous: boolean } {
     const entry = rows[i]!.c;
     const limit = rows[i]!.ts + horizonMin * MINUTE;
 
@@ -293,16 +293,31 @@ export function sessionStats(symbol: string, options: SessionStatsOptions = {}):
       const hitTarget = dir === 1 ? bar.h >= targetPrice : bar.l <= targetPrice;
       const hitStop = dir === 1 ? bar.l <= stopPrice : bar.h >= stopPrice;
 
-      if (hitTarget && hitStop) return null;
-      if (hitTarget) return { outcome: 'win', ticks: targetTicks };
-      if (hitStop) return { outcome: 'loss', ticks: -stopTicks };
+      // Vela que toca objetivo Y stop: con velas de un minuto no se sabe cual
+      // llego antes. Antes se DESCARTABA el caso, y eso sesgaba el resultado
+      // hacia arriba: las velas ambiguas son las de rango grande, justo las que
+      // se habrian llevado el stop por delante. Quitarlas de la muestra regalaba
+      // beneficio.
+      //
+      // Medido sobre los datos reales con R=1,5: descartando salia
+      // +0,48 compra / +1,63 venta (los dos positivos, imposible). Resolviendo
+      // la ambiguedad como stop salen -0,53 / +0,53, espejo exacto.
+      //
+      // Se resuelve siempre como PERDIDA. Es la convencion conservadora y es la
+      // unica que no te hace creer que tienes una ventaja que no existe.
+      if (hitTarget && hitStop) {
+        return { outcome: 'loss', ticks: -stopTicks, ambiguous: true };
+      }
+
+      if (hitTarget) return { outcome: 'win', ticks: targetTicks, ambiguous: false };
+      if (hitStop) return { outcome: 'loss', ticks: -stopTicks, ambiguous: false };
     }
 
     // Ni objetivo ni stop: se cierra a mercado al acabar el horizonte. Contarlo
     // asi, y no descartarlo, es lo que hace que la esperanza sea la de una
     // operacion de verdad: esos casos existen y casi siempre dejan un resultado
     // pequeno, ni el objetivo entero ni el stop entero.
-    return { outcome: 'timeout', ticks: (dir * (lastClose - entry)) / tickSize };
+    return { outcome: 'timeout', ticks: (dir * (lastClose - entry)) / tickSize, ambiguous: false };
   }
 
   const order: SessionName[] = ['ASIA', 'LONDON', 'NY_AM', 'NY_LUNCH', 'NY_PM', 'OUTSIDE'];
@@ -340,10 +355,11 @@ export function sessionStats(symbol: string, options: SessionStatsOptions = {}):
     for (const i of a.entries) {
       for (const dir of [1, -1] as const) {
         const r = simulate(i, dir, stop, target);
-        if (r === null) {
-          ambiguous++;
-          continue;
-        }
+
+        // El caso ambiguo ya NO se tira: se cuenta como perdida y ademas se
+        // lleva la cuenta, para que la tabla pueda decir cuantos hubo.
+        if (r.ambiguous) ambiguous++;
+
         if (r.outcome === 'win') wins++;
         else if (r.outcome === 'loss') losses++;
         else timeouts++;

@@ -300,7 +300,7 @@ function Detail({ op, offsetHours, prefs }: { op: Operation; offsetHours: number
       {tab === 'grafico' && <Replayer key={op.id} id={op.id} offsetHours={offsetHours} prefs={prefs} />}
       {tab === 'lectura' && (reading ? <Reading narrative={reading} /> : <div className="empty">leyendo la operacion...</div>)}
       {tab === 'numeros' && <Numbers op={op} />}
-      {tab === 'notas' && <TradeNotes key={op.id} operationId={op.id} />}
+      {tab === 'notas' && <TradeNotes key={op.id} operationId={op.id} prefs={prefs} />}
 
       {tab === 'observaciones' && (
         <>

@@ -108,14 +108,17 @@ export function TradeChart({
         borderColor: 'rgba(255,255,255,0.1)',
         // Aire arriba y abajo. Sin margenes las velas tocan los bordes y el
         // grafico se lee apretado aunque el numero de velas sea el correcto.
-        scaleMargins: { top: 0.12, bottom: 0.34 },
+        // El margen inferior vale EXACTAMENTE lo que ocupa el delta, asi que
+        // encajan sin hueco. Antes eran 0,34 contra 0,18 de banda y ese 16% de
+        // diferencia era espacio muerto en mitad del grafico.
+        scaleMargins: { top: prefs.marginTop, bottom: prefs.deltaShare },
       },
       timeScale: {
         borderColor: 'rgba(255,255,255,0.1)',
         timeVisible: true,
         secondsVisible: false,
         // Hueco despues de la ultima vela, para que no quede pegada al eje.
-        rightOffset: 6,
+        rightOffset: prefs.rightOffset,
       },
       // Sin alto fijo: autoSize observa el contenedor, asi que el alto lo manda
       // el CSS y ademas se reajusta solo al cambiar el tamano de la ventana.
@@ -141,7 +144,9 @@ export function TradeChart({
       priceFormat: { type: 'volume' },
     });
 
-    chart.priceScale('delta').applyOptions({ scaleMargins: { top: 0.82, bottom: 0 } });
+    chart
+      .priceScale('delta')
+      .applyOptions({ scaleMargins: { top: 1 - prefs.deltaShare, bottom: 0 } });
 
     // Las EMAs van en la MISMA escala que las velas, sin marcador en el eje:
     // cuatro etiquetas de precio mas a la derecha tapan la de entrada y la de
@@ -191,18 +196,63 @@ export function TradeChart({
       })),
     );
 
-    // Cada ejecucion en su vela. Si hubo entradas parciales se ven todas, que es
+    // Cada ejecucion en SU vela. Si hubo entradas parciales se ven todas, que es
     // justo donde se suele ver si promediaste a la baja sin querer.
-    const markers = data.fills.map((f) => {
+    //
+    // La marca se ancla al INICIO de la vela que contiene la ejecucion, no al
+    // instante exacto. Antes se pasaba f.ts tal cual, y una ejecucion a las
+    // 11:05:42 no coincide con ninguna vela -empiezan en :00-, asi que la
+    // libreria la colocaba donde podia: en 1m fallaba una vela, y en 15m o 4h
+    // la marca podia salir en un sitio que no tenia nada que ver.
+    const barFor = (ms: number): number | null => {
+      let lo = 0;
+      let hi = data.bars.length - 1;
+      let found = -1;
+
+      // Ultima vela cuyo inicio es <= ms. Busqueda binaria porque esto corre
+      // por cada ejecucion y las ventanas largas traen cientos de velas.
+      while (lo <= hi) {
+        const mid = (lo + hi) >> 1;
+        const bar = data.bars[mid];
+        if (bar && bar.ts <= ms) {
+          found = mid;
+          lo = mid + 1;
+        } else {
+          hi = mid - 1;
+        }
+      }
+
+      const bar = found >= 0 ? data.bars[found] : undefined;
+      return bar ? bar.ts : null;
+    };
+
+    // Varias ejecuciones del mismo lado dentro de la misma vela se juntan en una
+    // marca con la cantidad sumada. En 4h es lo normal, y dos marcas en el mismo
+    // sitio se tapan la una a la otra.
+    const grouped = new Map<string, { ts: number; buy: boolean; qty: number }>();
+
+    for (const f of data.fills) {
+      const ts = barFor(f.ts);
+      if (ts == null) continue;
+
       const buy = f.side === 0;
-      return {
-        time: toChartTime(f.ts),
-        position: (buy ? 'belowBar' : 'aboveBar') as 'belowBar' | 'aboveBar',
-        color: buy ? '#2ecc71' : '#e74c3c',
-        shape: (buy ? 'arrowUp' : 'arrowDown') as 'arrowUp' | 'arrowDown',
-        text: `${buy ? 'C' : 'V'} ${f.quantity}`,
-      };
-    });
+      const key = `${ts}:${buy ? 'C' : 'V'}`;
+      const prev = grouped.get(key);
+
+      if (prev) prev.qty += f.quantity;
+      else grouped.set(key, { ts, buy, qty: f.quantity });
+    }
+
+    // La libreria exige las marcas ordenadas por tiempo ascendente.
+    const markers = [...grouped.values()]
+      .sort((a, b) => a.ts - b.ts)
+      .map((g) => ({
+        time: toChartTime(g.ts),
+        position: (g.buy ? 'belowBar' : 'aboveBar') as 'belowBar' | 'aboveBar',
+        color: g.buy ? '#2ecc71' : '#e74c3c',
+        shape: (g.buy ? 'arrowUp' : 'arrowDown') as 'arrowUp' | 'arrowDown',
+        text: `${g.buy ? 'C' : 'V'} ${g.qty}`,
+      }));
 
     candles.setMarkers(markers);
 
@@ -343,10 +393,33 @@ export function TradeChart({
       const entryIndex = data.bars.findIndex((b) => b.ts >= Number(op.opened_at));
       if (entryIndex >= 0) {
         const visible = Math.floor((el.clientWidth || 900) / MAX_BAR_SPACING);
-        const from = Math.max(0, entryIndex - Math.floor(visible * 0.55));
+        const from = Math.max(0, entryIndex - Math.floor(visible * prefs.entryShare));
         scale.setVisibleLogicalRange({ from, to: from + visible });
       }
     }
+
+    // TOPE DURO DEL MARGEN DERECHO.
+    //
+    // Va aqui fuera y no dentro del bloque de arriba a proposito: ese bloque
+    // solo se ejecuta cuando las velas salen demasiado anchas. En ventanas
+    // largas no entra, y entonces el hueco lo decidia fitContent sin que ningun
+    // ajuste pudiera tocarlo.
+    //
+    // Esto es lo que de verdad controla la zona vacia entre la ultima vela y el
+    // eje de precio: el rango visible no puede terminar mas alla de la ultima
+    // vela mas el margen pedido.
+    const capRight = () => {
+      const r = scale.getVisibleLogicalRange();
+      if (!r) return;
+
+      const maxTo = data.bars.length - 1 + prefs.rightOffset;
+      if (r.to <= maxTo) return;
+
+      const span = r.to - r.from;
+      scale.setVisibleLogicalRange({ from: Math.max(0, maxTo - span), to: maxTo });
+    };
+
+    capRight();
 
     drawSessions();
 
@@ -364,7 +437,18 @@ export function TradeChart({
     // reconstruye en cada cambio de esta lista, y con la identidad del objeto se
     // redibujaba en cada refresco, perdiendo el zoom y el desplazamiento.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data, offsetHours, showSessions, JSON.stringify(prefs.emas)]);
+  }, [
+    data,
+    offsetHours,
+    showSessions,
+    JSON.stringify(prefs.emas),
+    // Sin estos, cambiar un margen en ajustes no se veria hasta recargar: el
+    // grafico se construye una vez dentro de este efecto.
+    prefs.marginTop,
+    prefs.deltaShare,
+    prefs.rightOffset,
+    prefs.entryShare,
+  ]);
 
   if (data.bars.length === 0) {
     return (

@@ -76,6 +76,7 @@ export function SettingsPanel({
 }) {
   const [draft, setDraft] = useState<ChartPrefs>(prefs);
   const [fee, setFee] = useState(String(commission));
+  const [tagDraft, setTagDraft] = useState('');
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -171,6 +172,108 @@ export function SettingsPanel({
             />
             killzones encendidas
           </label>
+        </div>
+
+        {/* Margenes del grafico. Se guardan aqui, en el servidor, para que
+            valgan en TODAS las operaciones y no solo en la que estes viendo. */}
+        <div className="filters" style={{ marginTop: 8 }}>
+          <label title="Hueco entre la ULTIMA VELA y el eje de precio, medido en velas. 0 las pega al borde.">
+            Margen derecho
+            <input
+              type="number"
+              min="0"
+              max="300"
+              step="1"
+              value={draft.rightOffset}
+              style={{ width: 70 }}
+              onChange={(e) => setDraft({ ...draft, rightOffset: Number(e.target.value) })}
+            />
+            <span className="note" style={{ marginLeft: 4 }}>velas</span>
+          </label>
+
+          <label title="Donde cae la entrada dentro de la ventana. Mas alto = la entrada mas a la derecha y menos hueco despues.">
+            Entrada al
+            <select
+              value={draft.entryShare}
+              onChange={(e) => setDraft({ ...draft, entryShare: Number(e.target.value) })}
+            >
+              {[0.4, 0.55, 0.7, 0.8, 0.9].map((v) => (
+                <option key={v} value={v}>{Math.round(v * 100)}%</option>
+              ))}
+            </select>
+          </label>
+
+          <label title="Aire por encima de las velas">
+            Aire arriba
+            <select
+              value={draft.marginTop}
+              onChange={(e) => setDraft({ ...draft, marginTop: Number(e.target.value) })}
+            >
+              {[0, 0.04, 0.08, 0.14, 0.22].map((v) => (
+                <option key={v} value={v}>{Math.round(v * 100)}%</option>
+              ))}
+            </select>
+          </label>
+
+          <label title="Altura del delta abajo. El margen inferior del precio vale lo mismo, asi que no queda hueco muerto.">
+            Delta abajo
+            <select
+              value={draft.deltaShare}
+              onChange={(e) => setDraft({ ...draft, deltaShare: Number(e.target.value) })}
+            >
+              {[0.1, 0.14, 0.18, 0.25, 0.32].map((v) => (
+                <option key={v} value={v}>{Math.round(v * 100)}%</option>
+              ))}
+            </select>
+          </label>
+        </div>
+
+        {/* Etiquetas de las notas. Quitar una de aqui solo deja de sugerirla:
+            las que ya estan puestas en operaciones no se tocan. */}
+        <div style={{ marginTop: 12 }}>
+          <div className="note" style={{ marginBottom: 6 }}>
+            Etiquetas que se ofrecen al anotar una operacion
+          </div>
+
+          <div className="notes-tags">
+            {draft.noteTags.map((t) => (
+              <button
+                key={t}
+                type="button"
+                className="tag on"
+                title="quitar de las sugerencias"
+                onClick={() =>
+                  setDraft({ ...draft, noteTags: draft.noteTags.filter((x) => x !== t) })
+                }
+              >
+                {t} ×
+              </button>
+            ))}
+          </div>
+
+          <div className="notes-new" style={{ marginTop: 6 }}>
+            <input
+              value={tagDraft}
+              placeholder="etiqueta nueva y Enter"
+              maxLength={40}
+              onChange={(e) => setTagDraft(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key !== 'Enter') return;
+                e.preventDefault();
+
+                // Misma normalizacion que al anotar: sin esto "Revancha" y
+                // "revancha" contarian como dos conductas distintas.
+                const clean = tagDraft.trim().toLowerCase().slice(0, 40);
+                if (!clean || draft.noteTags.includes(clean)) {
+                  setTagDraft('');
+                  return;
+                }
+
+                setDraft({ ...draft, noteTags: [...draft.noteTags, clean] });
+                setTagDraft('');
+              }}
+            />
+          </div>
         </div>
 
         <div className="note">

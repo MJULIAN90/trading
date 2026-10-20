@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
-import { api, type OperationNote } from '../api';
+import { api, type ChartPrefs, type OperationNote } from '../api';
 
 /**
  * Notas y etiquetas de una operacion.
@@ -10,20 +10,16 @@ import { api, type OperationNote } from '../api';
  * con precio.
  */
 
-const SUGERIDAS = [
-  'entre tarde',
-  'entre pronto',
-  'movi el stop',
-  'sin stop',
-  'revancha',
-  'contra el flujo',
-  'fuera de plan',
-  'sali pronto',
-  'aguante de mas',
-  'tamano de mas',
-];
+export function TradeNotes({
+  operationId,
+  prefs,
+}: {
+  operationId: number;
+  prefs: ChartPrefs;
+}) {
+  // Las sugerencias salen de los ajustes, no de una lista clavada en el codigo.
+  const SUGERIDAS = prefs.noteTags;
 
-export function TradeNotes({ operationId }: { operationId: number }) {
   const [data, setData] = useState<OperationNote | null>(null);
   const [note, setNote] = useState('');
   const [tags, setTags] = useState<string[]>([]);

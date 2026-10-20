@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { UNIT_LABEL, inUnit, num, sessionLabel, signClass, signedInUnit, type Unit } from '../format';
+import { useSticky } from '../sticky';
 import { GridPanel } from './GridPanel';
 
 /**
@@ -94,31 +95,86 @@ function sure(value: number, error: number): string {
   return value > 0 ? 'pos' : 'neg';
 }
 
+/**
+ * Las opciones de cada mando, en UN solo sitio.
+ *
+ * Los desplegables se dibujan a partir de estas listas Y la comprobacion de lo
+ * guardado usa estas mismas listas. Si estuvieran duplicadas, bastaria cambiar
+ * una opcion y olvidarse de la otra para que un valor guardado dejase el
+ * control en blanco sin que nadie se entere.
+ */
+const HORIZONS = [5, 10, 15, 30, 60, 120] as const;
+const STOP_PCTS = [0.5, 0.75, 0.9] as const;
+const TARGET_RS = [0.5, 1, 1.5, 2, 3] as const;
+const UNITS = ['ticks', 'puntos', 'dolares'] as const;
+
+const TIMEFRAMES = [1, 5, 15, 60] as const;
+const TREND_MINS = [15, 60, 240, 1440] as const;
+const TREND_MODES = ['rango', 'emas'] as const;
+const RETESTS = ['ninguno', 'ema8', 'ema21', 'cualquiera'] as const;
+const STOP_MODES = ['fijo', 'estructural'] as const;
+const TARGETS = [20, 40, 60, 100] as const;
+
+/** Comprueba que un valor guardado siga estando en su lista de opciones. */
+const oneOf = (list: readonly unknown[]) => (v: unknown) => list.includes(v);
+
+const STOP_PCT_LABEL: Record<string, string> = {
+  '0.5': 'ajustado (aguanta 1 de cada 2)',
+  '0.75': 'normal (aguanta 3 de cada 4)',
+  '0.9': 'holgado (aguanta 9 de cada 10)',
+};
+
 export function MarketPanel() {
   const [stats, setStats] = useState<StatsReport | null>(null);
   const [study, setStudy] = useState<StudyReport | null>(null);
-  const [timeframe, setTimeframe] = useState(15);
-  const [target, setTarget] = useState(40);
-  const [trendMin, setTrendMin] = useState(240);
+  // Los valores de fabrica son los que el usa: 5 minutos, stop ajustado,
+  // objetivo 1x, en ticks. No son un punto de partida neutro, son SU punto de
+  // partida.
+  //
+  // Las claves son 'mkt2.' y no 'mkt.' porque cambiar un valor de fabrica no
+  // sirve de nada si el navegador ya tiene guardado el anterior: lo guardado
+  // gana siempre. Subir la version de la clave hace que los nuevos valores se
+  // vean una vez, y a partir de ahi manda lo que el elija.
+  //
+  // El tipo va explicito en cada uno (<number>, <string>...) y no es adorno:
+  // sin el, TypeScript infiere el tipo LITERAL del valor inicial (30, no
+  // number) y el setter deja de aceptar cualquier otro valor del desplegable.
+  // Trece errores de compilacion, todos por lo mismo.
+  //
+  // Todos los mandos se guardan en el navegador y vuelven como los dejaste.
+  // Cada uno lleva su comprobacion: un valor guardado que ya no este en su
+  // desplegable se descarta y vuelve al de fabrica, en vez de dejar el control
+  // en blanco y pedirle al servidor algo que no entiende.
+  const [timeframe, setTimeframe, rTimeframe] = useSticky<number>('mkt2.timeframe', 15, oneOf(TIMEFRAMES));
+  const [target, setTarget, rTarget] = useSticky<number>('mkt2.target', 40, (v: number) => v > 0 && v <= 1000);
+  const [trendMin, setTrendMin, rTrendMin] = useSticky<number>('mkt2.trendMin', 240, oneOf(TREND_MINS));
 
   // El modo que pidio: tendencia por pila de medias y entrada en el retest.
-  const [trendMode, setTrendMode] = useState('rango');
-  const [retest, setRetest] = useState('ninguno');
-  const [requireStack, setRequireStack] = useState(false);
-  const [stopMode, setStopMode] = useState('fijo');
+  const [trendMode, setTrendMode, rTrendMode] = useSticky<string>('mkt2.trendMode', 'rango', oneOf(TREND_MODES));
+  const [retest, setRetest, rRetest] = useSticky<string>('mkt2.retest', 'ninguno', oneOf(RETESTS));
+  const [requireStack, setRequireStack, rRequireStack] = useSticky<boolean>('mkt2.requireStack', false);
+  const [stopMode, setStopMode, rStopMode] = useSticky<string>('mkt2.stopMode', 'fijo', oneOf(STOP_MODES));
 
   // Se llama studyR y no targetR porque la PRIMERA tabla ya tiene un targetR
   // suyo con otro significado. Dos "R" distintas en el mismo componente es
   // justo el tipo de colision que compila mal hoy y confunde dentro de un mes.
-  const [studyR, setStudyR] = useState(2);
+  const [studyR, setStudyR, rStudyR] = useSticky<number>('mkt2.studyR', 2, oneOf(TARGET_RS));
 
   // Los tres mandos de la primera tabla. El horizonte es el importante: el stop
   // escala con el tiempo que piensas aguantar dentro, asi que "cuanto stop pide
   // NY AM" no tiene respuesta hasta que dices cuanto tiempo vas a estar.
-  const [horizon, setHorizon] = useState(30);
-  const [stopPct, setStopPct] = useState(0.75);
-  const [targetR, setTargetR] = useState(1);
-  const [unit, setUnit] = useState<Unit>('ticks');
+  const [horizon, setHorizon, rHorizon] = useSticky<number>('mkt2.horizon', 5, oneOf(HORIZONS));
+  const [stopPct, setStopPct, rStopPct] = useSticky<number>('mkt2.stopPct', 0.5, oneOf(STOP_PCTS));
+  const [targetR, setTargetR, rTargetR] = useSticky<number>('mkt2.targetR', 1, oneOf(TARGET_RS));
+  const [unit, setUnit, rUnit] = useSticky<Unit>('mkt2.unit', 'ticks', oneOf(UNITS));
+
+  const resetTable = () => {
+    rHorizon(); rStopPct(); rTargetR(); rUnit();
+  };
+  const resetStudy = () => {
+    rTimeframe(); rTarget(); rTrendMin(); rTrendMode();
+    rRetest(); rRequireStack(); rStopMode(); rStudyR();
+  };
 
   useEffect(() => {
     setStats(null);
@@ -159,7 +215,7 @@ export function MarketPanel() {
           <label title="Cuanto tiempo piensas aguantar dentro. El stop crece con el tiempo.">
             Aguanto dentro
             <select value={horizon} onChange={(e) => setHorizon(Number(e.target.value))}>
-              {[5, 10, 15, 30, 60, 120].map((n) => (
+              {HORIZONS.map((n) => (
                 <option key={n} value={n}>
                   {n >= 60 ? `${n / 60} h` : `${n} min`}
                 </option>
@@ -169,15 +225,15 @@ export function MarketPanel() {
           <label title="Cuantas entradas tienen que sobrevivir al ruido de la franja">
             Stop
             <select value={stopPct} onChange={(e) => setStopPct(Number(e.target.value))}>
-              <option value={0.5}>ajustado (aguanta 1 de cada 2)</option>
-              <option value={0.75}>normal (aguanta 3 de cada 4)</option>
-              <option value={0.9}>holgado (aguanta 9 de cada 10)</option>
+              {STOP_PCTS.map((n) => (
+                <option key={n} value={n}>{STOP_PCT_LABEL[String(n)]}</option>
+              ))}
             </select>
           </label>
           <label title="El objetivo, en multiplos del stop">
             Objetivo
             <select value={targetR} onChange={(e) => setTargetR(Number(e.target.value))}>
-              {[0.5, 1, 1.5, 2, 3].map((n) => (
+              {TARGET_RS.map((n) => (
                 <option key={n} value={n}>{num(n, n % 1 === 0 ? 0 : 1)} x el stop</option>
               ))}
             </select>
@@ -185,11 +241,14 @@ export function MarketPanel() {
           <label>
             Medido en
             <select value={unit} onChange={(e) => setUnit(e.target.value as Unit)}>
-              {(['ticks', 'puntos', 'dolares'] as Unit[]).map((u) => (
+              {UNITS.map((u) => (
                 <option key={u} value={u}>{UNIT_LABEL[u]}</option>
               ))}
             </select>
           </label>
+          <button type="button" className="note" onClick={resetTable} title="Volver a los valores de fabrica">
+            restablecer
+          </button>
         </div>
 
         {!stats ? (
@@ -395,7 +454,7 @@ export function MarketPanel() {
             <label>
               Objetivo
               <select value={studyR} onChange={(e) => setStudyR(Number(e.target.value))}>
-                {[1, 1.5, 2, 3].map((n) => (
+                {TARGET_RS.filter((n) => n >= 1).map((n) => (
                   <option key={n} value={n}>{n} R</option>
                 ))}
               </select>
@@ -407,7 +466,7 @@ export function MarketPanel() {
           >
             Tendencia de
             <select value={trendMin} onChange={(e) => setTrendMin(Number(e.target.value))}>
-              {[15, 60, 240, 1440].map((n) => (
+              {TREND_MINS.map((n) => (
                 <option key={n} value={n}>
                   {n >= 1440 ? '1 dia' : n >= 60 ? `${n / 60}h` : `${n}m`}
                 </option>
@@ -417,7 +476,7 @@ export function MarketPanel() {
           <label title="La vela cuyo patron se clasifica">
             Vela
             <select value={timeframe} onChange={(e) => setTimeframe(Number(e.target.value))}>
-              {[1, 5, 15, 60].map((n) => (
+              {TIMEFRAMES.map((n) => (
                 <option key={n} value={n}>{n >= 60 ? `${n / 60}h` : `${n}m`}</option>
               ))}
             </select>
@@ -426,10 +485,13 @@ export function MarketPanel() {
             <label>
               Objetivo y stop
               <select value={target} onChange={(e) => setTarget(Number(e.target.value))}>
-                {[20, 40, 60, 100].map((n) => <option key={n} value={n}>{n} ticks</option>)}
+                {TARGETS.map((n) => <option key={n} value={n}>{n} ticks</option>)}
               </select>
             </label>
           )}
+          <button type="button" className="note" onClick={resetStudy} title="Volver a los valores de fabrica">
+            restablecer
+          </button>
         </div>
 
         {!study ? (

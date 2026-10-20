@@ -254,6 +254,11 @@ export interface ChartPrefs {
   timeframe: number;
   candles: number;
   beforeShare: number;
+  marginTop: number;
+  deltaShare: number;
+  rightOffset: number;
+  entryShare: number;
+  noteTags: string[];
   emas: EmaSetting[];
   showSessions: boolean;
 }
