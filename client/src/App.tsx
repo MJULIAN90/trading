@@ -2,6 +2,8 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { api, type Dashboard, type Filters } from './api';
 import { Breakdown } from './components/Breakdown';
 import { BarsChart, EquityChart, RecentBarsChart } from './components/Charts';
+import { DayTable } from './components/DayTable';
+import { OpeningsPanel } from './components/OpeningsPanel';
 
 /**
  * Indices de Date.getUTCDay(): 0 es domingo. El servidor manda ese numero y no
@@ -16,20 +18,20 @@ import { Operations } from './components/Operations';
 import { PatternPanel } from './components/PatternPanel';
 import { ScratchPanel } from './components/ScratchPanel';
 import { SettingsPanel } from './components/SettingsPanel';
-import { date, num, pct, sessionLabel, setMarketOffset, signClass, dateTime, ticks } from './format';
+import { date, dateTime, num, pct, sessionLabel, setMarketOffset, signClass, signedUsd, ticks, usd } from './format';
 
 function Tiles({ s, costs }: { s: Dashboard['summary']; costs: Dashboard['costs'] }) {
   const profitable = s.payoff >= s.breakevenPayoff;
   const netTicks = costs.ticksWon + costs.ticksLost;
 
   const tiles: Array<[string, React.ReactNode, string]> = [
-    ['P&L neto', <span className={signClass(costs.netPnl)}>{num(costs.netPnl)}</span>, `${num(costs.grossPnl)} bruto − ${num(costs.commission)} comisiones`],
+    ['P&L neto (USD)', <span className={signClass(costs.netPnl)}>{signedUsd(costs.netPnl)}</span>, `${signedUsd(costs.grossPnl)} bruto − ${usd(costs.commission)} comisiones`],
     ['Ticks', <span className={signClass(netTicks)}>{ticks(netTicks)}</span>, `+${ticks(costs.ticksWon)} / ${ticks(costs.ticksLost)}`],
     ['Acierto', pct(s.winRate), `${s.wins} ganadas / ${s.losses} perdidas`],
-    ['Ganancia media', <span className="pos">{num(s.avgWin)}</span>, `${num(s.avgWinMinutes, 1)} min de media`],
-    ['Perdida media', <span className="neg">{num(s.avgLoss)}</span>, `${num(s.avgLossMinutes, 1)} min de media`],
-    ['Payoff', <span className={profitable ? 'pos' : 'neg'}>{num(s.payoff)}</span>, `necesita ${num(s.breakevenPayoff)} para no perder`],
-    ['Esperanza', <span className={signClass(s.expectancy)}>{num(s.expectancy)}</span>, 'por operacion'],
+    ['Ganancia media (USD)', <span className="pos">{usd(s.avgWin)}</span>, `${num(s.avgWinMinutes, 1)} min de media`],
+    ['Perdida media (USD)', <span className="neg">{usd(s.avgLoss)}</span>, `${num(s.avgLossMinutes, 1)} min de media`],
+    ['Payoff', <span className={profitable ? 'pos' : 'neg'}>{num(s.payoff)}</span>, `veces lo que pierdes · necesita ${num(s.breakevenPayoff)} para no perder`],
+    ['Esperanza (USD)', <span className={signClass(s.expectancy)}>{signedUsd(s.expectancy)}</span>, 'por operacion'],
     ['Racha perdedora', String(s.maxLossStreak), `mejor racha: ${s.maxWinStreak}`],
   ];
 
@@ -287,8 +289,26 @@ export default function App() {
               </div>
 
               <div className="panel">
+                <h2>Resumen por jornada</h2>
+                <div className="note" style={{ marginBottom: 8 }}>
+                  Cuantas operaciones hubo cada dia, como se repartieron entre compras y
+                  ventas, y cuanto dejo cada jornada. Las cifras de dinero son{' '}
+                  <b>dolares por contrato</b>, en bruto: sin comisiones.
+                </div>
+                <DayTable
+                  rows={data.byDay}
+                  label={(k) => String(k).slice(8) + '/' + String(k).slice(5, 7)}
+                />
+              </div>
+
+              <div className="panel">
                 <h2>Metricas por grupo</h2>
                 <Breakdown data={data} />
+              </div>
+
+              <div className="panel">
+                <h2>Aperturas de killzone</h2>
+                <OpeningsPanel />
               </div>
 
               <div className="panel">
@@ -307,7 +327,7 @@ export default function App() {
                       <tr key={f.code}>
                         <td>{f.title}</td>
                         <td>{f.count}</td>
-                        <td className={signClass(f.pnl)}>{num(f.pnl)}</td>
+                        <td className={signClass(f.pnl)}>{signedUsd(f.pnl)}</td>
                       </tr>
                     ))}
                   </tbody>

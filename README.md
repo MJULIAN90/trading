@@ -80,8 +80,12 @@ La lista completa está comentada en `.env.example`.
 
 ### 4. Los indicadores
 
-Los tres proyectos (`j_Flujo`, `KillZones`, `QuaEmas`) viven en carpetas
-hermanas de esta, normalmente bajo `...\source\repos\`. Sus `.csproj` llevan
+Los tres proyectos (`KillZones`, `j_Flujo`, `j_Guardia`) viven en carpetas
+hermanas de esta, normalmente bajo `...\source\repos\`.
+
+> `QuaEmas` fue el cuarto y **está retirado**: sus cuatro EMAs viven ahora
+> dentro de KillZones. Si lo encuentras instalado, estarás viendo las medias
+> dos veces. Sus `.csproj` llevan
 **dos rutas absolutas con el número de versión de Quantower dentro**: la
 referencia a `TradingPlatform.BusinessLayer.dll` y la carpeta donde dejan el
 DLL compilado. Esas rutas cambian con cada actualización de Quantower y con
@@ -97,9 +101,31 @@ Busca la versión instalada (la mayor, comparando número a número, porque en
 texto `v1.9` iría después de `v1.146`) y reescribe las dos rutas. Si los
 proyectos están en otro sitio: `-- --repos "D:\codigo"`.
 
-Después, en Visual Studio: abrir cada `.csproj` y compilar en **Release**. El
-DLL cae directamente en `Settings\Scripts\Indicators\<nombre>\`. Quantower los
-recoge al reiniciar.
+#### Compilarlos sin saber programar
+
+Doble clic en:
+
+```
+scripts\compilar-indicadores.cmd
+```
+
+Hace todo solo: reapunta los proyectos a este Quantower, limpia, compila los
+tres en Release y deja el resultado en pantalla y en `scripts\compilacion.log`.
+Si algo falla, el log dice exactamente qué.
+
+**Solo hace falta el SDK de .NET**, que son unos 200 MB:
+<https://dotnet.microsoft.com/download> → elige **SDK**, no *Runtime*. No hace
+falta Visual Studio (varios GB) salvo que vayas a editar el código.
+
+El DLL cae directamente en `Settings\Scripts\Indicators\<nombre>\`, y
+**Quantower los recoge al reiniciarlo**.
+
+> **Siempre limpia antes de compilar.** El script ya lo hace. Si compilas a
+> mano, usa *Clean* y luego *Build*: los ficheros copiados de otro ordenador
+> llegan con la fecha descolocada, MSBuild decide por fechas si hay que
+> recompilar, y se salta el trabajo dejándote el DLL viejo sin avisar de nada.
+
+Si prefieres Visual Studio: abrir cada `.csproj` y compilar en **Release**.
 
 ### 5. Comprobar
 
@@ -128,6 +154,17 @@ pnpm dev:web        # Vite en 5173, con proxy a la API
 
 El `build` solo hace falta cuando cambias algo de `client/`. El backend lo
 ejecuta tsx directamente, sin compilar.
+
+> **Trampa que cuesta un rato.** `pnpm build` compila **solo el front**
+> (`"build": "vite build"`). Si cambia algo de `src/` —el servidor— hay que
+> **reiniciar el proceso**: Ctrl+C en la terminal donde corre `pnpm dev` y
+> volver a arrancarlo.
+>
+> Cuando no se hace, el síntoma es desconcertante: la pantalla se ve nueva
+> (porque el front sí se recompiló) pero el servidor sigue respondiendo con la
+> forma antigua. Un ajuste nuevo aparece en la pantalla, lo guardas, y no se
+> guarda — sin ningún error. Si algo de Ajustes no se guarda, esto es lo
+> primero que hay que mirar.
 
 ### Arrancarlo con un icono en la barra de tareas (Windows)
 
@@ -331,7 +368,7 @@ Qué copiar, por orden de importancia:
 | El repositorio | el código | obvio |
 | `C:\Quantower\journal\*.jsonl` | contexto crudo | permite volver a derivar `bars` si mañana se añade una columna. Son cientos de MB; si no caben, la base ya lleva lo derivado |
 | `C:\Quantower\journal\calendar\` | calendario | pequeño, cómodo de llevar |
-| Los tres proyectos de indicadores | `source\repos\` | hay que recompilarlos allí |
+| Los tres proyectos de indicadores | `source\repos\KillZones`, `j_flujo`, `j_Guardia` | hay que recompilarlos allí con `scripts\compilar-indicadores.cmd` |
 
 **No copies `node_modules` ni `web/`**: se regeneran, y `node_modules` lleva un
 binario nativo compilado para esa máquina concreta.
@@ -343,7 +380,12 @@ Orden en la máquina nueva:
 
 1. `scripts\setup.ps1` con el proyecto ya copiado
 2. pegar `data/journal.db` encima del que se haya creado
-3. `pnpm doctor` para confirmar que las cuentas de las tablas cuadran
+3. `scripts\compilar-indicadores.cmd` para los tres indicadores
+4. reiniciar Quantower, para que recoja los DLL nuevos
+5. `pnpm doctor` para confirmar que las cuentas de las tablas cuadran
+
+Si el paso 3 falla porque los indicadores están en otra carpeta, pásale la
+ruta: `compilar-indicadores.cmd "D:\codigo"`.
 
 ---
 
@@ -538,10 +580,21 @@ Filtros comunes por query string: `from`, `to` (YYYY-MM-DD, fecha de mercado),
 
 ## Problemas conocidos
 
-- **El contexto histórico se repite.** De las velas capturadas, la inmensa
-  mayoría vienen de un relleno hacia atrás y llevan el mismo flujo repetido. El
-  OHLC es correcto (los gráficos y el MAE/MFE no se ven afectados), pero
-  cualquier agregación de delta entre días distintos no sirve. Sin resolver.
+- **El volumen histórico es falso, y está medido.** Quantower devuelve el mismo
+  `VolumeAnalysisData.Total` para miles de velas seguidas cuando el análisis de
+  volumen no está calculado de verdad. En la base: **69.446 de 69.447 velas**
+  anteriores al 8-oct-2026 llevan el valor idéntico `buy=171 sell=183`. Dos
+  combinaciones distintas en setenta mil velas.
+
+  Desde entonces j_Flujo lleva un guardia: si el volumen de una vela coincide
+  exactamente con el de la anterior en las cuatro cifras, **no se guarda** y el
+  panel lo avisa en pantalla (`VOLUMEN REPETIDO: n velas sin guardar`).
+
+  Qué significa en la práctica:
+  - **El OHLC es correcto** en los 90 días. Gráficos, MAE/MFE, rangos y todo lo
+    que dependa solo de precio es fiable.
+  - **Cualquier análisis con volumen, delta o absorción** tiene que empezar
+    desde que recompilaste con el guardia. Antes de eso mide ruido.
 - **La muestra es pequeña.** Con un centenar de operaciones en pocos días y un
   solo instrumento, casi cualquier diferencia entre grupos cabe dentro del
   azar. Las cifras sirven para mirar operaciones concretas, no para sacar

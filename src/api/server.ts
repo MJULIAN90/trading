@@ -21,6 +21,7 @@ import {
 } from '../domain/metrics.js';
 import { DEFAULT_REVIEW_CONFIG, flagImpact, reviewOperations } from '../domain/review.js';
 import { barsBySymbol, refreshBars } from '../domain/bars.js';
+import { openingStats } from '../domain/openings.js';
 import { marketDate } from '../domain/sessions.js';
 import { replay } from '../domain/replay.js';
 import { patternReport } from '../domain/pattern.js';
@@ -381,6 +382,18 @@ app.get('/api/study/patterns', async (req) => {
  * Todas las combinaciones de patron, temporalidad, tendencia y sentido, con la
  * correccion por numero de pruebas incluida.
  */
+/**
+ * Como se comporta cada killzone en su APERTURA.
+ *
+ * No mira tus operaciones: mira las velas. Una apertura por killzone y dia, asi
+ * que la muestra crece despacio (cinco al dia) y la tabla gana valor con el
+ * tiempo en vez de decir lo mismo siempre.
+ */
+app.get('/api/study/openings', async (req) => {
+  const q = req.query as { symbol?: string };
+  return openingStats(q.symbol);
+});
+
 app.get('/api/study/grid', async (req) => {
   const q = req.query as Record<string, unknown>;
   const symbol = typeof q.symbol === 'string' && q.symbol ? q.symbol : defaultSymbol();

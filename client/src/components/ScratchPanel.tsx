@@ -84,9 +84,9 @@ export function ScratchPanel({ data, operations }: { data: ScratchReport; operat
             <th>Apertura</th>
             <th>Lado</th>
             <th>Sesion</th>
-            <th>Cerro en</th>
-            <th>Luego a favor</th>
-            <th>Luego en contra</th>
+            <th>Cerro en <span className="note">(ticks)</span></th>
+            <th>Luego a favor <span className="note">(ticks)</span></th>
+            <th>Luego en contra <span className="note">(ticks)</span></th>
             <th>Resuelve</th>
           </tr>
         </thead>

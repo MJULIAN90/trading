@@ -10,7 +10,7 @@ import {
   type Page,
   type Replay,
 } from '../api';
-import { dateTime, duration, num, sessionLabel, signClass, ticks } from '../format';
+import { dateTime, duration, num, sessionLabel, signClass, signedUsd, ticks, usd } from '../format';
 import { DayCalendar } from './DayCalendar';
 import { Diagnosis } from './Diagnosis';
 import { TradeChart } from './TradeChart';
@@ -153,7 +153,7 @@ function Numbers({ op }: { op: Operation }) {
           <td><Side direction={op.direction} /> · {op.max_quantity} contrato{op.max_quantity === 1 ? '' : 's'}</td>
         </tr>
         <tr>
-          <td>Entrada → salida</td>
+          <td>Entrada → salida <span className="note">(precio)</span></td>
           <td>{num(op.entry_price)} → {num(op.exit_price)}</td>
         </tr>
         <tr>
@@ -165,15 +165,15 @@ function Numbers({ op }: { op: Operation }) {
         </tr>
         <tr>
           <td>Bruto</td>
-          <td className={signClass(op.rawGrossPnl)}>{num(op.rawGrossPnl)}</td>
+          <td className={signClass(op.rawGrossPnl)}>{signedUsd(op.rawGrossPnl)}</td>
         </tr>
         <tr>
           <td>Comision</td>
-          <td className="neg">−{num(op.commission)}</td>
+          <td className="neg">−{usd(op.commission)}</td>
         </tr>
         <tr>
           <td><b>Neto</b></td>
-          <td className={signClass(op.netPnl)}><b>{num(op.netPnl)}</b></td>
+          <td className={signClass(op.netPnl)}><b>{signedUsd(op.netPnl)}</b></td>
         </tr>
         <tr>
           <td>Duracion</td>
@@ -231,7 +231,7 @@ function ExcursionNote({ op }: { op: Operation }) {
         <span>
           <div className="title">Estuviste en beneficio y lo devolviste</div>
           <div className="detail-text">
-            Llego a ir {ticks(ex.mfe)} ticks a tu favor antes de cerrar en {num(op.netPnl)}.
+            Llego a ir {ticks(ex.mfe)} ticks a tu favor antes de cerrar en {signedUsd(op.netPnl)} USD.
             Eso apunta a la salida, no a la entrada.
           </div>
         </span>
@@ -279,7 +279,7 @@ function Detail({ op, offsetHours, prefs }: { op: Operation; offsetHours: number
         <Side direction={op.direction} qty={op.max_quantity} />
         <span className="when">{dateTime(op.opened_at)}</span>
         <span className="ses">{sessionLabel(op.session)}</span>
-        <span className={`pnl ${signClass(op.netPnl)}`}>{num(op.netPnl)}</span>
+        <span className={`pnl ${signClass(op.netPnl)}`}>{signedUsd(op.netPnl)}</span>
         <span className={`pnl ${signClass(op.ticks ?? 0)}`}>{op.ticks === null ? '' : `${ticks(op.ticks)} ticks`}</span>
       </div>
 
@@ -449,7 +449,7 @@ export function Operations({
 
         {data.totals && (
           <div className="side-totals">
-            <span className={signClass(data.totals.netPnl)}>{num(data.totals.netPnl)}</span>
+            <span className={signClass(data.totals.netPnl)}>{signedUsd(data.totals.netPnl)}</span>
             <span className={signClass(data.totals.ticksWon + data.totals.ticksLost)}>
               {ticks(data.totals.ticksWon + data.totals.ticksLost)} ticks
             </span>
@@ -497,7 +497,7 @@ export function Operations({
                   ? <span className="chip alert" title={`${alerts} aviso${alerts === 1 ? '' : 's'}: reentrada tras perder o racha perdedora. Mira la pestana Observaciones.`}>{alerts}</span>
                   : <span />}
                 <span className={`t ${signClass(op.ticks ?? 0)}`}>{op.ticks === null ? '' : ticks(op.ticks)}</span>
-                <span className={`pnl ${signClass(op.netPnl)}`}>{num(op.netPnl)}</span>
+                <span className={`pnl ${signClass(op.netPnl)}`}>{signedUsd(op.netPnl)}</span>
               </button>
             );
           })}

@@ -71,6 +71,15 @@ export interface Summary {
   operations: number;
   wins: number;
   losses: number;
+
+  /** Operaciones en COMPRA (LONG) y en VENTA (SHORT). */
+  longs: number;
+  shorts: number;
+
+  /** De esas, cuantas acabaron en ganancia. Sirve para ver si falla un lado. */
+  longWins: number;
+  shortWins: number;
+
   winRate: number;
   grossPnl: number;
   avgWin: number;
@@ -96,10 +105,17 @@ export function summarize(ops: Operation[]): Summary {
 
   const mean = (xs: Operation[]) => (xs.length ? xs.reduce((a, o) => a + o.duration_sec, 0) / xs.length / 60 : 0);
 
+  const longs = ops.filter((o) => o.direction === 'LONG');
+  const shorts = ops.filter((o) => o.direction === 'SHORT');
+
   return {
     operations: ops.length,
     wins: wins.length,
     losses: losses.length,
+    longs: longs.length,
+    shorts: shorts.length,
+    longWins: longs.filter((o) => o.gross_pnl > 0).length,
+    shortWins: shorts.filter((o) => o.gross_pnl > 0).length,
     winRate,
     grossPnl: ops.reduce((a, o) => a + o.gross_pnl, 0),
     avgWin,

@@ -1,5 +1,5 @@
 import type { PatternReport } from '../api';
-import { num, pct, signClass, ticks } from '../format';
+import { num, pct, signClass, signedUsd, ticks } from '../format';
 import { PatternGlyph } from './PatternGlyph';
 
 /**
@@ -63,8 +63,8 @@ export function PatternPanel({ data }: { data: PatternReport }) {
               </td>
               <td>{r.operations}</td>
               <td>{pct(r.wins / r.operations)}</td>
-              <td className={signClass(r.pnl)}>{num(r.pnl)}</td>
-              <td className={signClass(r.pnl / r.operations)}>{num(r.pnl / r.operations)}</td>
+              <td className={signClass(r.pnl)}>{signedUsd(r.pnl)}</td>
+              <td className={signClass(r.pnl / r.operations)}>{signedUsd(r.pnl / r.operations)}</td>
               <td className="pos">{r.medianMfe === null ? '—' : `${ticks(r.medianMfe)} ticks`}</td>
               <td className="neg">
                 {r.medianGivenBack === null ? '—' : `${ticks(r.medianGivenBack)} ticks`}

@@ -98,6 +98,27 @@ export function signedInUnit(t: number, unit: Unit, tickSize: number, tickValue:
   return `${sign}${inUnit(t, unit, tickSize, tickValue)}`;
 }
 
+/**
+ * Dinero, siempre con la unidad escrita.
+ *
+ * El diario trabaja en dolares por contrato porque es lo que devuelve el
+ * broker. Un "-64" suelto no dice si son dolares, ticks o puntos: tu lo sabes,
+ * cualquier otro que mire la pantalla no, y en MNQ la diferencia entre leerlo
+ * como ticks o como dolares es un factor de dos.
+ */
+export const usd = (n: number, d = 2) =>
+  `${n < 0 ? '-' : ''}$${Math.abs(n).toLocaleString('es', {
+    minimumFractionDigits: d,
+    maximumFractionDigits: d,
+  })}`;
+
+/** Igual, pero con el signo siempre delante. Para variaciones. */
+export const signedUsd = (n: number, d = 2) =>
+  `${n > 0 ? '+' : n < 0 ? '-' : ''}$${Math.abs(n).toLocaleString('es', {
+    minimumFractionDigits: d,
+    maximumFractionDigits: d,
+  })}`;
+
 export const signClass = (n: number) => (n > 0 ? 'pos' : n < 0 ? 'neg' : '');
 
 export function duration(seconds: number): string {

@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { num } from '../format';
+import { num, signedUsd } from '../format';
 
 /**
  * Calendario de dias operados, con el resultado de cada uno pintado al fondo.
@@ -116,7 +116,7 @@ export function DayCalendar({
             className={monthTotal > 0 ? 'pos' : monthTotal < 0 ? 'neg' : ''}
             title="Resultado neto del mes, con las comisiones ya descontadas"
           >
-            <i>neto</i> {num(monthTotal, 0)}
+            <i>neto</i> {signedUsd(monthTotal, 0)} <span className="note">USD</span>
           </b>
         </span>
         <button
@@ -152,11 +152,11 @@ export function DayCalendar({
               key={i}
               className={`cal-cell day ${on ? 'on' : ''}`}
               style={{ background: `rgba(${arm}, ${(0.16 + strength * 0.62).toFixed(2)})` }}
-              title={`${date} · ${stat.count} operacion${stat.count === 1 ? '' : 'es'} · ${num(stat.pnl)}`}
+              title={`${date} · ${stat.count} operacion${stat.count === 1 ? '' : 'es'} · ${signedUsd(stat.pnl)} USD`}
               onClick={() => onToggle(date)}
             >
               <span className="n">{c.day}</span>
-              <span className="v">{num(stat.pnl, 0)}</span>
+              <span className="v">{signedUsd(stat.pnl, 0)}</span>
             </button>
           );
         })}

@@ -1,5 +1,5 @@
 import type { CostSettings, CostSummary, ExcursionSummary } from '../api';
-import { num, signClass, ticks } from '../format';
+import { num, signClass, signedUsd, ticks, usd } from '../format';
 
 /**
  * Lo que cuesta operar y lo que recorre el precio mientras estas dentro.
@@ -28,19 +28,19 @@ export function CostPanel({
           <tbody>
             <tr>
               <td>Resultado bruto</td>
-              <td className={signClass(costs.grossPnl)}>{num(costs.grossPnl)}</td>
+              <td className={signClass(costs.grossPnl)}>{signedUsd(costs.grossPnl)}</td>
               <td className="note">{costs.operations} operaciones · {num(costs.contracts, 0)} contratos en total</td>
             </tr>
             <tr>
               <td>Comisiones simuladas</td>
-              <td className="neg">−{num(costs.commission)}</td>
+              <td className="neg">−{usd(costs.commission)}</td>
               <td className="note">
-                {num(settings.commissionPerContract)} $ por contrato, ida y vuelta
+                {usd(settings.commissionPerContract)} USD por contrato, ida y vuelta
               </td>
             </tr>
             <tr>
               <td><b>Resultado neto</b></td>
-              <td className={signClass(costs.netPnl)}><b>{num(costs.netPnl)}</b></td>
+              <td className={signClass(costs.netPnl)}><b>{signedUsd(costs.netPnl)}</b></td>
               <td className="note">
                 {share !== null && `las comisiones se llevan el ${(share * 100).toFixed(0)}% del bruto`}
               </td>

@@ -150,6 +150,10 @@ export interface Summary {
   operations: number;
   wins: number;
   losses: number;
+  longs: number;
+  shorts: number;
+  longWins: number;
+  shortWins: number;
   winRate: number;
   grossPnl: number;
   avgWin: number;

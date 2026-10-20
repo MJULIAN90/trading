@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { api, type CalendarStatus, type EventPage, type NewsImpact , type MarketHoliday } from '../api';
-import { dateTime, num, signClass } from '../format';
+import { dateTime, num, signClass, signedUsd } from '../format';
 
 /**
  * Calendario economico y ventana de silencio.
@@ -276,17 +276,17 @@ export function CalendarPanel({ data, news }: { data: CalendarStatus; news: News
             <tr>
               <td>Dentro de la ventana</td>
               <td>{news.inside.count}</td>
-              <td className={signClass(news.inside.pnl)}>{num(news.inside.pnl)}</td>
+              <td className={signClass(news.inside.pnl)}>{signedUsd(news.inside.pnl)}</td>
               <td className={signClass(news.inside.median ?? 0)}>
-                {news.inside.median === null ? '—' : num(news.inside.median)}
+                {news.inside.median === null ? '—' : signedUsd(news.inside.median)}
               </td>
             </tr>
             <tr>
               <td>Fuera</td>
               <td>{news.outside.count}</td>
-              <td className={signClass(news.outside.pnl)}>{num(news.outside.pnl)}</td>
+              <td className={signClass(news.outside.pnl)}>{signedUsd(news.outside.pnl)}</td>
               <td className={signClass(news.outside.median ?? 0)}>
-                {news.outside.median === null ? '—' : num(news.outside.median)}
+                {news.outside.median === null ? '—' : signedUsd(news.outside.median)}
               </td>
             </tr>
           </tbody>

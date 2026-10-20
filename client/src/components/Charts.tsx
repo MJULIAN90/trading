@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import type { Dashboard, Group } from '../api';
-import { dateTime, num, pct, signClass } from '../format';
+import { dateTime, pct, signClass, signedUsd, usd } from '../format';
 
 interface Tip {
   x: number;
@@ -62,14 +62,17 @@ export function EquityChart({ points }: { points: Dashboard['equity'] }) {
           setHover(i);
           setTip({
             x: e.clientX, y: e.clientY,
-            html: `<b>${dateTime(p.ts)}</b><br>operacion: <span class="${signClass(p.pnl)}">${num(p.pnl)}</span><br>acumulado: ${num(p.equity)}`,
+            html:
+              `<b>${dateTime(p.ts)}</b>` +
+              `<br>Esta operacion: <span class="${signClass(p.pnl)}">${signedUsd(p.pnl)}</span> USD` +
+              `<br>Acumulado: <span class="${signClass(p.equity)}">${signedUsd(p.equity)}</span> USD`,
           });
         }}
       >
         <line x1={P.l} y1={y(0)} x2={W - P.r} y2={y(0)} className="axis" strokeDasharray="3 3" />
-        <text x={W - P.r + 6} y={y(0) + 3} className="axis-text">0</text>
-        <text x={W - P.r + 6} y={y(max) + 3} className="axis-text">{num(max, 0)}</text>
-        {min < 0 && <text x={W - P.r + 6} y={y(min) + 3} className="axis-text">{num(min, 0)}</text>}
+        <text x={W - P.r + 6} y={y(0) + 3} className="axis-text">$0</text>
+        <text x={W - P.r + 6} y={y(max) + 3} className="axis-text">{usd(max, 0)}</text>
+        {min < 0 && <text x={W - P.r + 6} y={y(min) + 3} className="axis-text">{usd(min, 0)}</text>}
         <path d={d} fill="none" stroke={stroke} strokeWidth={2} strokeLinejoin="round" strokeLinecap="round" />
         {hover !== null && (
           <>
@@ -142,7 +145,7 @@ export function BarsChart({ rows, label }: { rows: Group[]; label: (k: string | 
   const [tip, setTip] = useState<Tip | null>(null);
   if (!rows.length) return <div className="empty">sin datos</div>;
 
-  const W = 440, rowH = 24, P = { t: 6, l: 74, r: 54 };
+  const W = 440, rowH = 24, P = { t: 6, l: 74, r: 74 };
   const H = Math.max(rows.length * rowH + P.t, 60);
   const bound = Math.max(1, ...rows.map((r) => Math.abs(r.summary.grossPnl)));
   const plotW = W - P.l - P.r;
@@ -165,10 +168,15 @@ export function BarsChart({ rows, label }: { rows: Group[]; label: (k: string | 
                 fill={v >= 0 ? 'var(--up)' : 'var(--down)'} opacity={0.85}
                 onMouseMove={(e) => setTip({
                   x: e.clientX, y: e.clientY,
-                  html: `<b>${label(r.key)}</b><br>P&L: <span class="${signClass(v)}">${num(v)}</span><br>${r.summary.operations} ops, acierto ${pct(r.summary.winRate)}`,
+                  html:
+                    `<b>${label(r.key)}</b>` +
+                    `<br>Resultado bruto: <span class="${signClass(v)}">${signedUsd(v)}</span> USD` +
+                    `<br>${r.summary.operations} operaciones · ${r.summary.wins} ganadoras / ${r.summary.losses} perdedoras` +
+                    `<br>${r.summary.longs} en compra · ${r.summary.shorts} en venta` +
+                    `<br>Acierto ${pct(r.summary.winRate)}`,
                 })}
               />
-              <text x={W - P.r + 6} y={top + h - 2} className="axis-text">{num(v, 0)}</text>
+              <text x={W - P.r + 6} y={top + h - 2} className="axis-text">{usd(v, 0)}</text>
             </g>
           );
         })}

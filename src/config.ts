@@ -100,6 +100,27 @@ export const CALENDAR_TZ_OFFSET_HOURS = Number(
  * por su cuenta. Medido sobre datos reales: el crudo ocupa seis veces mas que
  * su version derivada, asi que a partir de unos meses compensa activarlo.
  */
+/**
+ * HORA A LA QUE CAMBIA LA JORNADA, en hora de mercado (Nueva York).
+ *
+ * No es medianoche, y la diferencia no es cosmetica.
+ *
+ * La sesion de futuros del CME abre a las 18:00 ET y corre hasta las 17:00 ET
+ * del dia siguiente: lo que operas el lunes a las 22:00 pertenece a la jornada
+ * del MARTES para el mercado y para la mesa de fondeo, que es quien cuenta tu
+ * limite de perdida diaria.
+ *
+ * Con el corte a medianoche que habia antes, sobre 248 operaciones reales:
+ *   - 80 (el 32%) caian en la jornada equivocada
+ *   - una jornada entera (16-oct-2026, 15 operaciones) no existia en el diario
+ *   - el 19-oct pasaba de 8 operaciones a 39
+ *
+ * CONFIRMA LA HORA CON TU MESA. 18 es el estandar del CME y lo que usan la
+ * mayoria de las firmas de futuros, pero si la tuya resetea a otra hora, ponla
+ * aqui y todas las metricas por fecha se recolocan solas.
+ */
+export const MARKET_DAY_ROLL_HOUR = Number(process.env.MARKET_DAY_ROLL_HOUR ?? 18);
+
 export const CONTEXT_RETENTION_DAYS = Number(process.env.CONTEXT_RETENTION_DAYS ?? 0);
 
 export const NEWS_BLACKOUT_BEFORE_MIN = Number(process.env.NEWS_BLACKOUT_BEFORE_MIN ?? 5);

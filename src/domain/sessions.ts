@@ -1,3 +1,4 @@
+import { MARKET_DAY_ROLL_HOUR } from '../config.js';
 import { marketOffsetAt } from './clock.js';
 
 /**
@@ -27,8 +28,33 @@ export function marketHour(tsMs: number): number {
   return d.getUTCHours() + d.getUTCMinutes() / 60 + d.getUTCSeconds() / 3600;
 }
 
-/** Fecha de mercado en formato YYYY-MM-DD. */
+/**
+ * JORNADA de mercado en formato YYYY-MM-DD.
+ *
+ * Ojo: es la jornada, no la fecha del calendario. La sesion de futuros rueda a
+ * las 18:00 de Nueva York (`MARKET_DAY_ROLL_HOUR`), asi que lo operado el lunes
+ * por la noche cuenta como la jornada del martes — igual que lo cuentan el
+ * mercado y la mesa de fondeo.
+ *
+ * Que el diario y la mesa cierren el dia a la misma hora es lo que hace que el
+ * limite de perdida diaria del diario signifique algo. Con el corte anterior a
+ * medianoche, el 32% de las operaciones caia en el dia equivocado.
+ *
+ * Se devuelve la fecha en la que TERMINA la jornada, que es como la nombran las
+ * plataformas: la sesion que abre el lunes a las 18:00 es la del martes.
+ */
 export function marketDate(tsMs: number): string {
+  const d = new Date(tsMs + marketOffsetAt(tsMs) * 3600_000);
+
+  // A partir del corte, la operacion pertenece a la jornada siguiente.
+  if (d.getUTCHours() >= MARKET_DAY_ROLL_HOUR)
+    d.setUTCDate(d.getUTCDate() + 1);
+
+  return d.toISOString().slice(0, 10);
+}
+
+/** La fecha del CALENDARIO, sin aplicar el corte de jornada. */
+export function calendarDate(tsMs: number): string {
   const d = new Date(tsMs + marketOffsetAt(tsMs) * 3600_000);
   return d.toISOString().slice(0, 10);
 }

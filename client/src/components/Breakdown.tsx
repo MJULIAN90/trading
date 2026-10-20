@@ -1,8 +1,18 @@
 import { useState } from 'react';
 import type { Dashboard, Group, Summary } from '../api';
-import { num, pct, sessionLabel, signClass } from '../format';
+import { num, pct, sessionLabel, signClass, signedUsd, usd } from '../format';
 
 type Dim = 'session' | 'weekday' | 'day' | 'hour' | 'direction';
+
+import { RowLimit, lastRows, useRowLimit } from './RowLimit';
+
+/**
+ * Dimensiones que CRECEN con el tiempo y necesitan tope.
+ *
+ * Las demas son de tamano fijo y no lo necesitan: 6 sesiones, 7 dias de la
+ * semana, 24 horas, 2 direcciones. Ponerles un selector seria ruido.
+ */
+const CRECEN: Dim[] = ['day'];
 
 const DIMS: Array<{ key: Dim; label: string; title: string }> = [
   { key: 'session', label: 'Por sesion', title: 'Sesion' },
@@ -40,15 +50,15 @@ function Row({ name, s }: { name: string; s: Summary }) {
       <td>{name}</td>
       <td>{s.operations}</td>
       <td>{pct(s.winRate)}</td>
-      <td className={signClass(s.grossPnl)}>{num(s.grossPnl)}</td>
-      <td className={signClass(s.expectancy)}>{num(s.expectancy)}</td>
-      <td className="pos">{num(s.avgWin)}</td>
-      <td className="neg">{num(s.avgLoss)}</td>
+      <td className={signClass(s.grossPnl)}>{signedUsd(s.grossPnl)}</td>
+      <td className={signClass(s.expectancy)}>{signedUsd(s.expectancy)}</td>
+      <td className="pos">{usd(s.avgWin)}</td>
+      <td className="neg">{usd(s.avgLoss)}</td>
       <td className={s.operations >= 5 ? (profitable ? 'pos' : 'neg') : ''}>
         {num(s.payoff)}
         <span style={{ color: 'var(--ink-muted)', fontSize: 11 }}> / {num(s.breakevenPayoff)}</span>
       </td>
-      <td>{num(s.avgWinMinutes, 1)} / {num(s.avgLossMinutes, 1)}</td>
+      <td>{num(s.avgWinMinutes, 1)} / {num(s.avgLossMinutes, 1)} <span className="note">min</span></td>
     </tr>
   );
 }
@@ -64,7 +74,15 @@ export function Breakdown({ data }: { data: Dashboard }) {
     direction: data.byDirection,
   };
 
-  const rows = groups[dim];
+  const [limit, setLimit] = useRowLimit('breakdown', 30);
+
+  const todas = groups[dim];
+
+  // Solo la vista por fecha crece; en las demas el tope no se dibuja y se
+  // enseñan todas las filas.
+  const acotada = CRECEN.includes(dim);
+  const rows = acotada ? lastRows(todas, limit) : todas;
+
   const total = rows.reduce(
     (acc, r) => ({
       ops: acc.ops + r.summary.operations,
@@ -88,16 +106,26 @@ export function Breakdown({ data }: { data: Dashboard }) {
         ))}
       </div>
 
+      {acotada && (
+        <RowLimit
+          value={limit}
+          onChange={setLimit}
+          total={todas.length}
+          shown={rows.length}
+          noun="fechas"
+        />
+      )}
+
       <table>
         <thead>
           <tr>
             <th>{DIMS.find((d) => d.key === dim)?.title}</th>
             <th>Ops</th>
             <th>Acierto</th>
-            <th>P&amp;L</th>
-            <th>Por op.</th>
-            <th>Gan. media</th>
-            <th>Perd. media</th>
+            <th>P&amp;L <span className="note">(USD)</span></th>
+            <th>Por op. <span className="note">(USD)</span></th>
+            <th>Gan. media <span className="note">(USD)</span></th>
+            <th>Perd. media <span className="note">(USD)</span></th>
             <th title="Cuanto ganas por cada unidad que pierdes, y al lado el minimo que necesitas con ese acierto">
               Payoff / necesario
             </th>
@@ -114,7 +142,7 @@ export function Breakdown({ data }: { data: Dashboard }) {
             <td>Total</td>
             <td>{total.ops}</td>
             <td>{total.ops ? pct(total.wins / total.ops) : '-'}</td>
-            <td className={signClass(total.pnl)}>{num(total.pnl)}</td>
+            <td className={signClass(total.pnl)}>{signedUsd(total.pnl)}</td>
             <td colSpan={5} />
           </tr>
         </tfoot>
