@@ -38,6 +38,51 @@ input, select, button {
   border-radius: 6px; padding: 6px 9px; font: inherit; font-size: 13px;
 }
 button { cursor: pointer; }
+
+/* ---------------------------------------------------------------------------
+   Selectores de fecha
+   ---------------------------------------------------------------------------
+   El calendario que se despliega al pulsar el iconito NO lo dibuja esta hoja:
+   lo dibuja el navegador, y decide su color segun `color-scheme`. Como aqui no
+   se declaraba ninguno, heredaba el del sistema operativo: en un Windows en
+   modo oscuro salia gris sobre gris y practicamente no se leia.
+
+   Se fuerza a CLARO solo en estos campos. El calendario sale blanco y legible,
+   mientras que la casilla en si se queda oscura como el resto porque su fondo
+   y su color van puestos a mano aqui arriba, y eso manda sobre el esquema. */
+input[type='date'],
+input[type='datetime-local'],
+input[type='month'],
+input[type='time'] {
+  color-scheme: light;
+  background: var(--panel);
+  color: var(--ink);
+}
+
+/* El iconito del calendario viene negro al pedir esquema claro, y sobre fondo
+   oscuro desaparece. Se invierte para que se vea. */
+input[type='date']::-webkit-calendar-picker-indicator,
+input[type='datetime-local']::-webkit-calendar-picker-indicator,
+input[type='month']::-webkit-calendar-picker-indicator,
+input[type='time']::-webkit-calendar-picker-indicator {
+  filter: invert(1) brightness(1.6);
+  opacity: 0.7;
+  cursor: pointer;
+}
+
+input[type='date']::-webkit-calendar-picker-indicator:hover,
+input[type='datetime-local']::-webkit-calendar-picker-indicator:hover,
+input[type='month']::-webkit-calendar-picker-indicator:hover,
+input[type='time']::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+
+/* El texto de guia (dd/mm/aaaa) en un campo vacio: mas apagado que un valor
+   de verdad, para distinguir de un vistazo lo que esta puesto de lo que no. */
+input[type='date']:not(:focus):invalid,
+input[type='date'][value=''] {
+  color: var(--ink-muted);
+}
 button:hover:not(:disabled) { border-color: var(--ink-muted); }
 button:disabled { opacity: .4; cursor: default; }
 

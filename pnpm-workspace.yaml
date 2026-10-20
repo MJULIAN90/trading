@@ -1,6 +1,21 @@
-# pnpm bloquea los scripts de instalacion por defecto desde la v10. Estos dos los
-# necesitan: better-sqlite3 para bajar su binario nativo (sin el, el servidor
-# falla al primer import con un error de bindings) y esbuild para su ejecutable.
 allowBuilds:
-  better-sqlite3: true
-  esbuild: true
+  better-sqlite3: set this to true or false
+  esbuild: set this to true or false
+# Paquetes a los que SI se les permite ejecutar su script de instalacion.
+#
+# pnpm los bloquea a todos por defecto desde la v10, por seguridad. Y hace
+# falta decirlo aqui, en este fichero: el `pnpm.onlyBuiltDependencies` del
+# package.json ya no se lee en las versiones nuevas, que avisan con
+# "The pnpm field in package.json is no longer read by pnpm".
+#
+# Si no estan autorizados:
+#   better-sqlite3 se queda sin su binario nativo y el servidor revienta al
+#   primer import con un error de "bindings" que no menciona la causa.
+#   esbuild se queda sin su binario y falla el build del front.
+#
+# Antes aqui habia el texto de plantilla que escribe pnpm
+# ("set this to true or false"), o sea que no autorizaba nada. En este equipo
+# no se noto porque node_modules venia de una instalacion anterior.
+onlyBuiltDependencies:
+  - better-sqlite3
+  - esbuild

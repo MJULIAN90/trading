@@ -45,7 +45,39 @@ if (Get-Command pnpm -ErrorAction SilentlyContinue) {
 Write-Host ""
 Write-Host "Instalando dependencias con $pm..." -ForegroundColor Cyan
 & $pm install
-if ($LASTEXITCODE -ne 0) { Write-Host "Fallo la instalacion." -ForegroundColor Red; exit 1 }
+
+# DISCOS SIN ENLACES SIMBOLICOS.
+#
+# pnpm instala creando symlinks por todas partes. En exFAT y FAT32 -lo normal
+# en discos externos y memorias USB- eso es imposible, y falla con:
+#
+#   Failed to create symlink ... Funcion incorrecta. (os error 1)
+#
+# El mensaje no dice nada de symlinks ni del sistema de ficheros, asi que es
+# facil perder una tarde. Se reintenta copiando en vez de enlazar, que es lo
+# que hace npm de toda la vida: ocupa algo mas de disco y ya esta.
+if ($LASTEXITCODE -ne 0) {
+  Write-Host ""
+  Write-Host "La instalacion fallo. Reintento sin enlaces simbolicos" -ForegroundColor Yellow
+  Write-Host "(normal si el proyecto esta en un disco externo o USB)." -ForegroundColor DarkGray
+
+  if ($pm -eq 'pnpm') {
+    & $pm install --node-linker=hoisted
+  } else {
+    & $pm install
+  }
+
+  if ($LASTEXITCODE -ne 0) {
+    Write-Host ""
+    Write-Host "Sigue fallando." -ForegroundColor Red
+    Write-Host "Prueba a mover el proyecto a una carpeta del disco C:, que esta" -ForegroundColor Yellow
+    Write-Host "formateado en NTFS y no tiene esta limitacion." -ForegroundColor Yellow
+    exit 1
+  }
+
+  Write-Host "Instalado copiando en vez de enlazar." -ForegroundColor Green
+  Write-Host "Recuerda usar --node-linker=hoisted si vuelves a instalar aqui." -ForegroundColor DarkGray
+}
 
 # better-sqlite3 lleva un binario nativo. pnpm bloquea los scripts de
 # instalacion desde la v10, y sin ese script el servidor revienta al primer

@@ -595,6 +595,19 @@ Filtros comunes por query string: `from`, `to` (YYYY-MM-DD, fecha de mercado),
     que dependa solo de precio es fiable.
   - **Cualquier análisis con volumen, delta o absorción** tiene que empezar
     desde que recompilaste con el guardia. Antes de eso mide ruido.
+- **En un disco externo o USB, `pnpm install` falla.** El error es
+  `Failed to create symlink ... Funcion incorrecta. (os error 1)` y no menciona
+  ni los enlaces ni el disco, asi que cuesta de identificar. La causa es que
+  exFAT y FAT32 no admiten enlaces simbolicos, y pnpm instala creando symlinks.
+
+  ```powershell
+  pnpm install --node-linker=hoisted
+  ```
+
+  Copia en vez de enlazar, que es lo que hace npm. Ocupa algo mas de disco y ya
+  esta. `scripts\setup.ps1` lo reintenta solo cuando detecta el fallo. Lo
+  comodo de verdad es tener el proyecto en el disco `C:`, que es NTFS.
+
 - **La muestra es pequeña.** Con un centenar de operaciones en pocos días y un
   solo instrumento, casi cualquier diferencia entre grupos cabe dentro del
   azar. Las cifras sirven para mirar operaciones concretas, no para sacar
