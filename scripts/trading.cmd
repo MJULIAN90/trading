@@ -96,6 +96,41 @@ if not exist "node_modules\" (
     )
 )
 
+rem --- Binario nativo de better-sqlite3 ---------------------------------------
+rem
+rem Es el fallo numero uno al montar esto en otra maquina, y el peor de
+rem diagnosticar: la instalacion termina en tres segundos sin un solo error y
+rem el servidor revienta despues con un mensaje sobre "bindings" que no
+rem menciona ni pnpm ni los permisos de compilacion.
+rem
+rem Se comprueba en cada arranque porque es barato y porque el permiso se
+rem puede perder solo: pnpm 12 migra el pnpm-workspace.yaml y al hacerlo
+rem puede dejar los paquetes en false.
+node -e "require('better-sqlite3')" >nul 2>&1
+if errorlevel 1 (
+    echo El binario nativo de better-sqlite3 no carga. Reconstruyendo...
+    call %PM% rebuild better-sqlite3
+    node -e "require('better-sqlite3')" >nul 2>&1
+    if errorlevel 1 (
+        echo.
+        echo NO SE PUDO CONSTRUIR better-sqlite3. El diario no puede arrancar.
+        echo.
+        echo Mira en pnpm-workspace.yaml que better-sqlite3 este en TRUE, tanto
+        echo en onlyBuiltDependencies como en allowBuilds. Si pnpm dice
+        echo "already up to date" o "no packages awaiting approval" y aun asi
+        echo falla, es que lo tiene PROHIBIDO, no pendiente.
+        echo.
+        echo La salida rapida es cambiar a npm en este equipo:
+        echo    rmdir /s /q node_modules
+        echo    del pnpm-lock.yaml
+        echo    npm install
+        echo.
+        pause
+        exit /b 1
+    )
+    echo Reconstruido.
+)
+
 rem --- Compilar el front ------------------------------------------------------
 echo Compilando la interfaz...
 call %PM% build

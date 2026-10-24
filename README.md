@@ -55,9 +55,17 @@ pnpm build          # compila el front de React a web/
 > binario nativo que se construye al instalar, y si ese paso no corre el
 > servidor revienta al primer import con un mensaje que no menciona la causa.
 >
-> Con pnpm hay que autorizarlo (está en `pnpm-workspace.yaml`, que es donde pnpm
-> lo busca; el `pnpm.onlyBuiltDependencies` del `package.json` ya no se lee).
+> Con pnpm hay que autorizarlo, y el permiso vive en `pnpm-workspace.yaml`
+> **en dos formatos a la vez**: `onlyBuiltDependencies` (lista) para pnpm 10 y
+> 11, y `allowBuilds` (mapa) para pnpm 12 en adelante. El
+> `pnpm.onlyBuiltDependencies` del `package.json` ya no se lee.
 > Si la instalación ya existía: `pnpm rebuild better-sqlite3`.
+>
+> **Ojo con pnpm 12: migra el fichero solo y puede dejar los paquetes en
+> `false`.** El síntoma engaña — `pnpm approve-builds` responde «no packages
+> awaiting approval» y `pnpm rebuild` responde «already up to date», porque
+> para pnpm no hay nada *pendiente*: hay algo *prohibido*. Lo primero que hay
+> que mirar cuando esto falle es que esos valores sigan en `true`.
 >
 > **Y si pnpm dice «already up to date» o «no packages awaiting approval» pero
 > el error sigue**, no insistas con pnpm — cree que ya lo construyó. Cambia a
@@ -182,7 +190,7 @@ nada** y sirve para ir poniéndola al día cada pocas semanas.
 ### 5. Comprobar
 
 ```bash
-pnpm doctor
+pnpm run doctor
 ```
 
 Revisa de una pasada: versión de Node, dependencias, binario nativo de
@@ -312,7 +320,7 @@ contenga un `user-trades.db`. **Con más de una cuenta eso es elegir al azar**
 QUANTOWER_TRADES_DB=C:\Quantower\UserTradesCache\<la que sea>\user-trades.db
 ```
 
-`pnpm doctor` lista todas las que encuentra, para no tener que adivinar.
+`pnpm run doctor` lista todas las que encuentra, para no tener que adivinar.
 
 Esa base **se abre siempre en solo lectura**: el diario nunca escribe dentro de
 Quantower.
@@ -434,7 +442,7 @@ Orden en la máquina nueva:
 2. pegar `data/journal.db` encima del que se haya creado
 3. `scripts\compilar-indicadores.cmd` para los tres indicadores
 4. reiniciar Quantower, para que recoja los DLL nuevos
-5. `pnpm doctor` para confirmar que las cuentas de las tablas cuadran
+5. `pnpm run doctor` para confirmar que las cuentas de las tablas cuadran
 
 Si el paso 3 falla porque los indicadores están en otra carpeta, pásale la
 ruta: `compilar-indicadores.cmd "D:\codigo"`.
