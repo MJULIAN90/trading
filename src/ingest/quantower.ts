@@ -32,6 +32,8 @@ export interface IngestResult {
   fillsNew: number;
   operations: number;
   operationsNew: number;
+  /** Operaciones que cambiaron de lado del corte de "operativa real". */
+  restamped: number;
 }
 
 /**
@@ -175,5 +177,43 @@ export function ingestQuantower(tradesDbPath: string): IngestResult {
 
   run();
 
-  return { fillsRead: rows.length, fillsNew, operations, operationsNew };
+  const resellado = restampReal();
+
+  return { fillsRead: rows.length, fillsNew, operations, operationsNew, restamped: resellado };
+}
+
+/**
+ * Vuelve a sellar `is_real` en TODAS las operaciones segun la fecha de corte
+ * actual, y devuelve cuantas cambiaron.
+ *
+ * Por que hace falta: las operaciones entran con `INSERT OR IGNORE`, asi que
+ * una fila que ya existe no se toca nunca mas. Sin esto, mover la fecha de
+ * corte no cambiaba ni una sola operacion ya guardada: el ajuste parecia
+ * funcionar, las metricas seguian igual, y no habia forma de saber por que.
+ *
+ * El corte usa `marketDate`, el mismo dia de mercado que el resto de la
+ * aplicacion. Con la fecha de calendario, lo operado entre las 18:00 y
+ * medianoche del dia anterior al corte caeria del lado equivocado.
+ */
+export function restampReal(): number {
+  const target = db();
+
+  const filas = target
+    .prepare('SELECT id, opened_at, is_real FROM operations')
+    .all() as Array<{ id: number; opened_at: number; is_real: number }>;
+
+  const update = target.prepare('UPDATE operations SET is_real = ? WHERE id = ?');
+  let cambiadas = 0;
+
+  target.transaction(() => {
+    for (const f of filas) {
+      const debe = marketDate(f.opened_at) >= REAL_TRADING_SINCE ? 1 : 0;
+      if (debe !== f.is_real) {
+        update.run(debe, f.id);
+        cambiadas++;
+      }
+    }
+  })();
+
+  return cambiadas;
 }

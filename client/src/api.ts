@@ -41,6 +41,11 @@ export interface Operation {
   rawGrossPnl: number;
   /** Recorrido mientras estuvo abierta. Solo viene en el listado paginado. */
   excursion?: Excursion;
+
+  /** Etiquetas puestas a esta operacion. Solo vienen en el listado paginado. */
+  tags?: string[];
+  /** La nota, para el globo del listado. Solo viene en el listado paginado. */
+  note?: string;
 }
 
 export interface CostSettings {
@@ -263,6 +268,18 @@ export interface ChartPrefs {
   rightOffset: number;
   entryShare: number;
   noteTags: string[];
+  /**
+   * Si cada etiqueta describe una conducta buena o mala, SEGUN EL. Lo que no
+   * esta aqui es neutro. Es una hipotesis suya, no una medida: lo que de
+   * verdad sumo o resto cada etiqueta sale de /api/tags.
+   */
+  tagPolarity: Record<string, 'buena' | 'mala'>;
+  /**
+   * De que eje habla cada etiqueta. Ausente = conducta.
+   * estrategia = que clase de operacion era · contexto = que habia en el
+   * mercado · conducta = que hiciste tu. Solo conducta lleva verde/rojo.
+   */
+  tagKind: Record<string, 'estrategia' | 'contexto'>;
   emas: EmaSetting[];
   showSessions: boolean;
 }
@@ -393,6 +410,8 @@ export interface Page<T> {
   totals?: CostSummary;
   /** Dias con operaciones, para el filtro rapido. Sin aplicar el filtro de dias. */
   days?: Array<{ date: string; count: number; pnl: number }>;
+  /** Etiquetas presentes, para el filtro rapido. Sin aplicar el filtro de etiquetas. */
+  tags?: Array<{ tag: string; count: number }>;
 }
 
 export interface Filters {
@@ -410,6 +429,8 @@ export interface Filters {
   result?: 'win' | 'loss';
   /** Varias sesiones a la vez. Vacio o ausente = todas. */
   sessions?: string[];
+  /** Varias etiquetas a la vez. Cruza por CUALQUIERA de ellas, no por todas. */
+  tags?: string[];
   /** Dias de mercado concretos (YYYY-MM-DD). Vacio o ausente = todos. */
   days?: string[];
 }
@@ -427,6 +448,7 @@ function qs(filters: Filters, extra: Record<string, string | number> = {}): stri
   if (filters.result) p.set('result', filters.result);
   if (filters.sessions?.length) p.set('sessions', filters.sessions.join(','));
   if (filters.days?.length) p.set('days', filters.days.join(','));
+  if (filters.tags?.length) p.set('tags', filters.tags.join(','));
   for (const [k, v] of Object.entries(extra)) p.set(k, String(v));
   return p.toString();
 }
@@ -497,6 +519,30 @@ export const api = {
   },
 
   tags: () => get<{ impact: TagImpact[]; all: string[] }>('/api/tags'),
+
+  /**
+   * Renombra una etiqueta. Toca las operaciones Y la lista de sugerencias.
+   *
+   * No pasa por el borrador de ajustes como el resto de los campos: no es un
+   * valor que se este escribiendo, es una accion sobre datos ya guardados. Por
+   * eso se aplica al confirmarla, y devuelve las prefs ya validadas para que
+   * la pantalla no tenga que adivinar como quedo la lista.
+   */
+  renameTag: async (from: string, to: string) => {
+    const res = await fetch(`/api/tags/${encodeURIComponent(from)}`, {
+      method: 'PUT',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ to }),
+    });
+    if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+    return (await res.json()) as {
+      from: string;
+      to: string;
+      operations: number;
+      merged: boolean;
+      prefs: ChartPrefs;
+    };
+  },
 
   importCalendar: async () => {
     const res = await fetch('/api/calendar/import', { method: 'POST' });

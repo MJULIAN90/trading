@@ -76,7 +76,47 @@ export interface ChartPrefs {
    * esta lista: quitar una de aqui solo deja de sugerirla, no borra nada.
    */
   noteTags: string[];
+
+  /**
+   * Si cada etiqueta describe una conducta BUENA o MALA, segun el.
+   *
+   * Lo que no esta aqui es neutro, y eso es a proposito: la mayoria de las
+   * etiquetas describen un hecho ("entrada con fibo") que todavia no se sabe
+   * si suma o resta.
+   *
+   * ESTO ES UNA HIPOTESIS, NO UN DATO. Es lo que el cree hoy. Lo que de verdad
+   * sumo o resto cada etiqueta sale de `tagImpact()`, de sus operaciones, y las
+   * dos cosas se guardan por separado a proposito: la pregunta "¿en que me
+   * equivoco al juzgar mis propias conductas?" solo se puede contestar si la
+   * creencia y la medida no se han mezclado antes. Este proyecto ya ha visto
+   * tres veces que la intuicion y los numeros no coincidian.
+   */
+  tagPolarity: Record<string, TagPolarity>;
+
+  /**
+   * De que EJE habla cada etiqueta. Ausente = conducta.
+   *
+   * Tres cosas que no estaban en el mismo eje y estaban en la misma lista:
+   *
+   *   estrategia — que clase de operacion era (scalper, rango, tendencia).
+   *                La eliges tu ANTES de entrar. No es buena ni mala.
+   *   contexto   — que habia en el mercado (manipulacion, vela sin patron).
+   *                Te lo encuentras, no lo decides. Tampoco es bueno ni malo.
+   *   conducta   — que hiciste tu dentro de eso. LA UNICA con polaridad.
+   *
+   * Separarlas no es orden: es lo que permite la pregunta de dos entradas,
+   * que es la util. "Dentro de scalper, ¿mover el stop me cuesta dinero?"
+   * Con un solo eje esa pregunta no se puede ni formular, porque estrategia y
+   * conducta competirian por la misma casilla.
+   */
+  tagKind: Record<string, TagKind>;
 }
+
+/** Como califica el una etiqueta. Ausente = neutra. Solo aplica a conducta. */
+export type TagPolarity = 'buena' | 'mala';
+
+/** De que habla la etiqueta. Ausente = conducta. */
+export type TagKind = 'estrategia' | 'contexto' | 'conducta';
 
 export const DEFAULT_CHART: ChartPrefs = {
   timeframe: 1,
@@ -107,6 +147,24 @@ export const DEFAULT_CHART: ChartPrefs = {
     'aguante de mas',
     'tamano de mas',
   ],
+  // Las de serie describen fallos de ejecucion, asi que arrancan en "mala".
+  // Aun asi son hipotesis: si alguna resulta no costar dinero, el dato manda.
+  tagPolarity: {
+    'entre tarde': 'mala',
+    'entre pronto': 'mala',
+    'movi el stop': 'mala',
+    'sin stop': 'mala',
+    revancha: 'mala',
+    'contra el flujo': 'mala',
+    'fuera de plan': 'mala',
+    'sali pronto': 'mala',
+    'aguante de mas': 'mala',
+    'tamano de mas': 'mala',
+  },
+  // Las de serie son todas conducta, asi que el mapa arranca vacio: lo que no
+  // esta aqui se trata como conducta. Las de estrategia y contexto las marca
+  // el, porque solo el sabe cual es cual en su forma de operar.
+  tagKind: {},
 };
 
 const KEY = 'chart_prefs';
@@ -139,6 +197,48 @@ function tagsOr(value: unknown): string[] {
   }
 
   // Una lista vacia a proposito es valida: puede que no quiera sugerencias.
+  return out;
+}
+
+/**
+ * Polaridades limpias: misma normalizacion de nombre que `tagsOr`.
+ *
+ * Si la etiqueta se guarda en minusculas en un sitio y con mayusculas en otro,
+ * el color no aparece y no hay forma de saber por que. Aqui pasa lo mismo que
+ * con los nombres: una sola forma de escribirlos o nada cuadra.
+ */
+function polarityOr(value: unknown): Record<string, TagPolarity> {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    return { ...DEFAULT_CHART.tagPolarity };
+  }
+
+  const out: Record<string, TagPolarity> = {};
+
+  for (const [raw, v] of Object.entries(value as Record<string, unknown>)) {
+    const clean = raw.trim().toLowerCase().slice(0, 40);
+    if (!clean) continue;
+    if (v === 'buena' || v === 'mala') out[clean] = v;
+    // Cualquier otra cosa se descarta en vez de guardarse: lo que no es buena
+    // ni mala es neutra, y neutra se representa NO estando.
+  }
+
+  return out;
+}
+
+/** Mismo criterio que `polarityOr`: lo que no se entiende se descarta. */
+function kindOr(value: unknown): Record<string, TagKind> {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return {};
+
+  const out: Record<string, TagKind> = {};
+
+  for (const [raw, v] of Object.entries(value as Record<string, unknown>)) {
+    const clean = raw.trim().toLowerCase().slice(0, 40);
+    if (!clean) continue;
+    // "conducta" NO se guarda: es el valor por defecto, y guardarlo llenaria
+    // el fichero de ruido que ademas habria que mantener al renombrar.
+    if (v === 'estrategia' || v === 'contexto') out[clean] = v;
+  }
+
   return out;
 }
 
@@ -187,6 +287,8 @@ export function getChartPrefs(): ChartPrefs {
       rightOffset: Math.round(clamp(raw.rightOffset, 0, 300, DEFAULT_CHART.rightOffset)),
       entryShare: clamp(raw.entryShare, 0.2, 0.95, DEFAULT_CHART.entryShare),
       noteTags: tagsOr(raw.noteTags),
+      tagPolarity: polarityOr(raw.tagPolarity),
+      tagKind: kindOr(raw.tagKind),
     };
   } catch {
     return structuredClone(DEFAULT_CHART);

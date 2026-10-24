@@ -1,4 +1,5 @@
 import { db } from '../db/index.js';
+import { getChartPrefs } from './prefs.js';
 
 /**
  * Notas y etiquetas por operacion.
@@ -39,11 +40,35 @@ export function getNote(operationId: number): OperationNote {
   };
 }
 
+/**
+ * Deja UNA sola etiqueta de estrategia, la ultima de la lista.
+ *
+ * La regla vive aqui y no solo en la pantalla porque es una regla de los
+ * datos, no de la interfaz: las metricas por estrategia solo son comparables
+ * si cada operacion cae en un grupo y en uno solo. Si una operacion pudiera
+ * ser "scalper" y "rango" a la vez, los grupos dejarian de sumar el total y
+ * compararlos seria mentira.
+ *
+ * Si una operacion de verdad es las dos cosas, eso no significa que haga falta
+ * permitir el solape: significa que falta una estrategia que se llame asi.
+ */
+function onlyOneStrategy(tags: string[]): string[] {
+  const kinds = getChartPrefs().tagKind;
+  const estrategias = tags.filter((t) => kinds[t] === 'estrategia');
+
+  if (estrategias.length <= 1) return tags;
+
+  const ultima = estrategias[estrategias.length - 1];
+  return tags.filter((t) => kinds[t] !== 'estrategia' || t === ultima);
+}
+
 /** Guarda nota y etiquetas de golpe. Las etiquetas se reemplazan enteras. */
 export function saveNote(operationId: number, note: string, tags: string[]): OperationNote {
   const target = db();
 
-  const unique = Array.from(new Set(tags.map(cleanTag).filter((t) => t.length > 0))).slice(0, 20);
+  const unique = onlyOneStrategy(
+    Array.from(new Set(tags.map(cleanTag).filter((t) => t.length > 0))).slice(0, 20),
+  );
 
   target.transaction(() => {
     target
@@ -130,4 +155,58 @@ export function allTags(): string[] {
     .prepare('SELECT tag, COUNT(*) n FROM operation_tags GROUP BY tag ORDER BY n DESC, tag')
     .all() as Array<{ tag: string }>;
   return rows.map((r) => r.tag);
+}
+
+/**
+ * Todas las filas de etiquetas, para cruzarlas con el listado sin hacer una
+ * consulta por operacion. Son unas decenas de filas: traerlas enteras sale
+ * mas barato que preguntar una vez por fila de la lista.
+ */
+export function allOperationTags(): Array<{ operation_id: number; tag: string }> {
+  return db()
+    .prepare('SELECT operation_id, tag FROM operation_tags ORDER BY tag')
+    .all() as Array<{ operation_id: number; tag: string }>;
+}
+
+/** Cuantas operaciones llevan puesta una etiqueta. */
+export function tagUsage(tag: string): number {
+  const row = db()
+    .prepare('SELECT COUNT(*) AS n FROM operation_tags WHERE tag = ?')
+    .get(tag.trim().toLowerCase()) as { n: number } | undefined;
+  return row?.n ?? 0;
+}
+
+/**
+ * Renombra una etiqueta EN LAS OPERACIONES, no solo en la lista de sugerencias.
+ *
+ * Esta es la parte que no se puede saltar. Si renombrar cambiara solo la
+ * sugerencia, las operaciones que ya llevan el nombre viejo se quedarian con
+ * el, y donde habia una conducta pasaria a haber dos con la mitad de los casos
+ * cada una. Las estadisticas por etiqueta se sostienen justo sobre lo
+ * contrario: que la misma conducta se llame siempre igual.
+ *
+ * Si el destino ya existe, esto FUSIONA. La tabla tiene clave
+ * (operation_id, tag), asi que una operacion que llevara las dos daria
+ * conflicto de clave; `UPDATE OR REPLACE` lo resuelve dejando una sola fila,
+ * que es exactamente lo que significa fusionar dos categorias.
+ */
+export function renameTag(from: string, to: string): { operations: number; merged: boolean } {
+  const origen = from.trim().toLowerCase();
+  const destino = to.trim().toLowerCase().slice(0, 40);
+
+  if (!origen || !destino || origen === destino) {
+    return { operations: 0, merged: false };
+  }
+
+  const target = db();
+  const merged = tagUsage(destino) > 0;
+  const antes = tagUsage(origen);
+
+  target.transaction(() => {
+    target
+      .prepare('UPDATE OR REPLACE operation_tags SET tag = ? WHERE tag = ?')
+      .run(destino, origen);
+  })();
+
+  return { operations: antes, merged };
 }

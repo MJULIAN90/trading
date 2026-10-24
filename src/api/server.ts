@@ -30,7 +30,15 @@ import { sessionStats } from '../domain/sessionStats.js';
 import { patternStudy } from '../domain/study.js';
 import { patternGrid } from '../domain/grid.js';
 import { accounts } from '../domain/metrics.js';
-import { allTags, getNote, saveNote, tagImpact } from '../domain/notes.js';
+import {
+  allOperationTags,
+  allTags,
+  getNote,
+  notesFor,
+  renameTag,
+  saveNote,
+  tagImpact,
+} from '../domain/notes.js';
 import { applyCosts, costSummary, getCostSettings, setCostSettings } from '../domain/costs.js';
 import { excursionOf, excursionSummary } from '../domain/excursion.js';
 import { narrate } from '../domain/narrative.js';
@@ -142,11 +150,35 @@ app.get('/api/operations', async (req) => {
   const days =
     typeof q.days === 'string' && q.days.length > 0 ? new Set(q.days.split(',')) : null;
 
-  const beforeDays = ordered
+  // Etiquetas separadas por coma. Se cruza por CUALQUIERA de ellas, no por
+  // todas: marcar dos etiquetas pide "ensename las de una u otra", que es como
+  // se comportan ya los botones de sesion. Exigir las dos a la vez dejaria la
+  // lista casi siempre vacia y nadie entenderia por que.
+  const tagFilter =
+    typeof q.tags === 'string' && q.tags.length > 0
+      ? new Set(q.tags.split(',').map((t) => t.trim().toLowerCase()).filter(Boolean))
+      : null;
+
+  // La tabla entera de una vez. Son unas pocas decenas de filas; una consulta
+  // por operacion para filtrar seria mucho mas cara que esto.
+  const tagsByOp = new Map<number, string[]>();
+  for (const row of allOperationTags()) {
+    const list = tagsByOp.get(row.operation_id);
+    if (list) list.push(row.tag);
+    else tagsByOp.set(row.operation_id, [row.tag]);
+  }
+
+  // Antes de aplicar el filtro de ETIQUETAS. De aqui sale el catalogo de
+  // botones, para que marcar una no haga desaparecer el resto.
+  const beforeTags = ordered
     .filter((o) => (q.onlyFlagged === 'true' ? (reviews.get(o.id)?.decisionAlerts ?? 0) > 0 : true))
     .filter((o) => (direction ? o.direction === direction : true))
     .filter((o) => (result === 'win' ? o.gross_pnl > 0 : result === 'loss' ? o.gross_pnl <= 0 : true))
     .filter((o) => (sessions ? sessions.has(o.session) : true));
+
+  const beforeDays = beforeTags.filter((o) =>
+    tagFilter ? (tagsByOp.get(o.id) ?? []).some((t) => tagFilter.has(t)) : true,
+  );
 
   // El catalogo de dias se saca ANTES de aplicar el filtro de dias. Si se sacara
   // despues, al elegir un dia desapareceria el resto de botones y no habria
@@ -172,11 +204,39 @@ app.get('/api/operations', async (req) => {
   // El recorrido se calcula SOLO para la pagina que se devuelve. Es una consulta
   // agregada por operacion, barata pero no gratis: hacerla sobre las 86 cuando
   // solo se ven 50 seria trabajo tirado, y con mil operaciones se notaria.
-  const items = filtered.slice(start, start + pageSize).map((o) => ({
+  const pagina = filtered.slice(start, start + pageSize);
+
+  // Notas solo de la pagina. Son para el globo que sale al pasar el raton, y
+  // traer las de las ochenta operaciones para ensenar veinticinco es trabajo
+  // tirado que ademas crece con el historico.
+  const notas = notesFor(pagina.map((o) => o.id));
+
+  const items = pagina.map((o) => ({
     ...o,
     review: reviews.get(o.id) ?? { operationId: o.id, flags: [], decisionAlerts: 0 },
     excursion: excursionOf(o),
+    tags: tagsByOp.get(o.id) ?? [],
+    note: notas.get(o.id)?.note ?? '',
   }));
+
+  // El catalogo sale de `beforeTags`: lo que habria si no hubiera filtro de
+  // etiquetas puesto. Asi la lista de botones NO se encoge al marcar uno, y se
+  // pueden combinar varios. Sacarlo de lo ya filtrado dejaba solo las
+  // etiquetas que conviven con la marcada, que es justo lo que no se quiere.
+  //
+  // Las que SI estan marcadas entran siempre aunque su cuenta sea cero: un
+  // boton activo que desaparece de la lista no se puede desmarcar.
+  const tagCount = new Map<string, number>();
+  for (const o of beforeTags) {
+    for (const t of tagsByOp.get(o.id) ?? []) tagCount.set(t, (tagCount.get(t) ?? 0) + 1);
+  }
+  if (tagFilter) {
+    for (const t of tagFilter) if (!tagCount.has(t)) tagCount.set(t, 0);
+  }
+
+  const tagList = [...tagCount.entries()]
+    .map(([tag, count]) => ({ tag, count }))
+    .sort((a, b) => b.count - a.count || a.tag.localeCompare(b.tag));
 
   // Totales del conjunto filtrado, no solo de la pagina: al filtrar por compras
   // interesa cuanto suman TODAS las compras, no las veinticinco que se ven.
@@ -190,6 +250,7 @@ app.get('/api/operations', async (req) => {
     totalPages: Math.ceil(filtered.length / pageSize) || 1,
     totals,
     days: dayList,
+    tags: tagList,
   };
 });
 
@@ -500,6 +561,63 @@ app.put('/api/operations/:id/notes', async (req) => {
 
 /** Cuanto suma cada etiqueta, y el catalogo para autocompletar. */
 app.get('/api/tags', async () => ({ impact: tagImpact(), all: allTags() }));
+
+/**
+ * Renombra una etiqueta en las operaciones Y en la lista de sugerencias, en la
+ * misma llamada.
+ *
+ * Las dos cosas van juntas a proposito. Si fueran dos peticiones y la segunda
+ * fallara, quedaria una lista de sugerencias diciendo un nombre y unas
+ * operaciones guardando otro, que es el estado mas dificil de detectar y el
+ * mas caro de arreglar.
+ *
+ * Se devuelven las prefs ya validadas para que la pantalla no tenga que
+ * adivinar como quedo la lista.
+ */
+app.put('/api/tags/:tag', async (req, reply) => {
+  const { tag } = req.params as { tag: string };
+  const body = req.body as { to?: unknown } | undefined;
+
+  const from = String(tag ?? '').trim().toLowerCase();
+  const to = String(body?.to ?? '').trim().toLowerCase().slice(0, 40);
+
+  if (!from || !to) return reply.code(400).send({ error: 'faltan nombres' });
+  if (from === to) return reply.code(400).send({ error: 'es el mismo nombre' });
+
+  const result = renameTag(from, to);
+
+  const antes = getChartPrefs();
+
+  const renombradas: string[] = [];
+  for (const t of antes.noteTags) {
+    const next = t === from ? to : t;
+    if (!renombradas.includes(next)) renombradas.push(next);
+  }
+  // Si la vieja no estaba en la lista (venia solo de operaciones), la nueva
+  // entra igual: acaba de convertirse en una categoria con historial.
+  if (!renombradas.includes(to)) renombradas.push(to);
+
+  // La calificacion viaja con el nombre. Si no, renombrar dejaria la etiqueta
+  // en neutra sin avisar y el color desapareceria sin motivo visible.
+  // Al fusionar manda la del DESTINO: es la que sobrevive, y sobrescribirla
+  // con la de la que se absorbe cambiaria en silencio como esta calificada una
+  // categoria que el no estaba tocando.
+  const polaridad = { ...antes.tagPolarity };
+  const heredada = polaridad[from];
+  delete polaridad[from];
+  if (heredada && !polaridad[to]) polaridad[to] = heredada;
+
+  // El eje viaja igual que la polaridad. Si no, renombrar una estrategia la
+  // devolveria a "conducta" y de pronto tendria colores de buena o mala.
+  const ejes = { ...antes.tagKind };
+  const eje = ejes[from];
+  delete ejes[from];
+  if (eje && !ejes[to]) ejes[to] = eje;
+
+  const prefs = setChartPrefs({ noteTags: renombradas, tagPolarity: polaridad, tagKind: ejes });
+
+  return { ...result, from, to, prefs };
+});
 
 /** Cuanto ocupa la base y donde. */
 app.get('/api/storage', async () => storageReport());

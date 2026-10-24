@@ -11,6 +11,7 @@ import {
   type Replay,
 } from '../api';
 import { dateTime, duration, num, sessionLabel, signClass, signedUsd, ticks, usd } from '../format';
+import { polarityApplies, polarityClass, polarityOf, sortByPolarity } from '../tags';
 import { DayCalendar } from './DayCalendar';
 import { Diagnosis } from './Diagnosis';
 import { TradeChart } from './TradeChart';
@@ -346,13 +347,16 @@ export function Operations({
   // sumar de cabeza.
   const [sessions, setSessions] = useState<string[]>([]);
   const [days, setDays] = useState<string[]>([]);
+  // Etiquetas en multiple, igual que las sesiones: "ensename las de revancha o
+  // fuera de plan" es una pregunta normal. Cruza por CUALQUIERA, no por todas.
+  const [tagFilter, setTagFilter] = useState<string[]>([]);
   const [data, setData] = useState<Page<Operation> | null>(null);
   const [selected, setSelected] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   // Cambiar filtros reinicia la paginacion: quedarse en la pagina 7 de un
   // listado que ahora tiene 2 no muestra nada y parece un fallo.
-  useEffect(() => { setPage(1); }, [filters, onlyFlagged, pageSize, direction, result, sessions, days]);
+  useEffect(() => { setPage(1); }, [filters, onlyFlagged, pageSize, direction, result, sessions, days, tagFilter]);
 
   useEffect(() => {
     let cancelled = false;
@@ -367,6 +371,7 @@ export function Operations({
           // botones son para afinar dentro de lo que ya se esta mirando.
           sessions: sessions.length ? sessions : undefined,
           days: days.length ? days : undefined,
+          tags: tagFilter.length ? tagFilter : undefined,
         },
         page,
         pageSize,
@@ -381,7 +386,7 @@ export function Operations({
       })
       .catch((e: Error) => { if (!cancelled) setError(e.message); });
     return () => { cancelled = true; };
-  }, [filters, page, pageSize, onlyFlagged, direction, result, sessions, days]);
+  }, [filters, page, pageSize, onlyFlagged, direction, result, sessions, days, tagFilter]);
 
   if (error) return <div className="error">No se pudo cargar: {error}</div>;
   if (!data) return <div className="empty">cargando...</div>;
@@ -447,6 +452,54 @@ export function Operations({
           )}
         </div>
 
+        {/* Las etiquetas que de verdad aparecen en lo que se esta mirando, con
+            su cuenta. Salen del servidor SIN aplicar este mismo filtro: si
+            salieran de lo ya filtrado, al marcar una desapareceria el resto de
+            botones y no habria forma de cambiar sin limpiar primero. */}
+        {data.tags && data.tags.length > 0 && (
+          <div className="session-filter tag-filter">
+            {(() => {
+              // Las marcadas PRIMERO, y una raya detras. Asi se ve lo que
+              // esta puesto sin una seccion aparte arriba que empuje el
+              // calendario media pantalla hacia abajo.
+              const todas = sortByPolarity(data.tags?.map((t) => t.tag) ?? [], prefs.tagPolarity);
+              const puestas = todas.filter((t) => tagFilter.includes(t));
+              const resto = todas.filter((t) => !tagFilter.includes(t));
+
+              const pinta = (tag: string) => {
+                const row = data.tags?.find((t) => t.tag === tag);
+                const on = tagFilter.includes(tag);
+                return (
+                  <button
+                    key={tag}
+                    className={`${on ? 'on' : ''} ${
+                      polarityApplies(tag, prefs.tagKind)
+                        ? polarityClass(polarityOf(tag, prefs.tagPolarity))
+                        : ''
+                    }`}
+                    onClick={() =>
+                      setTagFilter((cur) => (on ? cur.filter((x) => x !== tag) : [...cur, tag]))
+                    }
+                  >
+                    {tag} <span className="note">{row?.count ?? 0}</span>
+                  </button>
+                );
+              };
+
+              return (
+                <>
+                  {puestas.map(pinta)}
+                  {puestas.length > 0 && <span className="tag-sep" />}
+                  {resto.map(pinta)}
+                  {tagFilter.length > 0 && (
+                    <button className="clear" onClick={() => setTagFilter([])}>limpiar</button>
+                  )}
+                </>
+              );
+            })()}
+          </div>
+        )}
+
         {data.totals && (
           <div className="side-totals">
             <span className={signClass(data.totals.netPnl)}>{signedUsd(data.totals.netPnl)}</span>
@@ -485,17 +538,47 @@ export function Operations({
         <div className="op-list">
           {data.items.map((op) => {
             const alerts = op.review.decisionAlerts;
+
+            // Globo nativo del navegador y no un componente propio: asi sale
+            // igual con la lista desplazada y no lo recorta el borde del panel,
+            // que es justo donde viven estas filas.
+            const etiquetas = sortByPolarity(op.tags ?? [], prefs.tagPolarity);
+            const nota = (op.note ?? '').trim();
+            const globo =
+              (etiquetas.length > 0 ? etiquetas.join('  ·  ') : 'sin etiquetas') +
+              (nota ? `\n\n${nota}` : '');
+
             return (
               <button
                 key={op.id}
                 className={`op-item ${op.id === selected ? 'on' : ''}`}
                 onClick={() => setSelected(op.id)}
+                title={globo}
               >
                 <Side direction={op.direction} qty={op.max_quantity} />
                 <span className="when">{dateTime(op.opened_at)}</span>
                 {alerts > 0
                   ? <span className="chip alert" title={`${alerts} aviso${alerts === 1 ? '' : 's'}: reentrada tras perder o racha perdedora. Mira la pestana Observaciones.`}>{alerts}</span>
                   : <span />}
+
+                {/* Un punto por etiqueta, con su color. Dice que HAY algo
+                    anotado sin robarle sitio a las cifras; el detalle lo da
+                    el globo. Sin esto no hay forma de saber que filas tienen
+                    nota sin pasar el raton por todas. */}
+                <span className="op-dots">
+                  {etiquetas.slice(0, 4).map((t) => (
+                    <i
+                      key={t}
+                      className={`dot ${
+                        polarityApplies(t, prefs.tagKind)
+                          ? polarityClass(polarityOf(t, prefs.tagPolarity))
+                          : ''
+                      }`}
+                    />
+                  ))}
+                  {nota && <i className="dot nota" />}
+                </span>
+
                 <span className={`t ${signClass(op.ticks ?? 0)}`}>{op.ticks === null ? '' : ticks(op.ticks)}</span>
                 <span className={`pnl ${signClass(op.netPnl)}`}>{signedUsd(op.netPnl)}</span>
               </button>
