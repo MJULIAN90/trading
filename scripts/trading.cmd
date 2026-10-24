@@ -42,12 +42,22 @@ rem
 rem Si no hay node_modules todavia, manda el fichero de bloqueo del repo, y en
 rem ultimo caso lo que haya instalado.
 
+rem PNPM MANDA. Es el gestor del proyecto; npm es el plan B para un equipo
+rem donde pnpm no este o donde haya fallado.
+rem
+rem El orden importa y costo un arranque fallido: antes se miraba pnpm primero
+rem y npm despues, asi que el npm GANABA. En una carpeta donde se instalo con
+rem npm y luego con pnpm quedan las marcas de los dos, y elegia el equivocado.
 set "PM="
-if exist "node_modules\.pnpm\" set "PM=pnpm"
-if exist "node_modules\.package-lock.json" set "PM=npm"
+
+where pnpm >nul 2>&1
+if not errorlevel 1 (
+    if exist "node_modules\.pnpm\" set "PM=pnpm"
+    if not defined PM if exist "pnpm-lock.yaml" set "PM=pnpm"
+)
 
 if not defined PM (
-    if exist "pnpm-lock.yaml" set "PM=pnpm"
+    if exist "node_modules\.package-lock.json" set "PM=npm"
 )
 if not defined PM (
     if exist "package-lock.json" set "PM=npm"
@@ -132,12 +142,17 @@ if errorlevel 1 (
 )
 
 rem --- Compilar el front ------------------------------------------------------
+rem
+rem SIEMPRE con "run". build, dev y typecheck son scripts del package.json, no
+rem comandos del gestor. pnpm acepta el atajo sin "run" y npm no: "npm build"
+rem responde Unknown command. Al hacer que el gestor fuera variable, el atajo
+rem dejo de valer y la compilacion fallaba en el equipo que usa npm.
 echo Compilando la interfaz...
-call %PM% build
+call %PM% run build
 if errorlevel 1 (
     echo.
     echo FALLO LA COMPILACION. El servidor no se arranca.
-    echo Si el error habla de tipos, ejecuta:  %PM% typecheck
+    echo Si el error habla de tipos, ejecuta:  %PM% run typecheck
     pause
     exit /b 1
 )
@@ -156,7 +171,7 @@ echo  Cierra esta ventana para parar el servidor.
 echo ---------------------------------------------------------------
 echo.
 
-call %PM% dev
+call %PM% run dev
 
 echo.
 echo El servidor se ha parado.

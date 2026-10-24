@@ -48,8 +48,13 @@ node -v    # v20.x o superior
 
 ```bash
 pnpm install        # o npm install
-pnpm build          # compila el front de React a web/
+pnpm run build      # compila el front de React a web/
 ```
+
+> **Siempre con `run`.** `build`, `dev`, `ingest` y `typecheck` son scripts del
+> `package.json`, no comandos del gestor. pnpm acepta el atajo sin `run`; **npm
+> no**: `npm build` responde *Unknown command*. Con `run` delante funcionan los
+> dos, así que es la forma que se usa en todo este documento.
 
 > **Si al arrancar sale un error de `bindings`, es `better-sqlite3`.** Lleva un
 > binario nativo que se construye al instalar, y si ese paso no corre el
@@ -202,22 +207,22 @@ arregla.
 ### 6. Arrancar
 
 ```bash
-pnpm dev            # dashboard en http://127.0.0.1:4321
+pnpm run dev            # dashboard en http://127.0.0.1:4321
 ```
 
 Para tocar el front con recarga en caliente, en dos terminales:
 
 ```bash
-pnpm dev            # API en 4321
-pnpm dev:web        # Vite en 5173, con proxy a la API
+pnpm run dev            # API en 4321
+pnpm run dev:web        # Vite en 5173, con proxy a la API
 ```
 
 El `build` solo hace falta cuando cambias algo de `client/`. El backend lo
 ejecuta tsx directamente, sin compilar.
 
-> **Trampa que cuesta un rato.** `pnpm build` compila **solo el front**
+> **Trampa que cuesta un rato.** `pnpm run build` compila **solo el front**
 > (`"build": "vite build"`). Si cambia algo de `src/` —el servidor— hay que
-> **reiniciar el proceso**: Ctrl+C en la terminal donde corre `pnpm dev` y
+> **reiniciar el proceso**: Ctrl+C en la terminal donde corre `pnpm run dev` y
 > volver a arrancarlo.
 >
 > Cuando no se hace, el síntoma es desconcertante: la pantalla se ve nueva
@@ -275,7 +280,7 @@ se vuelve a ejecutar `anclar-a-la-barra.cmd`. Cada tamaño se dibuja por
 separado con coordenadas enteras en lugar de reescalar uno grande: a 16 px, que
 es como se ve de verdad en la barra, medio píxel es media vela.
 
-Lo que hace `scripts\trading.cmd` además de `pnpm build && pnpm dev`:
+Lo que hace `scripts\trading.cmd` además de `pnpm run build && pnpm run dev`:
 
 - Se coloca solo en la raíz del proyecto, calculada desde su propia ruta, así
   que sigue funcionando si mueves el proyecto o lo clonas en otra máquina.
@@ -408,7 +413,7 @@ si Quantower o los indicadores escribieron algo y, si hay novedades, las
 ingiere. La página se refresca sola cada 30 segundos y muestra "en vivo" con la
 hora de la última novedad.
 
-`pnpm ingest` hace una ingesta puntual sin levantar el servidor. Es idempotente:
+`pnpm run ingest` hace una ingesta puntual sin levantar el servidor. Es idempotente:
 se puede lanzar las veces que haga falta sin duplicar nada.
 
 La detección de novedades mira la fecha de modificación de `user-trades.db` **y
@@ -551,7 +556,7 @@ deriva y lo que se enseña**. Nada de la capa de abajo sabe nada de la de arriba
 | `context.ts` | lee los `.jsonl` del indicador y los guarda tal cual en `context_snapshots` |
 | `calendar.ts` | lee los `.ics` / `.csv` del calendario |
 | `watch.ts` | vigila las fechas de modificación y lanza la ingesta cuando algo cambia |
-| `run.ts` | lo mismo, pero a mano: `pnpm ingest` |
+| `run.ts` | lo mismo, pero a mano: `pnpm run ingest` |
 
 Todo aquí es **idempotente**: lanzarlo mil veces no duplica nada.
 
@@ -608,7 +613,7 @@ los tipos y las llamadas, y es el único sitio que conoce las rutas.
 
 - `fills` se guarda sin interpretar → si cambia cómo agrupamos operaciones, se recalcula sin volver a tocar Quantower
 - `context_snapshots` se guarda sin interpretar → si cambia qué cuenta como absorción, se recalcula sin perder histórico
-- `bars` se deriva de los snapshots → `pnpm ingest` lo reconstruye
+- `bars` se deriva de los snapshots → `pnpm run ingest` lo reconstruye
 - Las métricas no se guardan: se calculan al pedirlas
 
 Lo único irrecuperable es el crudo. Por eso `CONTEXT_RETENTION_DAYS` viene

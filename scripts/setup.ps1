@@ -41,9 +41,11 @@ Write-Host "Node $version" -ForegroundColor Green
 
 $tienePnpm = [bool](Get-Command pnpm -ErrorAction SilentlyContinue)
 
-if (Test-Path 'node_modules\.pnpm') {
+if ($tienePnpm -and (Test-Path 'node_modules\.pnpm')) {
   $pm = 'pnpm'
   Write-Host "Este proyecto se monto con pnpm; sigo con pnpm." -ForegroundColor DarkGray
+} elseif ($tienePnpm -and (Test-Path 'pnpm-lock.yaml') -and -not (Test-Path 'node_modules')) {
+  $pm = 'pnpm'
 } elseif (Test-Path 'node_modules\.package-lock.json') {
   $pm = 'npm'
   Write-Host "Este proyecto se monto con npm; sigo con npm." -ForegroundColor DarkGray
