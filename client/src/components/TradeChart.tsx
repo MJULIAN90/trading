@@ -460,8 +460,30 @@ export function TradeChart({
     );
   }
 
+  // Hay velas en la ventana, pero NINGUNA donde esta la operacion.
+  //
+  // Esto es peor que no tener nada, y por eso el aviso es grande y va encima
+  // del grafico: lo que se dibuja es mercado de otro momento con el marcador
+  // de entrada pegado a un borde, y parece que funciona.
+  //
+  // Se nota al mirar en 4h lo que en 1m sale vacio: la ventana de 4h son 30
+  // dias y alcanza velas de hace semanas, la de 1m son 3 horas y cae entera
+  // en el hueco.
+  const sinVelasEnLaEntrada = data.coverage.aroundEntry === 0;
+
   return (
     <>
+      {sinVelasEnLaEntrada && (
+        <div className="aviso-fuerte">
+          <b>Estas velas NO son de esta operacion.</b> No hay ninguna vela capturada en los{' '}
+          {data.coverage.entryWindowMin} minutos alrededor de la entrada: lo que se dibuja es
+          mercado de otro momento de la ventana, con el marcador de entrada pegado a un borde.
+          <br />
+          En temporalidades cortas la ventana es mas estrecha y sale vacia; en 4h abarca 30 dias y
+          alcanza velas lejanas, por eso ahi parece que hay datos. Si estas velas vinieron de otro
+          equipo, llegan hasta el minuto en que se exportaron.
+        </div>
+      )}
       <div ref={box} className="chart-box" />
       <div className="op-meta">
         <label className="kz-toggle">

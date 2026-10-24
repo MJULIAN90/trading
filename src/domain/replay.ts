@@ -51,7 +51,19 @@ export interface Replay {
   /** Minutos transcurridos desde que abrio la killzone. null si entro fuera. */
   minutesIntoSession: number | null;
   /** Velas pedidas frente a velas encontradas: si no cuadra, hubo hueco de captura. */
-  coverage: { before: number; after: number; found: number; expected: number };
+  coverage: {
+    before: number;
+    after: number;
+    found: number;
+    expected: number;
+    /**
+     * Velas de un minuto que hay DONDE ESTA LA OPERACION, no en toda la
+     * ventana. Si esto es 0, lo que se dibuja es mercado de otro momento.
+     */
+    aroundEntry: number;
+    /** Minutos a cada lado de la operacion que cuenta `aroundEntry`. */
+    entryWindowMin: number;
+  };
 }
 
 /**
@@ -182,7 +194,22 @@ export function replay(
   // mercado para una hora al dia y los fines de semana, asi que el numero de
   // velas reales en una ventana de tiempo siempre es menor que los minutos.
   const minutesSpan = Math.ceil((to - from) / 60_000);
-  const bars = group(barsWindow(symbol, from, to, minutesSpan + 100), timeframe);
+  const raw = barsWindow(symbol, from, to, minutesSpan + 100);
+  const bars = group(raw, timeframe);
+
+  // Cuantas velas hay PEGADAS a la operacion.
+  //
+  // El recuento de toda la ventana no vale para esto y es la razon de que el
+  // aviso no saltara: en 4h con 180 velas la ventana son 30 dias, asi que
+  // puede estar llena de velas de hace semanas y no tener ni una donde de
+  // verdad operaste. El grafico sale bonito y no es tu operacion.
+  //
+  // Pasa al compartir velas entre equipos: el fichero llega hasta el minuto
+  // en que se exporto, y lo que operes despues cae en el hueco.
+  const ENTRY_WINDOW_MIN = 30;
+  const entryFrom = openedAt - ENTRY_WINDOW_MIN * 60_000;
+  const entryTo = closedAt + ENTRY_WINDOW_MIN * 60_000;
+  const aroundEntry = raw.filter((b) => b.ts >= entryFrom && b.ts <= entryTo).length;
 
   const fills = db()
     .prepare(
@@ -217,6 +244,8 @@ export function replay(
       // fines de semana, asi que una ventana larga nunca tiene todas sus velas
       // y por eso el aviso solo se ensena muy por debajo de este numero.
       expected: Math.max(1, Math.round((to - from) / 60_000 / timeframe)),
+      aroundEntry,
+      entryWindowMin: ENTRY_WINDOW_MIN,
     },
   };
 }
