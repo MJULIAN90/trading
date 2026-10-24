@@ -6,12 +6,12 @@ import {
   KIND_LABEL,
   POLARITY_LABEL,
   kindOf,
-  polarityApplies,
   polarityClass,
   polarityOf,
   sortByPolarity,
   tagsOfKind,
   tagsOfPolarity,
+  tagClass,
 } from '../tags';
 
 /**
@@ -149,7 +149,7 @@ export function TradeNotes({
           <button
             key={t}
             className={`tag on ${
-              polarityApplies(t, prefs.tagKind) ? polarityClass(polarityOf(t, prefs.tagPolarity)) : ''
+              tagClass(t, prefs.tagPolarity, prefs.tagKind)
             }`}
             onClick={() => removeTag(t)}
             title="Quitar de ESTA operacion. La categoria no se borra: vuelve abajo para reutilizarla."

@@ -31,12 +31,21 @@ export interface Excursion {
    * salida, y se corrige de otra manera.
    */
   givenBack: number | null;
+  /**
+   * El resultado en ticks por contrato, con signo.
+   *
+   * Se expone para poder enseñarlo AL LADO del MFE. Las dos cifras se calculan
+   * sobre el mismo conjunto de operaciones, asi que una se puede restar de la
+   * otra; `givenBack` no, porque solo existe cuando el MFE fue mayor que cero
+   * y por tanto su mediana sale de un grupo mas pequeño.
+   */
+  resultTicks: number | null;
   bars: number;
 }
 
 export function excursionOf(op: Operation): Excursion {
   const spec = instrumentOf(op.symbol);
-  if (!spec) return { mae: null, mfe: null, capture: null, givenBack: null, bars: 0 };
+  if (!spec) return { mae: null, mfe: null, capture: null, givenBack: null, resultTicks: null, bars: 0 };
 
   // El margen hacia atras es lo que hace que funcionen las operaciones cortas.
   // Una vela se guarda con la hora de su APERTURA, asi que una operacion que
@@ -55,7 +64,7 @@ export function excursionOf(op: Operation): Excursion {
     | undefined;
 
   if (!row || row.low === null || row.high === null || row.n === 0) {
-    return { mae: null, mfe: null, capture: null, givenBack: null, bars: 0 };
+    return { mae: null, mfe: null, capture: null, givenBack: null, resultTicks: null, bars: 0 };
   }
 
   const long = op.direction === 'LONG';
@@ -77,6 +86,7 @@ export function excursionOf(op: Operation): Excursion {
     mfe,
     capture: mfe > 0 ? Number((resultTicks / mfe).toFixed(2)) : null,
     givenBack: mfe > 0 ? Number(Math.max(0, mfe - resultTicks).toFixed(1)) : null,
+    resultTicks: Number(resultTicks.toFixed(1)),
     bars: row.n,
   };
 }

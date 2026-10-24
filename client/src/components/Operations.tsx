@@ -11,8 +11,10 @@ import {
   type Replay,
 } from '../api';
 import { dateTime, duration, num, sessionLabel, signClass, signedUsd, ticks, usd } from '../format';
-import { polarityApplies, polarityClass, polarityOf, sortByPolarity } from '../tags';
+import { useSticky } from '../sticky';
+import { KINDS, type Kind, sortByPolarity, tagClass, tagsOfKind } from '../tags';
 import { DayCalendar } from './DayCalendar';
+import { OpTooltip, type GloboDatos } from './OpTooltip';
 import { Diagnosis } from './Diagnosis';
 import { TradeChart } from './TradeChart';
 import { TradeNotes } from './TradeNotes';
@@ -258,6 +260,17 @@ function ExcursionNote({ op }: { op: Operation }) {
   return null;
 }
 
+/**
+ * Titulos del filtro. Mas cortos que los de `KIND_LABEL`: ahi el ancho sobra y
+ * conviene explicar, aqui la columna mide 300px y "Contexto del mercado" parte
+ * en dos lineas por cada grupo.
+ */
+const KIND_CORTO: Record<Kind, string> = {
+  estrategia: 'Estrategia',
+  contexto: 'Contexto',
+  conducta: 'Conducta',
+};
+
 function Detail({ op, offsetHours, prefs }: { op: Operation; offsetHours: number; prefs: ChartPrefs }) {
   const [tab, setTab] = useState<'grafico' | 'lectura' | 'numeros' | 'notas' | 'observaciones'>('grafico');
   const [reading, setReading] = useState<Narrative | null>(null);
@@ -284,41 +297,50 @@ function Detail({ op, offsetHours, prefs }: { op: Operation; offsetHours: number
         <span className={`pnl ${signClass(op.ticks ?? 0)}`}>{op.ticks === null ? '' : `${ticks(op.ticks)} ticks`}</span>
       </div>
 
-      <div className="tabs">
-        {(['grafico', 'lectura', 'numeros', 'notas', 'observaciones'] as const).map((t) => (
-          <button key={t} className={tab === t ? 'on' : ''} onClick={() => setTab(t)}>
-            {t === 'grafico' ? 'Grafico'
-              : t === 'lectura' ? 'Lectura'
-              : t === 'numeros' ? 'Numeros'
-              : t === 'notas' ? 'Notas'
-              : `Observaciones (${flags.length})`}
-          </button>
-        ))}
-      </div>
-
-      {/* La clave fuerza a React a reconstruir el grafico al cambiar de
-          operacion, en vez de reutilizar el anterior con datos nuevos. */}
-      {tab === 'grafico' && <Replayer key={op.id} id={op.id} offsetHours={offsetHours} prefs={prefs} />}
-      {tab === 'lectura' && (reading ? <Reading narrative={reading} /> : <div className="empty">leyendo la operacion...</div>)}
-      {tab === 'numeros' && <Numbers op={op} />}
-      {tab === 'notas' && <TradeNotes key={op.id} operationId={op.id} prefs={prefs} />}
-
-      {tab === 'observaciones' && (
-        <>
-          <ExcursionNote op={op} />
-          {flags.length === 0 && <div className="op-meta">Sin observaciones.</div>}
-          {flags.map((f) => (
-            <div key={f.code} className={`flag ${f.severity}`}>
-              <span className="dot" />
-              <span>
-                <div className="title">{f.title}</div>
-                <div className="detail-text">{f.detail}</div>
-              </span>
-              <span className="kind">{f.kind === 'decision' ? 'decision' : 'resultado'}</span>
-            </div>
+      {/* Las pestanas en columna a la izquierda y no en una fila arriba.
+          Son cinco y ocupaban una banda entera de alto justo encima del
+          grafico, que es lo que se mira; de lado no le quitan ni un pixel de
+          altura y encima se quedan visibles al bajar por una lista larga de
+          observaciones. */}
+      <div className="detail-body">
+        <nav className="tabs lateral">
+          {(['grafico', 'lectura', 'numeros', 'notas', 'observaciones'] as const).map((t) => (
+            <button key={t} className={tab === t ? 'on' : ''} onClick={() => setTab(t)}>
+              {t === 'grafico' ? 'Grafico'
+                : t === 'lectura' ? 'Lectura'
+                : t === 'numeros' ? 'Numeros'
+                : t === 'notas' ? 'Notas'
+                : <>Observaciones <span className="n">{flags.length}</span></>}
+            </button>
           ))}
-        </>
-      )}
+        </nav>
+
+        <div className="detail-pane">
+          {/* La clave fuerza a React a reconstruir el grafico al cambiar de
+              operacion, en vez de reutilizar el anterior con datos nuevos. */}
+          {tab === 'grafico' && <Replayer key={op.id} id={op.id} offsetHours={offsetHours} prefs={prefs} />}
+          {tab === 'lectura' && (reading ? <Reading narrative={reading} /> : <div className="empty">leyendo la operacion...</div>)}
+          {tab === 'numeros' && <Numbers op={op} />}
+          {tab === 'notas' && <TradeNotes key={op.id} operationId={op.id} prefs={prefs} />}
+
+          {tab === 'observaciones' && (
+            <>
+              <ExcursionNote op={op} />
+              {flags.length === 0 && <div className="op-meta">Sin observaciones.</div>}
+              {flags.map((f) => (
+                <div key={f.code} className={`flag ${f.severity}`}>
+                  <span className="dot" />
+                  <span>
+                    <div className="title">{f.title}</div>
+                    <div className="detail-text">{f.detail}</div>
+                  </span>
+                  <span className="kind">{f.kind === 'decision' ? 'decision' : 'resultado'}</span>
+                </div>
+              ))}
+            </>
+          )}
+        </div>
+      </div>
     </div>
   );
 }
@@ -351,6 +373,15 @@ export function Operations({
   // fuera de plan" es una pregunta normal. Cruza por CUALQUIERA, no por todas.
   const [tagFilter, setTagFilter] = useState<string[]>([]);
   const [data, setData] = useState<Page<Operation> | null>(null);
+
+  // Fila sobre la que esta el raton, con su globo ya calculado. null = ninguna.
+  const [globo, setGlobo] = useState<GloboDatos | null>(null);
+
+  // El bloque de etiquetas cerrado por defecto. Con diecisiete etiquetas ocupa
+  // casi trescientos pixeles y empuja el listado fuera de la pantalla, y el
+  // listado es lo que se usa en cada operacion mientras que el filtro se toca
+  // de vez en cuando. Se recuerda abierto si lo dejaste abierto.
+  const [tagsAbierto, setTagsAbierto] = useSticky<boolean>('ops.tagsAbierto', false);
   const [selected, setSelected] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
 
@@ -457,46 +488,79 @@ export function Operations({
             salieran de lo ya filtrado, al marcar una desapareceria el resto de
             botones y no habria forma de cambiar sin limpiar primero. */}
         {data.tags && data.tags.length > 0 && (
-          <div className="session-filter tag-filter">
-            {(() => {
-              // Las marcadas PRIMERO, y una raya detras. Asi se ve lo que
-              // esta puesto sin una seccion aparte arriba que empuje el
-              // calendario media pantalla hacia abajo.
-              const todas = sortByPolarity(data.tags?.map((t) => t.tag) ?? [], prefs.tagPolarity);
-              const puestas = todas.filter((t) => tagFilter.includes(t));
-              const resto = todas.filter((t) => !tagFilter.includes(t));
+          <div className="tag-box">
+            {/* Cabecera siempre visible. Cuando esta cerrado tiene que decir
+                QUE esta filtrando, no solo cuantas: "2 puestas" obliga a abrir
+                para saber si lo que estas viendo son las de miedo o las de
+                revancha. Y "limpiar" vive aqui para poder quitar el filtro sin
+                abrir nada. */}
+            <div className="tag-head">
+              <button
+                className="tag-toggle"
+                onClick={() => setTagsAbierto(!tagsAbierto)}
+                aria-expanded={tagsAbierto}
+                title={tagsAbierto ? 'Esconder las etiquetas' : 'Filtrar por etiqueta'}
+              >
+                <span className="caret">{tagsAbierto ? '▾' : '▸'}</span>
+                <span className="titulo">Etiquetas</span>
+                {tagFilter.length > 0 ? (
+                  <span className="puestas">{tagFilter.join(', ')}</span>
+                ) : (
+                  <span className="cuenta">{data.tags.length}</span>
+                )}
+              </button>
 
-              const pinta = (tag: string) => {
-                const row = data.tags?.find((t) => t.tag === tag);
-                const on = tagFilter.includes(tag);
-                return (
-                  <button
-                    key={tag}
-                    className={`${on ? 'on' : ''} ${
-                      polarityApplies(tag, prefs.tagKind)
-                        ? polarityClass(polarityOf(tag, prefs.tagPolarity))
-                        : ''
-                    }`}
-                    onClick={() =>
-                      setTagFilter((cur) => (on ? cur.filter((x) => x !== tag) : [...cur, tag]))
-                    }
-                  >
-                    {tag} <span className="note">{row?.count ?? 0}</span>
-                  </button>
-                );
-              };
+              {tagFilter.length > 0 && (
+                <button className="clear" onClick={() => setTagFilter([])}>limpiar</button>
+              )}
+            </div>
 
-              return (
-                <>
-                  {puestas.map(pinta)}
-                  {puestas.length > 0 && <span className="tag-sep" />}
-                  {resto.map(pinta)}
-                  {tagFilter.length > 0 && (
-                    <button className="clear" onClick={() => setTagFilter([])}>limpiar</button>
-                  )}
-                </>
-              );
-            })()}
+            {tagsAbierto && (
+              <div className="tag-grupos">
+                {(() => {
+                  const cuenta = new Map((data.tags ?? []).map((r) => [r.tag, r.count]));
+                  const todas = (data.tags ?? []).map((r) => r.tag);
+
+                  const pinta = (tag: string) => {
+                    const n = cuenta.get(tag) ?? 0;
+                    const on = tagFilter.includes(tag);
+                    return (
+                      <button
+                        key={tag}
+                        className={`${on ? 'on' : ''} ${tagClass(tag, prefs.tagPolarity, prefs.tagKind)} ${n === 0 ? 'vacia' : ''}`}
+                        title={
+                          n === 0
+                            ? 'Ninguna operacion la lleva con los filtros puestos'
+                            : `${n} operacion${n === 1 ? '' : 'es'} con los filtros puestos`
+                        }
+                        onClick={() =>
+                          setTagFilter((cur) => (on ? cur.filter((x) => x !== tag) : [...cur, tag]))
+                        }
+                      >
+                        {tag} <span className="note">{n}</span>
+                      </button>
+                    );
+                  };
+
+                  // Por eje y no en un monton suelto. Son tres preguntas
+                  // distintas -que clase de operacion era, que habia en el
+                  // mercado, que hice yo- y mezcladas en una sola parrafada
+                  // de botones no se encuentra ninguna. Dentro de conducta
+                  // van buenas, neutras y malas en ese orden.
+                  return KINDS.map((eje) => {
+                    const dentro = tagsOfKind(todas, prefs.tagKind, eje, prefs.tagPolarity);
+                    if (dentro.length === 0) return null;
+
+                    return (
+                      <div className="tag-grupo" key={eje}>
+                        <div className="tag-grupo-titulo">{KIND_CORTO[eje]}</div>
+                        <div className="session-filter tag-filter">{dentro.map(pinta)}</div>
+                      </div>
+                    );
+                  });
+                })()}
+              </div>
+            )}
           </div>
         )}
 
@@ -531,29 +595,56 @@ export function Operations({
           <span title="Lado y numero de contratos">Lado</span>
           <span title="Hora de mercado en que se abrio">Apertura</span>
           <span title="Reentradas inmediatas tras perder y entradas en mitad de una racha perdedora">Avisos</span>
-          <span title="Ticks por contrato: el recorrido que capturaste, sin el tamano">Ticks</span>
-          <span title="Resultado despues de comisiones">Neto</span>
+          {/* Hueco de los puntos de etiquetas. Va SIN texto porque la columna
+              mide lo que midan los puntos, pero tiene que existir: la fila
+              emite seis celdas y una cabecera de cinco descoloca las dos
+              ultimas, que son justo las cifras. */}
+          <span title="Un punto por etiqueta y un circulo hueco si hay nota. Pasa el raton por la fila para leerlas." />
+          <span title="Ticks POR CONTRATO: el recorrido que capturaste, sin el tamano de la posicion">Ticks</span>
+          <span title="Bruto menos comision. Los ticks son por contrato, asi que con varios contratos el bruto es el doble o el triple; la comision se paga aparte.">Neto</span>
         </div>
 
-        <div className="op-list">
+        {/* El globo va anclado a coordenadas de pantalla, asi que si la lista
+            se desplaza debajo se queda flotando sobre una fila que ya no es la
+            suya. Se esconde y vuelve a salir en cuanto el raton se mueve. */}
+        <div className="op-list" onScroll={() => setGlobo(null)}>
           {data.items.map((op) => {
             const alerts = op.review.decisionAlerts;
 
-            // Globo nativo del navegador y no un componente propio: asi sale
-            // igual con la lista desplazada y no lo recorta el borde del panel,
-            // que es justo donde viven estas filas.
             const etiquetas = sortByPolarity(op.tags ?? [], prefs.tagPolarity);
             const nota = (op.note ?? '').trim();
-            const globo =
-              (etiquetas.length > 0 ? etiquetas.join('  ·  ') : 'sin etiquetas') +
-              (nota ? `\n\n${nota}` : '');
+
+            // Las dos cifras de la fila parecen descuadradas -28,5 ticks y
+            // -$30,50- y no lo estan: los ticks son POR CONTRATO y la comision
+            // se cobra aparte. Con la cuenta desglosada deja de parecer un
+            // error. Es tambien lo que explica que una operacion de 0 ticks
+            // salga en negativo: la ida y vuelta se paga igual.
+            const detalle = (caja: DOMRect): GloboDatos => ({
+              ancla: { top: caja.top, bottom: caja.bottom, left: caja.left },
+              formula:
+                op.ticks === null || op.tickValue === null
+                  ? null
+                  : `${ticks(op.ticks)} ticks x ${op.max_quantity} contrato${op.max_quantity === 1 ? '' : 's'} x ${usd(op.tickValue)}`,
+              bruto: op.ticks === null ? null : signedUsd(op.rawGrossPnl),
+              comision: signedUsd(-op.commission),
+              neto: signedUsd(op.netPnl),
+              netoClase: signClass(op.netPnl),
+              etiquetas: etiquetas.map((nombre) => ({
+                nombre,
+                clase: tagClass(nombre, prefs.tagPolarity, prefs.tagKind),
+              })),
+              nota,
+            });
 
             return (
               <button
                 key={op.id}
                 className={`op-item ${op.id === selected ? 'on' : ''}`}
                 onClick={() => setSelected(op.id)}
-                title={globo}
+                onMouseEnter={(e) => setGlobo(detalle(e.currentTarget.getBoundingClientRect()))}
+                onMouseLeave={() => setGlobo(null)}
+                onFocus={(e) => setGlobo(detalle(e.currentTarget.getBoundingClientRect()))}
+                onBlur={() => setGlobo(null)}
               >
                 <Side direction={op.direction} qty={op.max_quantity} />
                 <span className="when">{dateTime(op.opened_at)}</span>
@@ -569,11 +660,7 @@ export function Operations({
                   {etiquetas.slice(0, 4).map((t) => (
                     <i
                       key={t}
-                      className={`dot ${
-                        polarityApplies(t, prefs.tagKind)
-                          ? polarityClass(polarityOf(t, prefs.tagPolarity))
-                          : ''
-                      }`}
+                      className={`dot ${tagClass(t, prefs.tagPolarity, prefs.tagKind)}`}
                     />
                   ))}
                   {nota && <i className="dot nota" />}
@@ -586,8 +673,14 @@ export function Operations({
           })}
         </div>
 
+        {globo !== null && <OpTooltip datos={globo} />}
+
         <div className="legend">
-          <b>Ticks</b> por contrato · <b>Neto</b> tras comision ·{' '}
+          <b>Ticks</b> por contrato y <b>Neto</b> = bruto &minus; comision, por eso las dos cifras
+          de una fila no cuadran a simple vista: con 2 contratos el bruto es el doble de los ticks,
+          y una operacion de 0 ticks sale en negativo porque la ida y vuelta se paga igual.
+          Pasa el raton por una fila y te sale la cuenta entera. El importe por contrato se ajusta
+          en Ajustes &rsaquo; Costes ·{' '}
           <b>Avisos</b>: reentraste a los pocos minutos de perder, o entraste con varias perdidas
           seguidas encima. No dice que la operacion este mal, dice que fue una reaccion.
         </div>

@@ -2,6 +2,7 @@ import { db } from '../db/index.js';
 import { normalizeSymbol } from './bars.js';
 import { instrumentOf } from './instruments.js';
 import { sessionOf, type SessionName } from './sessions.js';
+import { boundedCache } from './boundedCache.js';
 
 /**
  * Cuanto stop y cuanto objetivo pide cada killzone, medido sobre las velas.
@@ -169,7 +170,7 @@ export interface SessionStatsOptions {
   targetR?: number;
 }
 
-const cache = new Map<string, SessionStatsReport>();
+const cache = boundedCache<SessionStatsReport>(16);
 
 export function sessionStats(symbol: string, options: SessionStatsOptions = {}): SessionStatsReport {
   const sym = normalizeSymbol(symbol);

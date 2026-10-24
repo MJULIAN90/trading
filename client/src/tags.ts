@@ -100,6 +100,34 @@ export function polarityApplies(tag: string, kinds: KindMap | undefined): boolea
   return kindOf(tag, kinds) === 'conducta';
 }
 
+/**
+ * La clase de color de una etiqueta, decidida en UN solo sitio.
+ *
+ * Tres resultados posibles y cada uno dice algo distinto:
+ *
+ *   'buena' / 'mala'  solo en conducta, y solo si Julian la ha calificado.
+ *   'estrategia'      azul. Lo que decidiste tu antes de entrar.
+ *   'contexto'        naranja. Lo que te encontraste y no elegiste.
+ *   ''                conducta sin calificar. Gris de fabrica.
+ *
+ * Ni el azul ni el naranja comparten paleta con el verde y el rojo, y eso es
+ * deliberado: el verde y el rojo JUZGAN -esto lo hiciste bien, esto mal-, y ni
+ * una estrategia ni un contexto se juzgan. Dicen que clase de operacion era y
+ * que habia en el mercado.
+ *
+ * Antes cada pantalla escribia a mano el mismo ternario de dos ramas, y las
+ * de estrategia acababan grises e indistinguibles de las neutras.
+ */
+export function tagClass(
+  tag: string,
+  polarity: PolarityMap | undefined,
+  kinds: KindMap | undefined,
+): string {
+  const eje = kindOf(tag, kinds);
+  if (eje !== 'conducta') return eje;
+  return polarityClass(polarityOf(tag, polarity));
+}
+
 /** Las etiquetas de un eje, ya ordenadas por polaridad y alfabeto. */
 export function tagsOfKind(
   tags: string[],

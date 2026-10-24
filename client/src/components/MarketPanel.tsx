@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react';
 import { UNIT_LABEL, inUnit, num, sessionLabel, signClass, signedInUnit, type Unit } from '../format';
+import { useMarketStamp } from '../freshness';
+import { useSort } from '../sortable';
 import { useSticky } from '../sticky';
 import { GridPanel } from './GridPanel';
 
@@ -176,16 +178,67 @@ export function MarketPanel() {
     rRetest(); rRequireStack(); rStopMode(); rStudyR();
   };
 
+  // Huella del mercado: cambia cuando la ingesta mete velas nuevas. Al estar en
+  // las dependencias de abajo, las dos tablas se rehacen solas segun pasan los
+  // dias, sin que nadie toque nada ni recargue la pagina.
+  const sello = useMarketStamp();
+
+  // Las dos tablas ordenables. Los hooks van aqui arriba y no junto a su tabla
+  // porque `stats` y `study` empiezan en null y React no admite un hook dentro
+  // de una rama; con `?? []` se montan igual mientras cargan.
+  const killzones = useSort(
+    stats?.rows ?? [],
+    {
+      killzone: (r) => r.session,
+      ruido: (r) => r.barRange,
+      sl: (r) => r.suggestedStop,
+      tp: (r) => r.suggestedTarget,
+      acierto: (r) => r.hitRate,
+      necesario: (r) => r.breakEven,
+      sindecidir: (r) => r.timeoutRate,
+      deja: (r) => r.expectancy,
+      casos: (r) => r.samples,
+    },
+    null,
+  );
+
+  const patrones = useSort(
+    study?.rows.filter((r) => r.samples >= 50) ?? [],
+    {
+      patron: (r) => r.label,
+      casos: (r) => r.samples,
+      acierto: (r) => r.hitRate,
+      ventaja: (r) => r.edge,
+      p: (r) => r.pValue,
+    },
+    null,
+  );
+
+  // Vaciar la tabla SOLO cuando cambian los mandos. Ahi el usuario ha pedido
+  // otra cosa y ver "calculando" es la respuesta honesta. Cuando lo que cambia
+  // es el sello -han entrado velas- la tabla se queda puesta y se sustituye
+  // cuando llega la nueva: refrescarse no deberia hacer parpadear la pantalla.
+  useEffect(() => { setStats(null); }, [horizon, stopPct, targetR]);
+
   useEffect(() => {
-    setStats(null);
+    // Con dos disparadores -mandos y sello- dos peticiones pueden solaparse, y
+    // sin esto la que conteste la ultima gana aunque sea la mas vieja.
+    let vivo = true;
+
     fetch(`/api/sessions/stats?horizonMin=${horizon}&stopPct=${stopPct}&targetR=${targetR}`)
       .then((r) => r.json())
-      .then(setStats)
+      .then((d) => { if (vivo) setStats(d as StatsReport); })
       .catch(() => {});
-  }, [horizon, stopPct, targetR]);
+
+    return () => { vivo = false; };
+  }, [horizon, stopPct, targetR, sello]);
 
   useEffect(() => {
     setStudy(null);
+  }, [timeframe, target, trendMin, trendMode, retest, requireStack, stopMode, studyR]);
+
+  useEffect(() => {
+    let vivo = true;
     const q = new URLSearchParams({
       timeframe: String(timeframe),
       targetTicks: String(target),
@@ -202,9 +255,11 @@ export function MarketPanel() {
 
     fetch(`/api/study/patterns?${q.toString()}`)
       .then((r) => r.json())
-      .then(setStudy)
+      .then((d) => { if (vivo) setStudy(d as StudyReport); })
       .catch(() => {});
-  }, [timeframe, target, trendMin, trendMode, retest, requireStack, stopMode, studyR]);
+
+    return () => { vivo = false; };
+  }, [timeframe, target, trendMin, trendMode, retest, requireStack, stopMode, studyR, sello]);
 
   return (
     <>
@@ -258,31 +313,31 @@ export function MarketPanel() {
             <table>
               <thead>
                 <tr>
-                  <th>Killzone</th>
-                  <th title="Rango mediano de una vela de un minuto: el ruido de la franja">
+                  <killzones.Th k="killzone">Killzone</killzones.Th>
+                  <killzones.Th k="ruido" title="Rango mediano de una vela de un minuto: el ruido de la franja">
                     Ruido 1m <span className="note">({UNIT_LABEL[unit]})</span>
-                  </th>
-                  <th title="La distancia a la que hay que poner el stop para que la franja no te saque">
+                  </killzones.Th>
+                  <killzones.Th k="sl" title="La distancia a la que hay que poner el stop para que la franja no te saque">
                     SL <span className="note">({UNIT_LABEL[unit]})</span>
-                  </th>
-                  <th title="El objetivo, a R veces la distancia del stop">
+                  </killzones.Th>
+                  <killzones.Th k="tp" title="El objetivo, a R veces la distancia del stop">
                     TP <span className="note">({UNIT_LABEL[unit]})</span>
-                  </th>
-                  <th title="De las entradas que llegaron a tocar uno de los dos, cuantas tocaron el TP primero">
+                  </killzones.Th>
+                  <killzones.Th k="acierto" title="De las entradas que llegaron a tocar uno de los dos, cuantas tocaron el TP primero">
                     Acierto
-                  </th>
-                  <th title="El acierto que haria falta solo para no perder ni ganar">Necesario</th>
-                  <th title="Acabaron sin tocar ni SL ni TP: se cierran a mercado al acabar el tiempo">
+                  </killzones.Th>
+                  <killzones.Th k="necesario" title="El acierto que haria falta solo para no perder ni ganar">Necesario</killzones.Th>
+                  <killzones.Th k="sindecidir" title="Acabaron sin tocar ni SL ni TP: se cierran a mercado al acabar el tiempo">
                     Sin decidir
-                  </th>
-                  <th title="Resultado medio por entrada, antes de comisiones y deslizamiento. Separado por sentido para que la deriva del periodo no se lea como ventaja.">
+                  </killzones.Th>
+                  <killzones.Th k="deja" title="Resultado medio por entrada, antes de comisiones y deslizamiento. Separado por sentido para que la deriva del periodo no se lea como ventaja.">
                     Deja de media <span className="note">({UNIT_LABEL[unit]}, compra / venta)</span>
-                  </th>
-                  <th title="Entradas simuladas en las dos direcciones">Casos</th>
+                  </killzones.Th>
+                  <killzones.Th k="casos" title="Entradas simuladas en las dos direcciones">Casos</killzones.Th>
                 </tr>
               </thead>
               <tbody>
-                {stats.rows.map((r) => (
+                {killzones.rows.map((r) => (
                   <tr key={r.session} className={r.session === 'NY_AM' ? 'hi' : ''}>
                     <td>{sessionLabel(r.session)}</td>
                     <td>{inUnit(r.barRange, unit, stats.tickSize, stats.tickValue)}</td>
@@ -501,32 +556,46 @@ export function MarketPanel() {
             <table>
               <thead>
                 <tr>
-                  <th>Patron de la vela</th>
-                  <th>Casos</th>
-                  <th>Acierto</th>
-                  <th title="Puntos porcentuales frente a entrar en cualquier vela">Ventaja</th>
-                  <th title="Probabilidad de ver esa diferencia por azar">p</th>
+                  <patrones.Th k="patron">Patron de la vela</patrones.Th>
+                  <patrones.Th k="casos">Casos</patrones.Th>
+                  <patrones.Th k="acierto">Acierto</patrones.Th>
+                  <patrones.Th k="ventaja" title="Puntos porcentuales frente a entrar en cualquier vela">Ventaja</patrones.Th>
+                  <patrones.Th k="p" title="Probabilidad de ver esa diferencia por azar">p</patrones.Th>
                   <th>¿Aguanta?</th>
                 </tr>
               </thead>
-              <tbody>
-                {/*
-                  La fila del azar va ARRIBA del todo y es la que manda. El
-                  punto de equilibrio teorico no sirve como vara: ignora el
-                  horizonte, los casos sin resolver y la deriva del periodo, y
-                  suele quedar un par de puntos por debajo de lo que de verdad
-                  da entrar a ciegas.
-                */}
-                <tr style={{ fontWeight: 600 }}>
-                  <td>Entrar AL AZAR, mismo riesgo</td>
+              {/*
+                LAS DOS PRIMERAS FILAS NO SE ORDENAN, Y NO ES UN FALLO.
+
+                No son patrones: son la vara con la que se miden los patrones.
+                "Entrar al azar" no es algo que puedas elegir hacer, y si se
+                ordenara con las demas acabaria en mitad de la lista como si
+                fuera una opcion mas. El punto de equilibrio teorico no sirve
+                como vara -ignora el horizonte, los casos sin resolver y la
+                deriva del periodo- asi que esta fila es la unica referencia
+                valida y tiene que estar siempre a la vista.
+
+                Van en su propio <tbody> con fondo y raya propios para que se
+                lean como lo que son y no como las dos primeras posiciones de
+                un ranking.
+              */}
+              <tbody className="referencia">
+                <tr>
+                  <td>
+                    Entrar AL AZAR, mismo riesgo
+                    <span className="marca">referencia</span>
+                  </td>
                   <td className="note">{study.randomSamples.toLocaleString('es')}</td>
                   <td>{(study.randomBaseline * 100).toFixed(1)}%</td>
                   <td colSpan={3} className="note">
                     la vara de medir · riesgo {study.medianRisk} ticks
                   </td>
                 </tr>
-                <tr style={{ fontWeight: 600 }}>
-                  <td>{study.baseline.label}</td>
+                <tr>
+                  <td>
+                    {study.baseline.label}
+                    <span className="marca">referencia</span>
+                  </td>
                   <td>{study.baseline.samples.toLocaleString('es')}</td>
                   <td>{(study.baseline.hitRate * 100).toFixed(1)}%</td>
                   <td
@@ -540,8 +609,10 @@ export function MarketPanel() {
                     el filtro entero, contra el azar
                   </td>
                 </tr>
-                {study.rows
-                  .filter((r) => r.samples >= 50)
+              </tbody>
+
+              <tbody>
+                {patrones.rows
                   .map((r) => (
                     <tr key={r.code}>
                       <td>{r.label}</td>

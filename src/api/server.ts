@@ -21,6 +21,8 @@ import {
 } from '../domain/metrics.js';
 import { DEFAULT_REVIEW_CONFIG, flagImpact, reviewOperations } from '../domain/review.js';
 import { barsBySymbol, refreshBars } from '../domain/bars.js';
+import { todayReport } from '../domain/today.js';
+import { alignmentBreakdown } from '../domain/alignment.js';
 import { openingStats } from '../domain/openings.js';
 import { marketDate } from '../domain/sessions.js';
 import { replay } from '../domain/replay.js';
@@ -234,9 +236,28 @@ app.get('/api/operations', async (req) => {
     for (const t of tagFilter) if (!tagCount.has(t)) tagCount.set(t, 0);
   }
 
+  // Y TODAS las del catalogo, aunque no las lleve ninguna operacion de lo que
+  // se esta mirando. Salen con cero.
+  //
+  // Antes solo salian las que aparecian en lo filtrado, y eso hacia que la
+  // lista de botones cambiara de tamano segun el dia que mirases: una etiqueta
+  // que existe pero no has usado esta semana desaparecia, y no habia forma de
+  // saber si es que no existe o es que no la usaste. Un cero dice las dos
+  // cosas de una vez.
+  //
+  // Se unen las dos fuentes: las configuradas en ajustes y las que estan
+  // puestas en alguna operacion. Normalmente coinciden; no lo hacen cuando se
+  // quita una del catalogo despues de haberla usado, y esa tiene que seguir
+  // saliendo o sus operaciones quedan sin forma de filtrarse.
+  for (const t of getChartPrefs().noteTags) if (!tagCount.has(t)) tagCount.set(t, 0);
+  for (const t of allTags()) if (!tagCount.has(t)) tagCount.set(t, 0);
+
+  // Alfabetico y no por uso: una lista que se reordena sola segun cuantas
+  // veces usaste cada etiqueta obliga a leerla entera cada vez. El cliente las
+  // agrupa luego por eje, pero dentro de cada grupo manda este orden.
   const tagList = [...tagCount.entries()]
     .map(([tag, count]) => ({ tag, count }))
-    .sort((a, b) => b.count - a.count || a.tag.localeCompare(b.tag));
+    .sort((a, b) => a.tag.localeCompare(b.tag, 'es'));
 
   // Totales del conjunto filtrado, no solo de la pagina: al filtrar por compras
   // interesa cuanto suman TODAS las compras, no las veinticinco que se ven.
@@ -464,6 +485,28 @@ app.get('/api/study/grid', async (req) => {
     horizonMin: Number(q.horizonMin) || 60,
     minSamples: Number(q.minSamples) || 120,
   });
+});
+
+/**
+ * La jornada en curso contra el limite de perdida.
+ *
+ * Endpoint propio y no un campo del dashboard: la banda que lo pinta vive en
+ * todas las pestanas y se refresca cada medio minuto, y arrastrar el dashboard
+ * entero -resumen, excursion, calendario, cinco agrupaciones- para leer dos
+ * numeros seria pedir medio megabyte cada treinta segundos.
+ */
+app.get('/api/today', async () => todayReport());
+
+/**
+ * Como te fue segun con cuantos marcos estabas alineado con la pila de medias.
+ *
+ * El cruce entre las dos mitades del diario: tus operaciones por un lado, el
+ * estado del mercado en el instante de entrar por otro. Se calcula de las
+ * velas guardadas, asi que vale hacia atras sobre todo el historico y no hace
+ * falta tocar ningun indicador.
+ */
+app.get('/api/alignment', async (req) => {
+  return alignmentBreakdown(loadOperations(req.query as Record<string, unknown>));
 });
 
 app.get('/api/settings', async () => getCostSettings());

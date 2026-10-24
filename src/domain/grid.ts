@@ -3,6 +3,7 @@ import { normalizeSymbol } from './bars.js';
 import { marketOffsetAt } from './clock.js';
 import { instrumentOf } from './instruments.js';
 import { PATTERN_LABEL, type PatternCode } from './pattern.js';
+import { boundedCache } from './boundedCache.js';
 
 /**
  * Todas las combinaciones de patron, temporalidad, tendencia de 4h y sentido
@@ -199,7 +200,7 @@ interface Case {
   outcome: 1 | -1 | 0;
 }
 
-const cache = new Map<string, GridReport>();
+const cache = boundedCache<GridReport>(12);
 
 export function patternGrid(
   symbol: string,

@@ -130,9 +130,10 @@ if errorlevel 1 (
         echo "already up to date" o "no packages awaiting approval" y aun asi
         echo falla, es que lo tiene PROHIBIDO, no pendiente.
         echo.
-        echo La salida rapida es cambiar a npm en este equipo:
-        echo    rmdir /s /q node_modules
-        echo    del pnpm-lock.yaml
+        echo La salida rapida es cambiar a npm en este equipo.
+        echo En PowerShell ^(no en cmd^):
+        echo    Remove-Item -Recurse -Force node_modules
+        echo    Remove-Item pnpm-lock.yaml
         echo    npm install
         echo.
         pause

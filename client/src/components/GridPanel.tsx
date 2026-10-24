@@ -1,4 +1,6 @@
 import { useEffect, useState } from 'react';
+import { useMarketStamp } from '../freshness';
+import { useSort } from '../sortable';
 
 /**
  * El cruce completo: patron x temporalidad x tendencia de 4h x sentido.
@@ -54,15 +56,24 @@ export function GridPanel() {
   const [onlyAligned, setOnlyAligned] = useState(false);
   const [onlyConsistent, setOnlyConsistent] = useState(false);
 
+  const sello = useMarketStamp();
+
+  // Solo se vacia al cambiar el objetivo; al entrar velas nuevas la rejilla se
+  // sustituye sin pasar por "calculando".
+  useEffect(() => { setData(null); }, [target]);
+
   useEffect(() => {
-    setData(null);
+    let vivo = true;
+
     fetch(`/api/study/grid?targetTicks=${target}`)
       .then((r) => r.json())
-      .then(setData)
+      .then((d) => { if (vivo) setData(d as Report); })
       .catch(() => {});
-  }, [target]);
 
-  const rows = (data?.rows ?? []).filter((r) => {
+    return () => { vivo = false; };
+  }, [target, sello]);
+
+  const filtradas = (data?.rows ?? []).filter((r) => {
     if (tf && String(r.timeframe) !== tf) return false;
     if (trend && r.trend !== trend) return false;
     if (side && r.side !== side) return false;
@@ -70,6 +81,27 @@ export function GridPanel() {
     if (onlyConsistent && !r.consistent) return false;
     return true;
   });
+
+  // De partida por q, que es la columna que decide si algo merece mirarse. Las
+  // demas estan para contestar "y cual tiene mas casos" sin recorrer 60 filas
+  // con el dedo.
+  const { rows, Th } = useSort(
+    filtradas,
+    {
+      vela: (r) => r.timeframe,
+      patron: (r) => r.patternLabel,
+      tendencia: (r) => r.trend,
+      entrada: (r) => r.side,
+      casos: (r) => r.samples,
+      acierto: (r) => r.hitRate,
+      base: (r) => r.baseline,
+      ventaja: (r) => r.edge,
+      p: (r) => r.pValue,
+      q: (r) => r.qValue,
+      repite: (r) => r.consistent,
+    },
+    { key: 'q', dir: 'asc' },
+  );
 
   return (
     <div className="panel">
@@ -162,18 +194,20 @@ export function GridPanel() {
           <table>
             <thead>
               <tr>
-                <th>Vela</th>
-                <th>Patron</th>
-                <th>4h</th>
-                <th>Entrada</th>
-                <th>Casos</th>
-                <th>Acierto</th>
-                <th title="El mismo cajon sin mirar el patron">Base</th>
-                <th>Ventaja</th>
-                <th title="Sin corregir">p</th>
-                <th title="Corregido por el numero de pruebas">q</th>
+                <Th k="vela">Vela</Th>
+                <Th k="patron">Patron</Th>
+                <Th k="tendencia">4h</Th>
+                <Th k="entrada">Entrada</Th>
+                <Th k="casos">Casos</Th>
+                <Th k="acierto">Acierto</Th>
+                <Th k="base" title="El mismo cajon sin mirar el patron">Base</Th>
+                <Th k="ventaja">Ventaja</Th>
+                <Th k="p" title="Sin corregir">p</Th>
+                <Th k="q" title="Corregido por el numero de pruebas">q</Th>
+                {/* Mitades no se ordena: son dos numeros en una celda y
+                    ordenar por "43,2% / 48,6%" no significaria nada. */}
                 <th title="Acierto en la primera y la segunda mitad del historico">Mitades</th>
-                <th title="Las dos mitades van en el mismo sentido">Repite</th>
+                <Th k="repite" title="Las dos mitades van en el mismo sentido">Repite</Th>
               </tr>
             </thead>
             <tbody>

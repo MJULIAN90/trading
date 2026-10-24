@@ -242,8 +242,22 @@ export interface PatternRow {
   pnl: number;
   /** Mediana de lo que llego a ir a favor, en ticks. */
   medianMfe: number | null;
-  /** Mediana de los ticks que llegaste a tener y no te llevaste. */
+  /**
+   * Mediana de los ticks que llegaste a tener y no te llevaste.
+   *
+   * OJO: sale de un grupo MAS PEQUEÑO que `medianMfe`, porque solo existe
+   * cuando la operacion llego a ir a favor. No se puede restar del MFE.
+   */
   medianGivenBack: number | null;
+  /**
+   * Mediana del resultado en ticks, con signo. ESTA si es comparable con
+   * `medianMfe`: las dos salen del mismo grupo de operaciones.
+   *
+   * Es la columna que faltaba. Sin ella, una fila podia enseñar un P&L total
+   * en verde -que es una SUMA, y la levantan dos operaciones grandes- al lado
+   * de una operacion tipica que pierde, y no habia forma de verlo.
+   */
+  medianResult: number | null;
 }
 
 export interface PatternReport {
@@ -274,7 +288,7 @@ function median(values: number[]): number | null {
 export function patternReport(ops: Operation[]): PatternReport {
   const buckets = new Map<
     PatternCode,
-    { n: number; wins: number; pnl: number; mfe: number[]; given: number[] }
+    { n: number; wins: number; pnl: number; mfe: number[]; given: number[]; res: number[] }
   >();
 
   let skipped = 0;
@@ -290,7 +304,8 @@ export function patternReport(ops: Operation[]): PatternReport {
     if (read.minutes < 14) incomplete++;
 
     const b =
-      buckets.get(read.code) ?? { n: 0, wins: 0, pnl: 0, mfe: [] as number[], given: [] as number[] };
+      buckets.get(read.code) ??
+      { n: 0, wins: 0, pnl: 0, mfe: [] as number[], given: [] as number[], res: [] as number[] };
 
     b.n++;
     b.pnl += op.gross_pnl;
@@ -299,6 +314,9 @@ export function patternReport(ops: Operation[]): PatternReport {
     const ex = excursionOf(op);
     if (ex.mfe !== null) b.mfe.push(ex.mfe);
     if (ex.givenBack !== null) b.given.push(ex.givenBack);
+    // Mismo `if` que el MFE a proposito: las dos medianas tienen que salir
+    // del mismo grupo para poder leerse una al lado de la otra.
+    if (ex.mfe !== null && ex.resultTicks !== null) b.res.push(ex.resultTicks);
 
     buckets.set(read.code, b);
   }
@@ -313,6 +331,7 @@ export function patternReport(ops: Operation[]): PatternReport {
       pnl: Number(b.pnl.toFixed(2)),
       medianMfe: median(b.mfe),
       medianGivenBack: median(b.given),
+      medianResult: median(b.res),
     }))
     .sort((a, b) => b.operations - a.operations);
 

@@ -3,6 +3,7 @@ import { normalizeSymbol } from './bars.js';
 import { marketOffsetAt } from './clock.js';
 import { instrumentOf } from './instruments.js';
 import { PATTERN_LABEL, type PatternCode } from './pattern.js';
+import { boundedCache } from './boundedCache.js';
 
 /**
  * ¿Sirve de algo entrar a favor de la 4h cuando la vela pequeña hace un patron?
@@ -299,7 +300,7 @@ function mulberry32(seed: number): () => number {
   };
 }
 
-const cache = new Map<string, StudyReport>();
+const cache = boundedCache<StudyReport>(16);
 
 export function patternStudy(
   symbol: string,

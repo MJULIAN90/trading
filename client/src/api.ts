@@ -50,6 +50,23 @@ export interface Operation {
 
 export interface CostSettings {
   commissionPerContract: number;
+  /** Perdida maxima de una jornada, en dolares y en positivo. 0 = apagado. */
+  dailyLossLimit: number;
+}
+
+export type TodayState = 'sin-limite' | 'ok' | 'cerca' | 'pasado';
+
+export interface TodayReport {
+  date: string;
+  operations: number;
+  contracts: number;
+  grossPnl: number;
+  commission: number;
+  netPnl: number;
+  limit: number;
+  remaining: number | null;
+  used: number | null;
+  state: TodayState;
 }
 
 export interface CostSummary {
@@ -334,6 +351,8 @@ export interface PatternRow {
   pnl: number;
   medianMfe: number | null;
   medianGivenBack: number | null;
+  /** Mediana del resultado en ticks. Comparable con medianMfe: mismo grupo. */
+  medianResult: number | null;
 }
 
 export interface PatternReport {
@@ -443,7 +462,7 @@ export interface Filters {
   days?: string[];
 }
 
-function qs(filters: Filters, extra: Record<string, string | number> = {}): string {
+export function qs(filters: Filters, extra: Record<string, string | number> = {}): string {
   const p = new URLSearchParams();
   if (filters.from) p.set('from', filters.from);
   if (filters.to) p.set('to', filters.to);
@@ -560,13 +579,19 @@ export const api = {
     };
   },
 
-  saveSettings: async (commissionPerContract: number) => {
+  saveSettings: async (next: Partial<CostSettings>) => {
     const res = await fetch('/api/settings', {
       method: 'PUT',
       headers: { 'content-type': 'application/json' },
-      body: JSON.stringify({ commissionPerContract }),
+      body: JSON.stringify(next),
     });
     if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
     return (await res.json()) as CostSettings;
+  },
+
+  today: async () => {
+    const res = await fetch('/api/today');
+    if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+    return (await res.json()) as TodayReport;
   },
 };

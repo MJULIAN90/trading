@@ -1,5 +1,6 @@
 import type { PatternReport } from '../api';
 import { num, pct, signClass, signedUsd, ticks } from '../format';
+import { useSort } from '../sortable';
 import { PatternGlyph } from './PatternGlyph';
 
 /**
@@ -22,6 +23,21 @@ export function PatternPanel({ data }: { data: PatternReport }) {
 
   const total = data.rows.reduce((a, r) => a + r.operations, 0);
 
+  const tabla = useSort(
+    data.rows,
+    {
+      patron: (r) => r.label,
+      ops: (r) => r.operations,
+      acierto: (r) => (r.operations > 0 ? r.wins / r.operations : 0),
+      pnl: (r) => r.pnl,
+      porop: (r) => (r.operations > 0 ? r.pnl / r.operations : 0),
+      mfe: (r) => r.medianMfe,
+      resultado: (r) => r.medianResult,
+      devuelto: (r) => r.medianGivenBack,
+    },
+    null,
+  );
+
   return (
     <>
       <div className="news-alert" style={{ marginBottom: 10 }}>
@@ -36,17 +52,28 @@ export function PatternPanel({ data }: { data: PatternReport }) {
       <table>
         <thead>
           <tr>
-            <th>Patron de la vela de 15m</th>
-            <th title="Cuantas operaciones abriste despues de esa vela">Ops</th>
-            <th>Acierto</th>
-            <th>P&amp;L</th>
-            <th>Por op.</th>
-            <th title="Mediana de lo que llego a ir a favor desde tu entrada">A favor (MFE)</th>
-            <th title="Mediana de los ticks que llegaste a tener y no te llevaste">Devuelto</th>
+            <tabla.Th k="patron">Patron de la vela de 15m</tabla.Th>
+            <tabla.Th k="ops" title="Cuantas operaciones abriste despues de esa vela">Ops</tabla.Th>
+            <tabla.Th k="acierto">Acierto</tabla.Th>
+            <tabla.Th k="pnl" title="SUMA de todas. Dos operaciones grandes la levantan entera.">P&amp;L</tabla.Th>
+            <tabla.Th k="porop" title="Media. Tambien se la llevan dos operaciones grandes.">Por op.</tabla.Th>
+            <tabla.Th k="mfe" title="Mediana de lo que llego a ir a favor desde tu entrada">A favor (MFE)</tabla.Th>
+            <tabla.Th
+              k="resultado"
+              title="Mediana del resultado. Sale del MISMO grupo que el MFE, asi que estas dos si se pueden comparar: la diferencia entre las dos es lo que devuelve la operacion tipica."
+            >
+              Acabo en
+            </tabla.Th>
+            <tabla.Th
+              k="devuelto"
+              title="Mediana de los ticks que llegaste a tener y no te llevaste. OJO: solo cuenta las operaciones que llegaron a ir a favor, asi que sale de un grupo mas pequeño y NO se puede restar del MFE."
+            >
+              Devuelto
+            </tabla.Th>
           </tr>
         </thead>
         <tbody>
-          {data.rows.map((r) => (
+          {tabla.rows.map((r) => (
             <tr key={r.code}>
               <td title={r.help}>
                 <span className="pat-cell">
@@ -66,6 +93,9 @@ export function PatternPanel({ data }: { data: PatternReport }) {
               <td className={signClass(r.pnl)}>{signedUsd(r.pnl)}</td>
               <td className={signClass(r.pnl / r.operations)}>{signedUsd(r.pnl / r.operations)}</td>
               <td className="pos">{r.medianMfe === null ? '—' : `${ticks(r.medianMfe)} ticks`}</td>
+              <td className={r.medianResult === null ? '' : signClass(r.medianResult)}>
+                {r.medianResult === null ? '—' : `${ticks(r.medianResult)} ticks`}
+              </td>
               <td className="neg">
                 {r.medianGivenBack === null ? '—' : `${ticks(r.medianGivenBack)} ticks`}
               </td>

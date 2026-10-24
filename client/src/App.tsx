@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { api, type Dashboard, type Filters } from './api';
+import { api, qs, type Dashboard, type Filters } from './api';
 import { Breakdown } from './components/Breakdown';
 import { BarsChart, EquityChart, RecentBarsChart } from './components/Charts';
 import { DayTable } from './components/DayTable';
@@ -19,6 +19,9 @@ import { PatternPanel } from './components/PatternPanel';
 import { ScratchPanel } from './components/ScratchPanel';
 import { SettingsPanel } from './components/SettingsPanel';
 import { date, dateTime, num, pct, sessionLabel, setMarketOffset, signClass, signedUsd, ticks, usd } from './format';
+import { TodayBand } from './components/TodayBand';
+import { useSort } from './sortable';
+import { AlignmentPanel } from './components/AlignmentPanel';
 
 function Tiles({ s, costs }: { s: Dashboard['summary']; costs: Dashboard['costs'] }) {
   const profitable = s.payoff >= s.breakevenPayoff;
@@ -79,7 +82,65 @@ function CommissionSetting({ value, onChange }: { value: number; onChange: (v: n
   );
 }
 
-type Tab = 'resumen' | 'operaciones' | 'mercado' | 'costes' | 'noticias' | 'ajustes';
+/**
+ * Las pestanas, agrupadas por la PREGUNTA que contestan y no por el tipo de
+ * grafico que pintan.
+ *
+ *   resumen      como voy
+ *   cuando       a que horas y que dias voy bien o mal
+ *   conducta     que me cuesta dinero
+ *   operaciones  una operacion concreta
+ *   mercado      que hace el mercado, me meta yo o no
+ *   costes       comisiones y recorrido
+ *   noticias     el calendario
+ *
+ * Antes "resumen" llevaba nueve paneles: las cifras, la curva, cuatro repartos
+ * por tiempo, la tabla por jornada, el desglose por grupo, las aperturas de
+ * killzone y el patron de la vela de 15m. Los dos ultimos ni siquiera miran
+ * tus operaciones -son estudio de mercado puro- y estaban en la pantalla
+ * personal; ahora viven en Mercado, que es su sitio.
+ */
+type Tab =
+  | 'resumen'
+  | 'cuando'
+  | 'conducta'
+  | 'operaciones'
+  | 'mercado'
+  | 'costes'
+  | 'noticias'
+  | 'ajustes';
+
+/** "Que cuesta dinero", ordenable. Componente aparte porque lleva un hook y
+ *  dentro del JSX de App no cabe. Arranca por P&L de menor a mayor: lo que mas
+ *  te cuesta, arriba. */
+function FlagTable({ rows }: { rows: Array<{ code: string; title: string; count: number; pnl: number }> }) {
+  const t = useSort(
+    rows,
+    { observacion: (f) => f.title, veces: (f) => f.count, pnl: (f) => f.pnl },
+    { key: 'pnl', dir: 'asc' },
+  );
+
+  return (
+    <table>
+      <thead>
+        <tr>
+          <t.Th k="observacion">Observacion</t.Th>
+          <t.Th k="veces">Veces</t.Th>
+          <t.Th k="pnl">P&amp;L acumulado</t.Th>
+        </tr>
+      </thead>
+      <tbody>
+        {t.rows.map((f) => (
+          <tr key={f.code}>
+            <td>{f.title}</td>
+            <td>{f.count}</td>
+            <td className={signClass(f.pnl)}>{signedUsd(f.pnl)}</td>
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  );
+}
 
 export default function App() {
   const [filters, setFilters] = useState<Filters>({});
@@ -115,7 +176,8 @@ export default function App() {
    * medio elegir— y recargar debajo lo pisa. Perder lo que estabas mirando cada
    * treinta segundos convierte la pantalla en inutilizable.
    */
-  const autoRefresh = tab === 'resumen' || tab === 'noticias';
+  const autoRefresh =
+    tab === 'resumen' || tab === 'cuando' || tab === 'conducta' || tab === 'noticias';
 
   useEffect(() => {
     load();
@@ -144,7 +206,7 @@ export default function App() {
   const set = (patch: Partial<Filters>) => setFilters((f) => ({ ...f, ...patch }));
 
   function saveCommission(v: number) {
-    api.saveSettings(v).then(load);
+    api.saveSettings({ commissionPerContract: v }).then(load);
   }
 
   return (
@@ -217,9 +279,11 @@ export default function App() {
       {data && (
         <>
           <div className="tabs main">
-            {(['resumen', 'operaciones', 'mercado', 'costes', 'noticias', 'ajustes'] as const).map((t) => (
+            {(['resumen', 'cuando', 'conducta', 'operaciones', 'mercado', 'costes', 'noticias', 'ajustes'] as const).map((t) => (
               <button key={t} className={tab === t ? 'on' : ''} onClick={() => setTab(t)}>
                 {t === 'resumen' ? 'Resumen'
+                  : t === 'cuando' ? 'Cuando'
+                  : t === 'conducta' ? 'Que cuesta dinero'
                   : t === 'operaciones' ? `Operaciones (${data.count})`
                   : t === 'mercado' ? 'Mercado'
                   : t === 'costes' ? 'Costes y recorrido'
@@ -228,6 +292,12 @@ export default function App() {
               </button>
             ))}
           </div>
+
+          {/* Lo que llevas hoy contra tu limite. Por el mismo motivo que el
+              aviso de noticias: si hay que parar, tiene que verse estes donde
+              estes. Se pinta sola solo cuando hay limite puesto y operaciones
+              en la jornada. */}
+          <TodayBand />
 
           {/* El aviso de noticia se ensena en TODAS las pestanas, no solo en la
               suya: si hay que no operar, tiene que verse estes donde estes. */}
@@ -242,7 +312,23 @@ export default function App() {
             </div>
           )}
 
-          {tab === 'mercado' && <MarketPanel />}
+          {tab === 'mercado' && (
+            <>
+              <MarketPanel />
+
+              {/* Estudio de mercado puro: no miran una sola operacion tuya.
+                  Estaban en Resumen y ese no era su sitio. */}
+              <div className="panel">
+                <h2>Aperturas de killzone</h2>
+                <OpeningsPanel />
+              </div>
+
+              <div className="panel">
+                <h2>Patron de la vela de 15 minutos</h2>
+                <PatternPanel data={data.patterns} />
+              </div>
+            </>
+          )}
 
           {tab === 'noticias' && <CalendarPanel data={data.calendar} news={data.news} />}
 
@@ -250,6 +336,7 @@ export default function App() {
             <SettingsPanel
               prefs={chartPrefs ?? data.chartPrefs}
               commission={data.costSettings.commissionPerContract}
+              dailyLimit={data.costSettings.dailyLossLimit}
               onSaved={load}
             />
           )}
@@ -263,6 +350,18 @@ export default function App() {
                 <EquityChart points={data.equity} />
               </div>
 
+              <div className="panel">
+                <h2>P&amp;L por fecha</h2>
+                <RecentBarsChart
+                  rows={data.byDay}
+                  label={(k) => String(k).slice(8) + '/' + String(k).slice(5, 7)}
+                />
+              </div>
+            </>
+          )}
+
+          {tab === 'cuando' && (
+            <>
               <div className="grid2">
                 <div className="panel">
                   <h2>P&amp;L por sesion</h2>
@@ -274,18 +373,9 @@ export default function App() {
                 </div>
               </div>
 
-              <div className="grid2">
-                <div className="panel">
-                  <h2>P&amp;L por dia de la semana</h2>
-                  <BarsChart rows={data.byWeekday} label={(k) => WEEKDAYS[Number(k)] ?? String(k)} />
-                </div>
-                <div className="panel">
-                  <h2>P&amp;L por fecha</h2>
-                  <RecentBarsChart
-                    rows={data.byDay}
-                    label={(k) => String(k).slice(8) + '/' + String(k).slice(5, 7)}
-                  />
-                </div>
+              <div className="panel">
+                <h2>P&amp;L por dia de la semana</h2>
+                <BarsChart rows={data.byWeekday} label={(k) => WEEKDAYS[Number(k)] ?? String(k)} />
               </div>
 
               <div className="panel">
@@ -300,42 +390,31 @@ export default function App() {
                   label={(k) => String(k).slice(8) + '/' + String(k).slice(5, 7)}
                 />
               </div>
+            </>
+          )}
 
+          {tab === 'conducta' && (
+            <>
+              {/* El cruce entre el mercado y tu: lo unico que contesta "¿me va
+                  mejor cuando entro alineado?". Va el primero porque es la
+                  pregunta mas grande que se puede hacer esta pantalla. */}
               <div className="panel">
-                <h2>Metricas por grupo</h2>
-                <Breakdown data={data} />
-              </div>
-
-              <div className="panel">
-                <h2>Aperturas de killzone</h2>
-                <OpeningsPanel />
-              </div>
-
-              <div className="panel">
-                <h2>Patron de la vela de 15 minutos</h2>
-                <PatternPanel data={data.patterns} />
+                <h2>Alineacion con las medias al entrar</h2>
+                <AlignmentPanel query={qs(filters)} />
               </div>
 
               <div className="panel">
                 <h2>Que cuesta dinero</h2>
-                <table>
-                  <thead>
-                    <tr><th>Observacion</th><th>Veces</th><th>P&amp;L acumulado</th></tr>
-                  </thead>
-                  <tbody>
-                    {data.flagImpact.map((f) => (
-                      <tr key={f.code}>
-                        <td>{f.title}</td>
-                        <td>{f.count}</td>
-                        <td className={signClass(f.pnl)}>{signedUsd(f.pnl)}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+                <FlagTable rows={data.flagImpact} />
                 <div className="note">
                   Suma del resultado de todas las operaciones que llevan cada observacion. Una misma
                   operacion puede aparecer en varias filas, asi que los totales no se suman entre si.
                 </div>
+              </div>
+
+              <div className="panel">
+                <h2>Metricas por grupo</h2>
+                <Breakdown data={data} />
               </div>
             </>
           )}

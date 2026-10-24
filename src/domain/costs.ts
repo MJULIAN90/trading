@@ -15,9 +15,30 @@ import type { Operation } from './metrics.js';
 export interface CostSettings {
   /** Dolares por contrato, ida y vuelta completa (comision + tasas). */
   commissionPerContract: number;
+
+  /**
+   * Perdida maxima de una jornada, en dolares y en positivo. 0 = apagado.
+   *
+   * Por que existe. En octubre el mes cerro en -1.471 $ y el dia 9, solo, hizo
+   * -1.260 $: los otros trece dias operados suman -211 $ entre todos. Un dia
+   * es el 86% de la perdida del mes. El diario sabia contarlo al dia
+   * siguiente y no tenia forma de avisar durante.
+   *
+   * Se mide sobre la JORNADA de mercado -`marketDate`, que rueda a las 18:00
+   * de Nueva York-, no sobre la fecha del calendario. Es el mismo corte que
+   * usa la mesa de fondeo; con el corte a medianoche el 32% de las
+   * operaciones caia en el dia equivocado y el limite no querria decir nada.
+   */
+  dailyLossLimit: number;
 }
 
-export const DEFAULT_COSTS: CostSettings = { commissionPerContract: 1 };
+export const DEFAULT_COSTS: CostSettings = { commissionPerContract: 1, dailyLossLimit: 0 };
+
+/** Numero valido y no negativo, o el que ya habia. */
+function positivo(valor: unknown, actual: number): number {
+  const n = Number(valor);
+  return Number.isFinite(n) && n >= 0 ? n : actual;
+}
 
 const KEY = 'cost_settings';
 
@@ -27,8 +48,10 @@ export function getCostSettings(): CostSettings {
 
   try {
     const parsed = JSON.parse(row.value) as Partial<CostSettings>;
-    const value = Number(parsed.commissionPerContract);
-    return { commissionPerContract: Number.isFinite(value) && value >= 0 ? value : DEFAULT_COSTS.commissionPerContract };
+    return {
+      commissionPerContract: positivo(parsed.commissionPerContract, DEFAULT_COSTS.commissionPerContract),
+      dailyLossLimit: positivo(parsed.dailyLossLimit, DEFAULT_COSTS.dailyLossLimit),
+    };
   } catch {
     return { ...DEFAULT_COSTS };
   }
@@ -36,10 +59,10 @@ export function getCostSettings(): CostSettings {
 
 export function setCostSettings(settings: Partial<CostSettings>): CostSettings {
   const current = getCostSettings();
-  const value = Number(settings.commissionPerContract);
 
   const next: CostSettings = {
-    commissionPerContract: Number.isFinite(value) && value >= 0 ? value : current.commissionPerContract,
+    commissionPerContract: positivo(settings.commissionPerContract, current.commissionPerContract),
+    dailyLossLimit: positivo(settings.dailyLossLimit, current.dailyLossLimit),
   };
 
   db()

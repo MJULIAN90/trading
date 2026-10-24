@@ -4,6 +4,7 @@ import {
   api,
   timeframeLabel,
   type ChartPrefs,
+  type CostSettings,
   type EmaSetting,
   type TagImpact,
 } from '../api';
@@ -15,6 +16,7 @@ import {
   KIND_LABEL,
   kindOf,
   polarityApplies,
+  tagClass,
   polarityClass,
   polarityOf,
   tagsOfKind,
@@ -105,14 +107,17 @@ function EmaRow({
 export function SettingsPanel({
   prefs,
   commission,
+  dailyLimit,
   onSaved,
 }: {
   prefs: ChartPrefs;
   commission: number;
+  dailyLimit: number;
   onSaved: () => void;
 }) {
   const [draft, setDraft] = useState<ChartPrefs>(prefs);
   const [fee, setFee] = useState(String(commission));
+  const [limite, setLimite] = useState(String(dailyLimit));
   const [tagDraft, setTagDraft] = useState('');
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState<string | null>(null);
@@ -140,6 +145,7 @@ export function SettingsPanel({
 
   useEffect(() => { setDraft(prefs); }, [prefs]);
   useEffect(() => { setFee(String(commission)); }, [commission]);
+  useEffect(() => { setLimite(String(dailyLimit)); }, [dailyLimit]);
 
   useEffect(() => {
     // Informativo: si falla, la pantalla de ajustes sigue sirviendo para lo
@@ -162,7 +168,9 @@ export function SettingsPanel({
   }, []);
 
   const dirty =
-    JSON.stringify(draft) !== JSON.stringify(prefs) || Number(fee) !== commission;
+    JSON.stringify(draft) !== JSON.stringify(prefs) ||
+    Number(fee) !== commission ||
+    Number(limite) !== dailyLimit;
 
   /** Recuenta los usos. Despues de renombrar los numeros cambian. */
   async function reloadUse() {
@@ -242,7 +250,11 @@ export function SettingsPanel({
       setDraft(applied);
 
       const n = Number(fee);
-      if (Number.isFinite(n) && n >= 0 && n !== commission) await api.saveSettings(n);
+      const l = Number(limite);
+      const cambios: Partial<CostSettings> = {};
+      if (Number.isFinite(n) && n >= 0 && n !== commission) cambios.commissionPerContract = n;
+      if (Number.isFinite(l) && l >= 0 && l !== dailyLimit) cambios.dailyLossLimit = l;
+      if (Object.keys(cambios).length > 0) await api.saveSettings(cambios);
 
       setSaved(new Date().toLocaleTimeString());
       onSaved();
@@ -472,7 +484,7 @@ export function SettingsPanel({
                     ) : (
                       <button
                         type="button"
-                        className={`tag ${conPolaridad ? polarityClass(pol) : ''}`}
+                        className={`tag ${tagClass(t, draft.tagPolarity, draft.tagKind)}`}
                         title="renombrar (cambia tambien las operaciones que ya la llevan)"
                         onClick={() => { setEditing(t); setEditDraft(t); }}
                       >
@@ -632,6 +644,27 @@ export function SettingsPanel({
             />
             $/contrato
           </label>
+
+          <label title="Perdida maxima de una jornada. 0 lo apaga.">
+            Limite diario
+            <input
+              type="number"
+              step="25"
+              min="0"
+              value={limite}
+              style={{ width: 90 }}
+              onChange={(e) => setLimite(e.target.value)}
+            />
+            $ de perdida
+          </label>
+        </div>
+
+        <div className="note">
+          <b>El limite diario es la unica cosa del diario que mira hacia delante.</b> Todo lo demas
+          te explica lo que ya paso; esto aparece en una banda arriba, en todas las pestanas, y
+          avisa a las tres cuartas partes para que quede margen de decidir. La jornada cierra a las
+          18:00 de Nueva York, igual que la mesa, no a medianoche. Solo cuenta lo perdido: ir
+          ganando no amplia el limite. 0 lo apaga.
         </div>
 
         <div className="note">
@@ -652,7 +685,7 @@ export function SettingsPanel({
         <button className="primary" disabled={!dirty || saving} onClick={save}>
           {saving ? 'Guardando...' : 'Guardar'}
         </button>
-        <button disabled={!dirty || saving} onClick={() => { setDraft(prefs); setFee(String(commission)); }}>
+        <button disabled={!dirty || saving} onClick={() => { setDraft(prefs); setFee(String(commission)); setLimite(String(dailyLimit)); }}>
           Descartar
         </button>
         {error && <span className="neg">No se pudo guardar: {error}</span>}

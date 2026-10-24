@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react';
+import { useMarketStamp } from '../freshness';
 import { num, pct, sessionLabel } from '../format';
 
 /**
@@ -51,12 +52,20 @@ const share = (hits: number, total: number) => (total > 0 ? `${hits}/${total}` :
 export function OpeningsPanel() {
   const [data, setData] = useState<Report | null>(null);
 
+  const sello = useMarketStamp();
+
+  // Aqui no hay mandos que vaciar: la tabla anterior se queda hasta que llega
+  // la nueva. La muestra crece cinco aperturas al dia sola.
   useEffect(() => {
+    let vivo = true;
+
     fetch('/api/study/openings')
       .then((r) => r.json())
-      .then(setData)
+      .then((d) => { if (vivo) setData(d as Report); })
       .catch(() => {});
-  }, []);
+
+    return () => { vivo = false; };
+  }, [sello]);
 
   if (!data) return <div className="empty">calculando...</div>;
   if (!data.rows.length) return <div className="empty">todavia no hay aperturas suficientes</div>;
