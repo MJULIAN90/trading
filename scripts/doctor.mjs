@@ -87,11 +87,27 @@ if (existsSync(join(ROOT, 'node_modules'))) {
     probe.close();
     say(OK, 'better-sqlite3 carga su binario nativo');
   } catch (e) {
-    say(
-      FAIL,
-      'better-sqlite3 no puede cargar su binario nativo',
-      `${String(e).split('\n')[0]}\nArreglo:  pnpm rebuild better-sqlite3   (o  npm rebuild better-sqlite3)`,
-    );
+    // Si la ruta lleva un espacio, se dice PRIMERO: en Windows es la causa
+    // mas habitual y la menos evidente, porque el error de "bindings" no
+    // menciona ni la ruta ni el compilador.
+    const conEspacio = ROOT.includes(' ');
+
+    const arreglo = [
+      'Arreglo:  pnpm rebuild better-sqlite3   (o  npm rebuild better-sqlite3)',
+      '',
+      'Si eso tambien falla, son una de estas dos:',
+      conEspacio
+        ? `  1. LA RUTA TIENE UN ESPACIO, y suele ser esto:\n     ${ROOT}\n` +
+          '     El compilador nativo de Windows se atraganta con los espacios.\n' +
+          '     Mueve el proyecto a algo como C:\\trading-journal.'
+        : '  1. La ruta no tiene espacios, asi que no es eso.',
+      `  2. Falta el compilador de C++ de Windows. Node ${process.version} puede no\n` +
+        '     traer binario precompilado y entonces hay que compilarlo aqui.\n' +
+        "     Instala 'Herramientas de compilacion de Visual Studio' con la\n" +
+        "     carga 'Desarrollo para el escritorio con C++'.",
+    ].join('\n');
+
+    say(FAIL, 'better-sqlite3 no puede cargar su binario nativo', `${String(e).split('\n')[0]}\n${arreglo}`);
   }
 } else {
   say(FAIL, 'Faltan las dependencias', 'Ejecuta:  pnpm install   (o  npm install)');

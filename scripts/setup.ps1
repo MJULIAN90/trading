@@ -33,13 +33,39 @@ Write-Host "Node $version" -ForegroundColor Green
 
 # --- Gestor de paquetes ------------------------------------------------------
 #
-# pnpm si esta; si no, npm, que viene con Node. Los dos valen.
+# Manda la INSTALACION que ya haya, no lo que este en el PATH. Un equipo puede
+# tener pnpm instalado y haber montado el proyecto con npm: llamar a pnpm sobre
+# unas dependencias que no son suyas falla sin explicar por que.
+#
+# Sin node_modules, pnpm por defecto, y npm si pnpm no esta.
 
-if (Get-Command pnpm -ErrorAction SilentlyContinue) {
+$tienePnpm = [bool](Get-Command pnpm -ErrorAction SilentlyContinue)
+
+if (Test-Path 'node_modules\.pnpm') {
+  $pm = 'pnpm'
+  Write-Host "Este proyecto se monto con pnpm; sigo con pnpm." -ForegroundColor DarkGray
+} elseif (Test-Path 'node_modules\.package-lock.json') {
+  $pm = 'npm'
+  Write-Host "Este proyecto se monto con npm; sigo con npm." -ForegroundColor DarkGray
+} elseif ($tienePnpm) {
   $pm = 'pnpm'
 } else {
   $pm = 'npm'
   Write-Host "pnpm no esta; uso npm." -ForegroundColor DarkGray
+}
+
+if ($pm -eq 'pnpm' -and -not $tienePnpm) {
+  $pm = 'npm'
+  Write-Host "pnpm no esta en este equipo; uso npm." -ForegroundColor DarkGray
+}
+
+if ($PWD.Path -match ' ') {
+  Write-Host ""
+  Write-Host "AVISO: la ruta de este proyecto tiene un espacio." -ForegroundColor Yellow
+  Write-Host "  $($PWD.Path)" -ForegroundColor White
+  Write-Host "  Suele funcionar, pero si hay que compilar el binario nativo de" -ForegroundColor DarkGray
+  Write-Host "  better-sqlite3 el compilador de Windows falla por el espacio." -ForegroundColor DarkGray
+  Write-Host "  Si este montaje falla mas abajo, mueve el proyecto a C:\trading-journal." -ForegroundColor DarkGray
 }
 
 Write-Host ""
@@ -89,6 +115,39 @@ Write-Host "Comprobando el binario nativo de better-sqlite3..." -ForegroundColor
 if ($LASTEXITCODE -ne 0) {
   Write-Host "  no cargaba; reconstruyendo" -ForegroundColor Yellow
   & $pm rebuild better-sqlite3
+
+  # La reconstruccion tambien puede fallar, y antes se seguia adelante como si
+  # nada: el montaje decia "listo" y el servidor reventaba despues con un error
+  # de "bindings" que no menciona nada de esto. Ahora se para y se dicen las
+  # dos causas reales, que son las dos de Windows y ninguna es obvia.
+  & node -e "require('better-sqlite3')" 2>$null
+  if ($LASTEXITCODE -ne 0) {
+    Write-Host ""
+    Write-Host "No se pudo construir el binario nativo de better-sqlite3." -ForegroundColor Red
+    Write-Host "Sin el, el diario no arranca. Las dos causas habituales:" -ForegroundColor Yellow
+    Write-Host ""
+
+    if ($PWD.Path -match ' ') {
+      Write-Host "  1. HAY UN ESPACIO EN LA RUTA, y esta es la causa mas probable:" -ForegroundColor Yellow
+      Write-Host "     $($PWD.Path)" -ForegroundColor White
+      Write-Host "     El compilador de modulos nativos de Windows se atraganta con" -ForegroundColor DarkGray
+      Write-Host "     los espacios. Mueve el proyecto a una ruta sin ellos, por" -ForegroundColor DarkGray
+      Write-Host "     ejemplo C:\trading-journal, y vuelve a lanzar este script." -ForegroundColor DarkGray
+    } else {
+      Write-Host "  1. La ruta no tiene espacios, asi que no es eso." -ForegroundColor DarkGray
+    }
+
+    Write-Host ""
+    Write-Host "  2. Falta el compilador de C++ de Windows. Node $(node -v) puede no" -ForegroundColor Yellow
+    Write-Host "     tener binario precompilado y entonces hay que compilarlo aqui." -ForegroundColor DarkGray
+    Write-Host "     Se arregla instalando 'Herramientas de compilacion de Visual" -ForegroundColor DarkGray
+    Write-Host "     Studio' con la carga 'Desarrollo para el escritorio con C++'," -ForegroundColor DarkGray
+    Write-Host "     o usando una version LTS de Node (22 o 24), que si los trae." -ForegroundColor DarkGray
+    Write-Host ""
+    exit 1
+  }
+
+  Write-Host "  reconstruido" -ForegroundColor Green
 }
 
 # --- Configuracion -----------------------------------------------------------

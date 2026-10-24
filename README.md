@@ -51,14 +51,28 @@ pnpm install        # o npm install
 pnpm build          # compila el front de React a web/
 ```
 
-> **Con pnpm, `better-sqlite3` necesita permiso para ejecutar su postinstall.**
-> pnpm bloquea los scripts de instalación por defecto desde la v10, y sin ese
-> script el paquete se queda sin su binario nativo: el servidor falla al primer
-> import con un error de *bindings* que no dice la causa. Está autorizado en
-> `pnpm-workspace.yaml` (`allowBuilds`), que es donde pnpm lo busca cuando hay
-> un workspace — el `pnpm.onlyBuiltDependencies` del `package.json` solo se
-> aplica si no lo hay. Si la instalación ya existía:
-> `pnpm rebuild better-sqlite3`. Con npm no hace falta nada de esto.
+> **Si al arrancar sale un error de `bindings`, es `better-sqlite3`.** Lleva un
+> binario nativo que se construye al instalar, y si ese paso no corre el
+> servidor revienta al primer import con un mensaje que no menciona la causa.
+>
+> Con pnpm hay que autorizarlo (está en `pnpm-workspace.yaml`, que es donde pnpm
+> lo busca; el `pnpm.onlyBuiltDependencies` del `package.json` ya no se lee).
+> Si la instalación ya existía: `pnpm rebuild better-sqlite3`.
+>
+> **Y si pnpm dice «already up to date» o «no packages awaiting approval» pero
+> el error sigue**, no insistas con pnpm — cree que ya lo construyó. Cambia a
+> npm en ese equipo, que no bloquea nada:
+>
+> ```powershell
+> Remove-Item -Recurse -Force node_modules, pnpm-lock.yaml
+> npm install
+> ```
+>
+> **Los dos gestores valen y se pueden mezclar entre equipos.** `setup.ps1` y el
+> lanzador miran con cuál se montó ESTE proyecto (`node_modules\.pnpm` frente a
+> `node_modules\.package-lock.json`) en vez de mirar el PATH: un equipo puede
+> tener pnpm instalado y haber montado el proyecto con npm, y llamar al que no
+> es falla sin explicar nada.
 
 ### 3. Configuración
 
@@ -126,6 +140,44 @@ El DLL cae directamente en `Settings\Scripts\Indicators\<nombre>\`, y
 > recompilar, y se salta el trabajo dejándote el DLL viejo sin avisar de nada.
 
 Si prefieres Visual Studio: abrir cada `.csproj` y compilar en **Release**.
+
+#### Si en ese ordenador no se van a poner los indicadores
+
+Pasa cuando opera otra persona con su propia plantilla. **Sus operaciones le
+van a salir igual**: las escribe Quantower en su `user-trades.db` y el diario
+las lee de ahí, sin que ningún indicador intervenga. Lo único que se queda
+vacío es la pestaña **Mercado**, porque las velas las escribe `j_Flujo`.
+
+Y eso se arregla pasándoselas, no montando nada: **una vela es dato de
+mercado**. El OHLC del MNQ de las 10:00 es idéntico para los dos, así que
+capturarla dos veces es duplicar trabajo.
+
+En tu ordenador:
+
+```bash
+node scripts/velas-compartidas.mjs exportar
+```
+
+Deja un `velas-compartidas.db` de unos 17 MB —cabe en un correo— con las
+velas y el calendario económico dentro, y **sin una sola fila tuya**: borra
+`operations`, `fills`, notas y etiquetas, comprueba que quedaron a cero y, si
+alguna no se vació, aborta y no genera el fichero. También tira
+`context_snapshots`, que es el crudo del que ya salieron las velas y pesa el
+85% del total.
+
+En el de ella, con ese fichero al lado:
+
+```bash
+node scripts/velas-compartidas.mjs importar velas-compartidas.db
+```
+
+Entran solo velas y calendario; sus operaciones no se tocan. Las velas que ya
+tuviera se respetan (`INSERT OR IGNORE`), así que **repetirlo no duplica
+nada** y sirve para ir poniéndola al día cada pocas semanas.
+
+> Lo que no resuelve: las velas llegan hasta el día que exportaste. Para ver
+> el mercado de ayer hay que volver a exportar. Si quiere datos en vivo sin
+> depender de ti, entonces sí toca instalarle `j_Flujo`.
 
 ### 5. Comprobar
 

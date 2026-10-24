@@ -28,6 +28,51 @@ if errorlevel 1 (
 )
 
 echo Proyecto: %CD%
+
+rem --- Con que se instalo esto --------------------------------------------
+rem
+rem Se mira la INSTALACION, no lo que haya en el PATH. Un equipo puede tener
+rem pnpm instalado y aun asi haber montado el proyecto con npm: elegir por el
+rem PATH llamaria a pnpm sobre unas dependencias que no son suyas, y el
+rem arranque falla sin decir por que.
+rem
+rem   node_modules\.pnpm\          -> lo monto pnpm
+rem   node_modules\.package-lock   -> lo monto npm
+rem
+rem Si no hay node_modules todavia, manda el fichero de bloqueo del repo, y en
+rem ultimo caso lo que haya instalado.
+
+set "PM="
+if exist "node_modules\.pnpm\" set "PM=pnpm"
+if exist "node_modules\.package-lock.json" set "PM=npm"
+
+if not defined PM (
+    if exist "pnpm-lock.yaml" set "PM=pnpm"
+)
+if not defined PM (
+    if exist "package-lock.json" set "PM=npm"
+)
+if not defined PM (
+    where pnpm >nul 2>&1
+    if errorlevel 1 (set "PM=npm") else (set "PM=pnpm")
+)
+
+rem Y se comprueba que el elegido existe de verdad, por si el proyecto viene
+rem de otro equipo con otro gestor.
+where %PM% >nul 2>&1
+if errorlevel 1 (
+    echo %PM% no esta instalado en este equipo.
+    if "%PM%"=="pnpm" (
+        echo Uso npm, que viene con Node.
+        set "PM=npm"
+    ) else (
+        echo Instala Node desde https://nodejs.org
+        pause
+        exit /b 1
+    )
+)
+
+echo Gestor:   %PM%
 echo.
 
 rem --- Servidor anterior colgado ---------------------------------------------
@@ -42,7 +87,7 @@ for /f "tokens=5" %%P in ('netstat -ano -p tcp ^| findstr /r /c:":%PUERTO% .*LIS
 rem --- Dependencias -----------------------------------------------------------
 if not exist "node_modules\" (
     echo No hay dependencias instaladas. Instalando, esto tarda un rato...
-    call pnpm install
+    call %PM% install
     if errorlevel 1 (
         echo.
         echo FALLO LA INSTALACION. Mira el error de arriba.
@@ -53,11 +98,11 @@ if not exist "node_modules\" (
 
 rem --- Compilar el front ------------------------------------------------------
 echo Compilando la interfaz...
-call pnpm build
+call %PM% build
 if errorlevel 1 (
     echo.
     echo FALLO LA COMPILACION. El servidor no se arranca.
-    echo Si el error habla de tipos, ejecuta:  pnpm typecheck
+    echo Si el error habla de tipos, ejecuta:  %PM% typecheck
     pause
     exit /b 1
 )
@@ -76,7 +121,7 @@ echo  Cierra esta ventana para parar el servidor.
 echo ---------------------------------------------------------------
 echo.
 
-call pnpm dev
+call %PM% dev
 
 echo.
 echo El servidor se ha parado.

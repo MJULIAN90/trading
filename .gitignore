@@ -11,3 +11,10 @@ web/
 # Configuracion de ESTA maquina: rutas y puertos. El .env.example es la
 # plantilla que si se comparte.
 .env
+
+# Cualquier base suelta. La del diario ya cae dentro de data/, pero
+# velas-compartidas.db se genera en la RAIZ del proyecto y son 17 MB que no
+# pintan nada en el repo: se manda a mano y se borra.
+*.db
+*.db-wal
+*.db-shm

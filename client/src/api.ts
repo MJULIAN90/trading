@@ -383,7 +383,15 @@ export interface Replay {
   timeframe: number;
   sessionStat: SessionStat | null;
   minutesIntoSession: number | null;
-  coverage: { before: number; after: number; found: number; expected: number };
+  coverage: {
+    before: number;
+    after: number;
+    found: number;
+    expected: number;
+    /** Velas de 1m que hay DONDE esta la operacion. 0 = el grafico no es suyo. */
+    aroundEntry: number;
+    entryWindowMin: number;
+  };
 }
 
 export interface OperationNote {

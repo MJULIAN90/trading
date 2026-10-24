@@ -1,6 +1,3 @@
-allowBuilds:
-  better-sqlite3: set this to true or false
-  esbuild: set this to true or false
 # Paquetes a los que SI se les permite ejecutar su script de instalacion.
 #
 # pnpm los bloquea a todos por defecto desde la v10, por seguridad. Y hace

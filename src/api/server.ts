@@ -638,8 +638,42 @@ app.post('/api/storage/prune', async (req, reply) => {
 /** Diagnostico: que simbolos y cuantas velas hay derivadas. */
 app.get('/api/bars/status', async () => ({ symbols: barsBySymbol() }));
 
-/** Rehace la tabla de velas desde cero. Solo hace falta si se anade una columna. */
-app.post('/api/bars/rebuild', async () => refreshBars(true));
+/**
+ * Rehace la tabla de velas desde cero. Solo hace falta si se anade una columna.
+ *
+ * SE NIEGA SI NO HAY CRUDO DEL QUE REHACERLAS, y eso no es exceso de celo:
+ * `refreshBars(true)` empieza con un DELETE y vuelve a derivar las velas de
+ * `context_snapshots`. En un equipo que recibio las velas importadas de otro,
+ * esa tabla esta VACIA -el crudo no viaja, pesa el 85% del fichero-, asi que
+ * rehacer borraria las 123.000 velas y no dejaria ninguna en su sitio.
+ *
+ * Es irreversible sin volver a pedir el fichero al otro equipo. Con `?forzar=1`
+ * se puede hacer igual, pero hay que escribirlo a mano.
+ */
+app.post('/api/bars/rebuild', async (req, reply) => {
+  const q = req.query as Record<string, unknown>;
+
+  const crudo = (
+    db().prepare("SELECT COUNT(*) AS n FROM context_snapshots WHERE event = 'bar_close'").get() as {
+      n: number;
+    }
+  ).n;
+
+  const velas = (db().prepare('SELECT COUNT(*) AS n FROM bars').get() as { n: number }).n;
+
+  if (crudo === 0 && velas > 0 && q.forzar !== '1') {
+    return reply.code(409).send({
+      error: 'no_hay_crudo',
+      velas,
+      detalle:
+        `Hay ${velas} velas pero 0 instantaneas de las que rehacerlas. ` +
+        'Seguramente llegaron importadas de otro equipo. Rehacer las borraria ' +
+        'y no quedaria ninguna. Si aun asi quieres hacerlo: ?forzar=1',
+    });
+  }
+
+  return refreshBars(true);
+});
 
 /** Ultima vez que la ingesta automatica encontro algo nuevo, para mostrarlo en la pagina. */
 let lastIngest: { at: number; operationsNew: number; contextNew: number } | null = null;
