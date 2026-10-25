@@ -123,6 +123,112 @@ function migrate(target: Database.Database): void {
   `);
 
   target.exec('CREATE INDEX IF NOT EXISTS idx_holidays_day ON market_holidays (day)');
+
+  // --- Contexto de mercado -------------------------------------------------
+  //
+  // Materias primas, bonos, indices, resultados y noticias. Tablas APARTE de
+  // todo lo demas a proposito: son datos de fuera, ninguna metrica del diario
+  // los lee, y si algun dia se borran no se mueve ni una cifra tuya.
+  target.exec(`
+    CREATE TABLE IF NOT EXISTS global_quotes (
+      symbol     TEXT PRIMARY KEY,
+      label      TEXT NOT NULL,
+      kind       TEXT NOT NULL,
+      price      REAL NOT NULL,
+      change_pct REAL,
+      ts         INTEGER NOT NULL
+    )
+  `);
+
+  // La clave es (simbolo, fecha) y no el simbolo solo: una empresa presenta
+  // cuatro veces al año y el historico reciente sirve para explicar la vela
+  // de ayer.
+  target.exec(`
+    CREATE TABLE IF NOT EXISTS global_earnings (
+      symbol           TEXT NOT NULL,
+      name             TEXT NOT NULL,
+      date             TEXT NOT NULL,
+      when_            TEXT,
+      eps_estimate     REAL,
+      eps_actual       REAL,
+      revenue_estimate REAL,
+      revenue_actual   REAL,
+      PRIMARY KEY (symbol, date)
+    )
+  `);
+
+  target.exec('CREATE INDEX IF NOT EXISTS idx_earnings_date ON global_earnings (date)');
+
+  // El id del proveedor como clave primaria es lo que permite saber cuantas
+  // noticias son NUEVAS en cada refresco, que es lo que decide si suena la
+  // alerta. Comparar por fecha fallaria: llegan desordenadas.
+  target.exec(`
+    CREATE TABLE IF NOT EXISTS global_news (
+      id       TEXT PRIMARY KEY,
+      ts       INTEGER NOT NULL,
+      headline TEXT NOT NULL,
+      source   TEXT,
+      url      TEXT,
+      summary  TEXT,
+      symbols  TEXT
+    )
+  `);
+
+  target.exec('CREATE INDEX IF NOT EXISTS idx_news_ts ON global_news (ts DESC)');
+
+  // Sentimiento y relevancia. Van como ALTER y no en el CREATE de arriba
+  // porque la tabla ya existe en tu maquina.
+  //
+  // Solo los trae Alpha Vantage. Lo que llega de Finnhub se queda en null, que
+  // NO es lo mismo que neutro: null es "nadie lo ha puntuado".
+  //   sentiment  de -1 (muy negativo) a +1 (muy positivo)
+  //   relevance  cuanto habla la noticia de ESE simbolo, de 0 a 1
+  {
+    const cols = new Set(
+      (target.prepare('PRAGMA table_info("global_news")').all() as Array<{ name: string }>).map(
+        (c) => c.name,
+      ),
+    );
+    if (!cols.has('sentiment')) target.exec('ALTER TABLE global_news ADD COLUMN sentiment REAL');
+    if (!cols.has('relevance')) target.exec('ALTER TABLE global_news ADD COLUMN relevance REAL');
+  }
+
+  // COMO LE FUE A CADA FUENTE POR SEPARADO.
+  //
+  // Antes solo se guardaba "el ultimo refresco fallo" con todos los fallos
+  // pegados en un texto. Eso no distingue dos situaciones que no se parecen en
+  // nada: un corte de red de treinta segundos que se arregla solo, y una
+  // fuente que lleva dos dias sin contestar. Las dos enseñaban el mismo aviso,
+  // asi que el aviso dejaba de significar algo.
+  //
+  // Con la hora del ultimo acierto de cada bloque se puede decidir: si los
+  // precios entraron hace cinco minutos, que el petroleo fallara ahora no es
+  // motivo de alarma; si lleva dos dias, si.
+  target.exec(`
+    CREATE TABLE IF NOT EXISTS global_blocks (
+      name    TEXT PRIMARY KEY,
+      ok_at   INTEGER,   -- ultima vez que trajo datos
+      rows    INTEGER,   -- cuantos trajo esa vez
+      fail_at INTEGER,   -- ultima vez que fallo
+      error   TEXT
+    )
+  `);
+
+  // Cierre de cada simbolo por jornada, que es lo que permite calcular la
+  // variacion a 5 dias SIN pedirsela a nadie.
+  //
+  // El endpoint de velas diarias de Finnhub dejo de estar en el plan gratuito,
+  // y pedirselo a Alpha Vantage serian diez llamadas que no caben en su cuota.
+  // Guardando el ultimo precio de cada jornada, a la quinta sesion el dato
+  // sale solo y ya no depende de ningun proveedor.
+  target.exec(`
+    CREATE TABLE IF NOT EXISTS global_daily_close (
+      symbol TEXT NOT NULL,
+      day    TEXT NOT NULL,   -- jornada de mercado YYYY-MM-DD
+      close  REAL NOT NULL,
+      PRIMARY KEY (symbol, day)
+    )
+  `);
 }
 
 /** Abre la base de Quantower en solo lectura. Nunca escribimos ahi. */

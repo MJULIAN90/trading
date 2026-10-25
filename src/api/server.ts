@@ -1,7 +1,7 @@
 import fastifyStatic from '@fastify/static';
 import Fastify from 'fastify';
 import { existsSync, mkdirSync, writeFileSync } from 'node:fs';
-import { dirname, join } from 'node:path';
+import { dirname, join, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { AUTO_INGEST, AUTO_INGEST_INTERVAL_MS, MARKET_UTC_OFFSET_HOURS, PORT } from '../config.js';
 import { startAutoIngest } from '../ingest/watch.js';
@@ -24,6 +24,8 @@ import {
 import { DEFAULT_REVIEW_CONFIG, flagImpact, reviewOperations } from '../domain/review.js';
 import { barsBySymbol, refreshBars } from '../domain/bars.js';
 import { todayReport } from '../domain/today.js';
+import { globalReport, type Alert } from '../domain/global.js';
+import { refreshGlobal, startMarketRefresh } from '../ingest/market.js';
 import { alignmentBreakdown } from '../domain/alignment.js';
 import { openingStats } from '../domain/openings.js';
 import { marketDate } from '../domain/sessions.js';
@@ -78,7 +80,27 @@ if (!existsSync(webRoot)) {
   console.warn('[web] no habia build del front; se ha dejado una pagina de aviso. Ejecuta "pnpm build".');
 }
 
-await app.register(fastifyStatic, { root: webRoot });
+/**
+ * El front, servido del build de Vite.
+ *
+ * `setHeaders` existe por un fallo que parece un fallo nuestro y no lo es:
+ * recompilas, reinicias, abres el diario y sigues viendo la pantalla de hace
+ * dos dias. Vite pone un hash en el nombre de cada .js y .css -por eso esos
+ * si se pueden cachear para siempre- pero `index.html` se llama igual
+ * siempre, y es el unico fichero que dice QUE hash cargar. Si el navegador se
+ * guarda el index viejo, sigue pidiendo el JS viejo, que ademas todavia esta
+ * en la carpeta. El resultado es una interfaz antigua sobre un servidor nuevo
+ * y ninguna pista de lo que pasa.
+ *
+ * Asi que el index NO se cachea nunca y todo lo demas, un año.
+ */
+await app.register(fastifyStatic, {
+  root: webRoot,
+  setHeaders(res, ruta) {
+    if (ruta.endsWith('index.html')) res.setHeader('Cache-Control', 'no-store, must-revalidate');
+    else if (ruta.includes(`${sep}assets${sep}`)) res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+  },
+});
 
 /**
  * Los filtros son los mismos en todos los endpoints, asi que se parsean una vez.
@@ -500,6 +522,29 @@ app.get('/api/study/grid', async (req) => {
 app.get('/api/today', async () => todayReport());
 
 /**
+ * Contexto de mercado. Lee de la base, NUNCA pide al proveedor: el refresco lo
+ * lleva el bucle del servidor cada MARKET_REFRESH_MIN minutos.
+ *
+ * Si lo pidiera aqui, cada pestaña abierta y cada recarga gastarian cuota, y
+ * los planes gratuitos se acaban en una mañana.
+ */
+app.get('/api/global', async () => ({ ...globalReport(), alerts: ultimasAlertas }));
+
+/**
+ * Forzar un refresco a mano desde el boton de la pestaña News.
+ *
+ * Pide TODOS los bloques, incluidos los lentos, y devuelve cuales se pidieron
+ * y cual fallo. Es lo que contesta la pregunta "¿no sale nada porque falla la
+ * clave, porque falla el proveedor o porque aun no ha tocado el ciclo?" sin
+ * tener que mirar la consola del servidor.
+ *
+ * Gasta hasta 5 peticiones de la cuota diaria de Alpha Vantage, pero el
+ * presupuesto de `puedoGastarAlpha` sigue mandando: pulsarlo muchas veces no
+ * pasa del techo, solo deja de pedir los bloques de pago.
+ */
+app.post('/api/global/refresh', async () => refreshGlobal(true));
+
+/**
  * Como te fue segun con cuantos marcos estabas alineado con la pila de medias.
  *
  * El cruce entre las dos mitades del diario: tus operaciones por un lado, el
@@ -723,6 +768,14 @@ app.post('/api/bars/rebuild', async (req, reply) => {
 /** Ultima vez que la ingesta automatica encontro algo nuevo, para mostrarlo en la pagina. */
 let lastIngest: { at: number; operationsNew: number; contextNew: number } | null = null;
 
+/**
+ * Las alertas del ultimo refresco, para que la pantalla las recoja.
+ *
+ * En memoria y no en la base: son de este arranque. Guardarlas haria que al
+ * abrir el diario por la mañana sonaran las de ayer.
+ */
+let ultimasAlertas: Alert[] = [];
+
 app.get('/api/status', async () => ({
   autoIngest: AUTO_INGEST,
   intervalMs: AUTO_INGEST_INTERVAL_MS,
@@ -755,4 +808,8 @@ app.listen({ port: PORT, host: '127.0.0.1' }).then(() => {
     });
     console.log(`Ingesta automatica cada ${AUTO_INGEST_INTERVAL_MS / 1000}s (AUTO_INGEST=false para apagarla)`);
   }
+
+  // El contexto de mercado se arranca aparte: no depende de Quantower ni de la
+  // ingesta, y sin clave no hace nada.
+  startMarketRefresh((r) => { ultimasAlertas = r.alerts; });
 });

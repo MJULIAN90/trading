@@ -175,6 +175,10 @@ th { text-align: right; color: var(--ink-muted); font-weight: 500; font-size: 11
 th:first-child, td:first-child { text-align: left; }
 td { text-align: right; padding: 7px 8px; border-top: 1px solid var(--line); font-size: 13px; }
 
+/* Los numeros se leen alineados a la derecha, el texto no: una segunda columna
+   de nombres pegada al borde se lee peor que una lista. */
+th.izq, td.izq { text-align: left; }
+
 .note { color: var(--ink-muted); font-size: 12px; margin-top: 10px; line-height: 1.6; }
 
 svg { display: block; width: 100%; overflow: visible; }
@@ -1528,3 +1532,75 @@ code {
   margin-bottom: 10px;
   padding: 10px 12px;
 }
+
+
+/* ------------------------------------------------------- noticias */
+.noticias { list-style: none; margin: 0; padding: 0; }
+
+.noticias li {
+  align-items: baseline;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  display: flex;
+  flex-wrap: wrap;
+  font-size: 12px;
+  gap: 8px;
+  padding: 7px 2px;
+}
+
+.noticias .cuando {
+  color: var(--ink-dim);
+  flex: none;
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  min-width: 48px;
+}
+
+.noticias a { color: var(--ink-1); text-decoration: none; }
+.noticias a:hover { color: var(--info); text-decoration: underline; }
+
+/* Puntuacion de sentimiento de una noticia. Solo las de Alpha Vantage la
+   tienen; las que llegan sin puntuar no pintan nada, que no es lo mismo que
+   pintar un cero. */
+.animo {
+  border: 1px solid currentColor;
+  border-radius: 3px;
+  flex: none;
+  font-size: 10px;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: .03em;
+  opacity: .85;
+  padding: 1px 5px;
+}
+.animo.tibio { color: var(--ink-dim); }
+
+/* Cabecera de la lista de noticias: cuantas hay y los botones de pagina. */
+.paginado {
+  align-items: center;
+  border-bottom: 1px solid var(--line);
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+  padding-bottom: 8px;
+}
+.paginado .botones { display: flex; gap: 6px; }
+.paginado button:disabled { cursor: default; opacity: .35; }
+
+/* Separador de dia dentro de la lista. Es un <li> para no romper la lista,
+   pero no se comporta como una noticia: ni borde ni hora a la izquierda. */
+.noticias li.dia {
+  border-bottom: none;
+  color: var(--ink-muted);
+  font-size: 11px;
+  letter-spacing: .04em;
+  padding: 14px 2px 4px;
+  text-transform: uppercase;
+}
+.noticias li.dia:first-child { padding-top: 6px; }
+
+/* Cuanta cuota diaria del proveedor llevamos gastada. */
+.cuota {
+  color: var(--ink-dim);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+}
+.cuota.apurada { color: var(--down); }

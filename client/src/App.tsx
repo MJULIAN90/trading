@@ -22,6 +22,7 @@ import { date, dateTime, num, pct, sessionLabel, setMarketOffset, signClass, sig
 import { TodayBand } from './components/TodayBand';
 import { useSort } from './sortable';
 import { AlignmentPanel } from './components/AlignmentPanel';
+import { GlobalPanel } from './components/GlobalPanel';
 
 function Tiles({ s, costs }: { s: Dashboard['summary']; costs: Dashboard['costs'] }) {
   const profitable = s.payoff >= s.breakevenPayoff;
@@ -132,7 +133,8 @@ type Tab =
   | 'operaciones'
   | 'mercado'
   | 'costes'
-  | 'noticias'
+  | 'calendario'
+  | 'global'
   | 'ajustes';
 
 /** "Que cuesta dinero", ordenable. Componente aparte porque lleva un hook y
@@ -202,7 +204,7 @@ export default function App() {
    * treinta segundos convierte la pantalla en inutilizable.
    */
   const autoRefresh =
-    tab === 'resumen' || tab === 'cuando' || tab === 'conducta' || tab === 'noticias';
+    tab === 'resumen' || tab === 'cuando' || tab === 'conducta' || tab === 'calendario';
 
   useEffect(() => {
     load();
@@ -304,16 +306,32 @@ export default function App() {
       {data && (
         <>
           <div className="tabs main">
-            {(['resumen', 'cuando', 'conducta', 'operaciones', 'mercado', 'costes', 'noticias', 'ajustes'] as const).map((t) => (
+            {/* News va la SEGUNDA a proposito: es lo que se mira antes de
+                abrir, no un apendice al final de la fila. */}
+            {(['resumen', 'global', 'cuando', 'conducta', 'operaciones', 'mercado', 'costes', 'calendario', 'ajustes'] as const).map((t) => (
               <button key={t} className={tab === t ? 'on' : ''} onClick={() => setTab(t)}>
+                {/* Los nombres dicen QUE HAY DENTRO, no como se llama por
+                    dentro la variable. Dos que no lo hacian:
+
+                    "Cuando" -> "Horarios". "Cuando" obliga a abrirla para
+                    saber de que va; lo que hay son cuatro cortes del mismo
+                    dato por tiempo (sesion, hora, dia de la semana, jornada).
+
+                    "Que cuesta dinero" -> "Disciplina". Ese nombre se quedo
+                    corto cuando entro la alineacion con las medias, que no
+                    cuesta dinero: mide si entraste donde te habias dicho. Y
+                    estaba repetido como titulo de un panel de dentro, asi que
+                    la pestaña y su contenido se llamaban igual. El panel
+                    conserva el nombre bueno. */}
                 {t === 'resumen' ? 'Resumen'
-                  : t === 'cuando' ? 'Cuando'
-                  : t === 'conducta' ? 'Que cuesta dinero'
+                  : t === 'cuando' ? 'Horarios'
+                  : t === 'conducta' ? 'Disciplina'
                   : t === 'operaciones' ? `Operaciones (${data.count})`
                   : t === 'mercado' ? 'Mercado'
                   : t === 'costes' ? 'Costes y recorrido'
+                  : t === 'global' ? 'News'
                   : t === 'ajustes' ? 'Ajustes'
-                  : `Noticias${data.calendar.activeNow.length ? ' ●' : ''}`}
+                  : `Calendario${data.calendar.activeNow.length ? ' ●' : ''}`}
               </button>
             ))}
           </div>
@@ -326,7 +344,7 @@ export default function App() {
 
           {/* El aviso de noticia se ensena en TODAS las pestanas, no solo en la
               suya: si hay que no operar, tiene que verse estes donde estes. */}
-          {data.calendar.activeNow.length > 0 && tab !== 'noticias' && (
+          {data.calendar.activeNow.length > 0 && tab !== 'calendario' && (
             <div className="news-alert">
               <b>No operar</b>
               {data.calendar.activeNow.map((b) => (
@@ -355,7 +373,14 @@ export default function App() {
             </>
           )}
 
-          {tab === 'noticias' && <CalendarPanel data={data.calendar} news={data.news} />}
+          {tab === 'calendario' && <CalendarPanel data={data.calendar} news={data.news} />}
+
+          {tab === 'global' && (
+            <div className="panel">
+              <h2>News · contexto de mercado</h2>
+              <GlobalPanel />
+            </div>
+          )}
 
           {tab === 'ajustes' && (
             <SettingsPanel

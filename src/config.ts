@@ -181,3 +181,167 @@ export function findQuantowerTradesDb(): string | null {
 
   return null;
 }
+
+
+// ---------------------------------------------------------------------------
+// Contexto de mercado (materias primas, bonos, indices, resultados, noticias)
+// ---------------------------------------------------------------------------
+
+/**
+ * Claves de los dos proveedores. SIN ELLAS NO SE PIDE NADA, y es deliberado:
+ * el diario funciona entero sin esta pieza, que es la unica que sale a
+ * internet. Quien no las configure no nota que existe.
+ *
+ * Van en el .env, que esta en .gitignore: nunca viajan al repositorio.
+ */
+export const FINNHUB_API_KEY = process.env.FINNHUB_API_KEY ?? '';
+export const ALPHA_API_KEY = process.env.ALPHA_API_KEY ?? '';
+
+/**
+ * CADENCIA DEL BLOQUE RAPIDO (Finnhub): cotizaciones y titulares.
+ *
+ * No es un intervalo fijo, y la razon es simple: un precio no se mueve cuando
+ * la bolsa esta cerrada. Pedir cada diez minutos a las tres de la madrugada
+ * gasta cuota para recibir once veces el mismo numero, y de paso deja la
+ * alerta sonora despierta toda la noche.
+ *
+ * Tres velocidades segun el reloj de NUEVA YORK:
+ *
+ *   abierto     09:30-16:00 L-V     cada  5 min   es cuando operas
+ *   extendido   04:00-09:30 y
+ *               16:00-20:00 L-V     cada 15 min   resultados y pre-apertura
+ *   cerrado     noches y findes     cada 60 min   solo por si entra noticia
+ *
+ * Finnhub limita POR MINUTO (60 llamadas) y no por dia, asi que esto no es por
+ * ahorrar cuota suya: es para que lo que ves en pantalla sea de hace cinco
+ * minutos cuando importa, y no de hace diez.
+ *
+ * MARKET_REFRESH_MIN anula las tres y vuelve al intervalo fijo de antes. Si lo
+ * tienes puesto en el .env, borralo para que esto funcione.
+ */
+export const MARKET_REFRESH_FIXED_MIN = process.env.MARKET_REFRESH_MIN
+  ? Number(process.env.MARKET_REFRESH_MIN)
+  : null;
+
+export const MARKET_REFRESH_OPEN_MIN = Number(process.env.MARKET_REFRESH_OPEN_MIN ?? 5);
+export const MARKET_REFRESH_EXT_MIN = Number(process.env.MARKET_REFRESH_EXT_MIN ?? 15);
+export const MARKET_REFRESH_CLOSED_MIN = Number(process.env.MARKET_REFRESH_CLOSED_MIN ?? 60);
+
+/**
+ * Cada cuantas horas se piden petroleo, bonos y calendario de resultados.
+ *
+ * Aparte del refresco rapido porque Alpha Vantage tiene una cuota diaria corta
+ * y estas series son DIARIAS de todas formas: pedirlas cada diez minutos
+ * gastaria la cuota antes del desayuno para recibir el mismo numero.
+ */
+export const MARKET_SLOW_HOURS = Number(process.env.MARKET_SLOW_HOURS ?? 6);
+
+/**
+ * TECHO DE PETICIONES AL DIA A ALPHA VANTAGE.
+ *
+ * Su plan gratuito son 25 peticiones diarias para TODO: petroleo, los dos
+ * bonos y las noticias con sentimiento. No es un limite por minuto que se
+ * recupera solo; cuando se acaba, se acabo hasta el dia siguiente, y lo peor
+ * es como se acaba: contesta 200 con un texto dentro en vez de un error, asi
+ * que sin contar las peticiones nos quedariamos sin datos creyendo que no hay
+ * novedades.
+ *
+ * Por eso el diario lleva su PROPIA cuenta y para cuando llega al techo. Son
+ * 20 y no 25 a proposito: el contador se reinicia a medianoche UTC y el de
+ * ellos puede no reiniciarse exactamente a la vez, asi que cinco de margen
+ * evitan empezar el dia ya castigado.
+ *
+ * Las series diarias se piden UNA vez al dia (4 peticiones) y las noticias con
+ * sentimiento cada MARKET_SENTIMENT_HOURS. Con los valores por defecto son
+ * unas 12 al dia, bien dentro del techo.
+ */
+export const ALPHA_DAILY_BUDGET = Number(process.env.ALPHA_DAILY_BUDGET ?? 20);
+
+/** Cada cuantas horas se piden noticias con sentimiento a Alpha Vantage. */
+export const MARKET_SENTIMENT_HOURS = Number(process.env.MARKET_SENTIMENT_HOURS ?? 3);
+
+/**
+ * Movimiento del dia, en porcentaje, a partir del cual suena la alerta.
+ *
+ * Dos por ciento no es magico: es aproximadamente lo que el Nasdaq se mueve en
+ * un dia agitado, asi que por debajo sonaria casi a diario y acabarias
+ * silenciandolo.
+ */
+export const MARKET_MOVE_PCT = Number(process.env.MARKET_MOVE_PCT ?? 2);
+
+/**
+ * CUANTOS DIAS DE TITULARES SE ENSEÑAN.
+ *
+ * El canal general de Finnhub escupe del orden de cien titulares al dia, asi
+ * que sin ventana la lista no termina nunca y acabas sin leer ninguno. Y una
+ * noticia de hace una semana no te cambia una sesion de MNQ: o la viste
+ * entonces, o ya esta en el precio.
+ *
+ * Lo que queda fuera NO se borra, solo deja de salir en pantalla.
+ */
+export const NEWS_WINDOW_DAYS = Number(process.env.NEWS_WINDOW_DAYS ?? 3);
+
+/**
+ * Tope duro de titulares que viaja a la pantalla, por si un dia el proveedor
+ * se vuelve loco. La pestaña los pagina de 25 en 25 y busca sobre todos.
+ */
+export const NEWS_MAX = Number(process.env.NEWS_MAX ?? 300);
+
+/** Los simbolos que te importan: filtran resultados y noticias. */
+export const MARKET_TICKERS = (
+  process.env.MARKET_TICKERS ?? 'NVDA,AAPL,MSFT,MU,AMD,AMZN,META,GOOGL,GOOG,TSLA'
+)
+  .split(',')
+  .map((s) => s.trim().toUpperCase())
+  .filter(Boolean);
+
+/**
+ * Nombre de cada empresa. Lo ponemos nosotros, no el proveedor.
+ *
+ * El endpoint de nombres de Finnhub es una peticion mas POR SIMBOLO y devuelve
+ * algo que no cambia nunca: once peticiones al dia para leer que NVDA se llama
+ * NVIDIA. Un mapa de texto cuesta cero y nunca se cae. El que no este sale con
+ * su ticker, que tampoco impide leer la tabla.
+ */
+export const COMPANY_NAMES: Record<string, string> = {
+  NVDA: 'NVIDIA', AAPL: 'Apple', MSFT: 'Microsoft', MU: 'Micron',
+  AMD: 'Advanced Micro Devices', AMZN: 'Amazon', META: 'Meta Platforms',
+  GOOGL: 'Alphabet (A)', GOOG: 'Alphabet (C)', TSLA: 'Tesla',
+  AVGO: 'Broadcom', NFLX: 'Netflix', COST: 'Costco', PEP: 'PepsiCo',
+  ADBE: 'Adobe', INTC: 'Intel', QCOM: 'Qualcomm', CSCO: 'Cisco',
+  TMUS: 'T-Mobile', AMAT: 'Applied Materials', LRCX: 'Lam Research',
+  KLAC: 'KLA', PANW: 'Palo Alto Networks', ARM: 'Arm Holdings',
+  MRVL: 'Marvell', PLTR: 'Palantir', CRWD: 'CrowdStrike', ASML: 'ASML',
+  QQQ: 'Nasdaq 100 (QQQ)',
+};
+
+/**
+ * Peso de cada empresa dentro del QQQ, en porcentaje.
+ *
+ * ESTO ES UNA FOTO A MANO Y SE QUEDA VIEJA. El fichero de posiciones del ETF
+ * no lo da ninguna API gratuita -el script de tu amigo lo sacaba de Yahoo, que
+ * aqui no se puede usar- asi que esta copiado de la pantalla de octubre de
+ * 2026. Los pesos se mueven despacio (decimas al mes, salvo subida fuerte de
+ * una de ellas), asi que sirve para lo que lo quieres: saber cual de las diez
+ * mueve mas el indice cuando publica resultados. Repasalo cada pocos meses.
+ *
+ * Se puede sobreescribir sin tocar codigo:
+ *   QQQ_WEIGHTS=NVDA:8.6,AAPL:7.1,...
+ */
+export const QQQ_WEIGHTS: Record<string, number> = (() => {
+  const base: Record<string, number> = {
+    NVDA: 8.3, AAPL: 7.4, MSFT: 5.8, MU: 5.0, AMD: 4.2,
+    AMZN: 4.1, META: 3.3, GOOGL: 3.1, GOOG: 2.8, TSLA: 2.8,
+  };
+
+  const crudo = process.env.QQQ_WEIGHTS;
+  if (!crudo) return base;
+
+  const out: Record<string, number> = {};
+  for (const par of crudo.split(',')) {
+    const [s, w] = par.split(':');
+    const peso = Number(w);
+    if (s && Number.isFinite(peso)) out[s.trim().toUpperCase()] = peso;
+  }
+  return Object.keys(out).length > 0 ? out : base;
+})();
