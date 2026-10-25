@@ -28,14 +28,39 @@ function Tiles({ s, costs }: { s: Dashboard['summary']; costs: Dashboard['costs'
   const netTicks = costs.ticksWon + costs.ticksLost;
 
   const tiles: Array<[string, React.ReactNode, string]> = [
-    ['P&L neto (USD)', <span className={signClass(costs.netPnl)}>{signedUsd(costs.netPnl)}</span>, `${signedUsd(costs.grossPnl)} bruto − ${usd(costs.commission)} comisiones`],
-    ['Ticks', <span className={signClass(netTicks)}>{ticks(netTicks)}</span>, `+${ticks(costs.ticksWon)} / ${ticks(costs.ticksLost)}`],
-    ['Acierto', pct(s.winRate), `${s.wins} ganadas / ${s.losses} perdidas`],
-    ['Ganancia media (USD)', <span className="pos">{usd(s.avgWin)}</span>, `${num(s.avgWinMinutes, 1)} min de media`],
-    ['Perdida media (USD)', <span className="neg">{usd(s.avgLoss)}</span>, `${num(s.avgLossMinutes, 1)} min de media`],
+    ['Net P&L (USD)', <span className={signClass(costs.netPnl)}>{signedUsd(costs.netPnl)}</span>, `${signedUsd(costs.grossPnl)} bruto − ${usd(costs.commission)} comisiones`],
+    ['Ticks', <span className={signClass(netTicks)}>{ticks(netTicks)}</span>, `${ticks(costs.ticksWon)} / ${ticks(costs.ticksLost)}`],
+    ['Win rate', pct(s.winRate), `${s.wins} ganadas / ${s.losses} perdidas`],
+    ['Avg win (USD)', <span className="pos">{usd(s.avgWin)}</span>, `${num(s.avgWinMinutes, 1)} min de media`],
+    ['Avg loss (USD)', <span className="neg">{usd(s.avgLoss)}</span>, `${num(s.avgLossMinutes, 1)} min de media`],
     ['Payoff', <span className={profitable ? 'pos' : 'neg'}>{num(s.payoff)}</span>, `veces lo que pierdes · necesita ${num(s.breakevenPayoff)} para no perder`],
-    ['Esperanza (USD)', <span className={signClass(s.expectancy)}>{signedUsd(s.expectancy)}</span>, 'por operacion'],
-    ['Racha perdedora', String(s.maxLossStreak), `mejor racha: ${s.maxWinStreak}`],
+    ['Expectancy (USD)', <span className={signClass(s.expectancy)}>{signedUsd(s.expectancy)}</span>, 'por operacion'],
+    ['Loss streak', String(s.maxLossStreak), `mejor racha: ${s.maxWinStreak}`],
+
+    // El hoyo no sale de ninguna otra tarjeta: se puede tener esperanza
+    // positiva y aun asi quebrar por el camino si el hoyo es mas hondo que lo
+    // que tienes depositado.
+    [
+      'Max drawdown (USD)',
+      <span className={s.maxDrawdown > 0 ? 'neg' : ''}>{usd(s.maxDrawdown)}</span>,
+      s.drawdownFrom
+        ? `desde ${s.drawdownFrom} hasta ${s.drawdownTo}, cayendo de ${usd(s.drawdownPeak)}`
+        : 'medido desde el inicio: la curva nunca subio del punto de partida',
+    ],
+    [
+      'Profit factor',
+      s.profitFactor === null
+        ? <span className="note">—</span>
+        : <span className={s.profitFactor >= 1 ? 'pos' : 'neg'}>{num(s.profitFactor)}</span>,
+      s.profitFactor === null
+        ? 'todavia no hay ninguna operacion perdedora'
+        : 'ganancias entre perdidas · por encima de 1 se gana',
+    ],
+    [
+      'Day win %',
+      <span className={s.dayWinRate >= 0.5 ? 'pos' : 'neg'}>{pct(s.dayWinRate)}</span>,
+      `${s.greenDays} de ${s.tradedDays} · mejor ${signedUsd(s.bestDayPnl)}, peor ${signedUsd(s.worstDayPnl)}`,
+    ],
   ];
 
   return (

@@ -1048,6 +1048,67 @@ svg { display: block; width: 100%; overflow: visible; }
    pantalla grande sobraba medio folio en blanco debajo, y las velas se leen
    mejor cuanto mas alto sea. Los limites evitan los dos extremos: que se quede
    minusculo en un portatil y que haya que hacer scroll para ver una vela. */
+/* ------------------------------------------- mandos de reproduccion
+
+   Encima del grafico: al pararla a mitad quieres seguir mirando las velas,
+   no bajar la vista a buscar el boton. */
+/* OJO CON EL NOMBRE: `replay` a secas ya es el contenedor de Replayer, que
+   envuelve el grafico entero. Poner `display:flex` en el convirtio todo el
+   panel en una fila horizontal y aplasto el grafico a cero. */
+.replay-bar {
+  align-items: center;
+  display: flex;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.replay-btn {
+  background: none;
+  border: 1px solid var(--line);
+  border-radius: 5px;
+  color: var(--ink-2);
+  cursor: pointer;
+  font-size: 12px;
+  line-height: 1;
+  padding: 5px 9px;
+}
+
+.replay-btn:hover:not(:disabled) { border-color: var(--info); color: var(--ink); }
+.replay-btn:disabled { color: var(--line); cursor: default; }
+.replay-btn.play { color: var(--info); border-color: rgba(90, 170, 255, 0.4); }
+
+.replay-vel select { font-size: 11px; padding: 4px 6px; }
+
+/* Se lleva el sitio que sobra: es el mando que mas se usa, porque tambien
+   sirve para elegir por donde empezar. */
+.replay-barra { accent-color: var(--info); cursor: pointer; flex: 1; min-width: 80px; }
+
+.replay-pos {
+  color: var(--ink-muted);
+  font-size: 11px;
+  font-variant-numeric: tabular-nums;
+  min-width: 62px;
+  text-align: right;
+}
+
+.replay-avance {
+  font-size: 12px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  min-width: 70px;
+  text-align: right;
+}
+
+.replay-tapado {
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--ink-dim);
+  font-size: 9px;
+  letter-spacing: 0.04em;
+  padding: 2px 7px;
+  text-transform: uppercase;
+}
+
 .chart-box {
   height: clamp(420px, calc(100vh - 330px), 900px);
   width: 100%;

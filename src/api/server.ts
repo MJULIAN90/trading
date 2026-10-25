@@ -16,6 +16,8 @@ import {
   equityCurve,
   listOperations,
   revengeSplit,
+  dayStats,
+  drawdownOf,
   streaks,
   summarize,
 } from '../domain/metrics.js';
@@ -283,7 +285,7 @@ app.get('/api/review', async (req) => {
 
 app.get('/api/summary', async (req) => {
   const ops = loadOperations(req.query as Record<string, unknown>);
-  return { ...summarize(ops), ...streaks(ops), costs: costSummary(ops) };
+  return { ...summarize(ops), ...streaks(ops), ...drawdownOf(ops), ...dayStats(ops), costs: costSummary(ops) };
 });
 
 app.get('/api/breakdown', async (req) => {
@@ -335,7 +337,7 @@ app.get('/api/dashboard', async (req) => {
     // navegador: lo que se ve aqui tiene que coincidir con lo que marcaba el
     // grafico mientras operabas, no con donde este sentado quien lo mira.
     marketOffsetHours: MARKET_UTC_OFFSET_HOURS,
-    summary: { ...summarize(ops), ...streaks(ops) },
+    summary: { ...summarize(ops), ...streaks(ops), ...drawdownOf(ops), ...dayStats(ops) },
     bySession: bySession(ops),
     byDay: byDay(ops),
     byWeekday: byWeekday(ops),

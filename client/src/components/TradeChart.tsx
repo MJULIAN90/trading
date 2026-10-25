@@ -1,4 +1,12 @@
-import { createChart, ColorType, CrosshairMode, type IChartApi, type ISeriesApi, type UTCTimestamp } from 'lightweight-charts';
+import {
+  createChart,
+  ColorType,
+  CrosshairMode,
+  type IChartApi,
+  type IPriceLine,
+  type ISeriesApi,
+  type UTCTimestamp,
+} from 'lightweight-charts';
 import { useEffect, useRef, useState } from 'react';
 import type { ChartPrefs, Replay } from '../api';
 import { marketOffsetAt } from '../format';
@@ -89,6 +97,44 @@ export function TradeChart({
   const box = useRef<HTMLDivElement | null>(null);
   const chartRef = useRef<IChartApi | null>(null);
 
+  /**
+   * REPRODUCCION.
+   *
+   * `cut` es cuantas velas se estan enseñando. En null se enseñan TODAS, que
+   * es el estado de siempre: mientras no toques los mandos, el grafico se
+   * comporta exactamente igual que antes.
+   *
+   * La idea de taparlo hasta llegar no es un adorno. Un replay que te enseña
+   * la linea de salida desde el primer fotograma no sirve para practicar:
+   * sabes como acaba, asi que no puedes preguntarte honestamente que habrias
+   * hecho en la vela 34. Con la salida oculta, parar a mitad es una pregunta
+   * de verdad.
+   */
+  const [cut, setCut] = useState<number | null>(null);
+  const [playing, setPlaying] = useState(false);
+  const [speed, setSpeed] = useState(4);
+
+  /**
+   * Las series y sus datos completos, guardados al construir el grafico.
+   *
+   * Hacen falta porque recortar NO puede pasar por reconstruir el grafico: a
+   * cuatro velas por segundo eso seria crear y destruir el canvas entero
+   * cuatro veces por segundo, con su parpadeo y perdiendo el zoom en cada
+   * paso. Con las referencias, recortar es un `setData` y nada mas.
+   */
+  const play = useRef<{
+    candles: ISeriesApi<'Candlestick'>;
+    candleData: Array<{ time: UTCTimestamp; open: number; high: number; low: number; close: number }>;
+    lines: Array<{ series: ISeriesApi<'Line'>; points: Array<{ time: UTCTimestamp; value: number; i: number }> }>;
+    delta: ISeriesApi<'Histogram'>;
+    deltaData: Array<{ time: UTCTimestamp; value: number; color: string }>;
+    markers: Array<{ time: UTCTimestamp; position: 'belowBar' | 'aboveBar'; color: string; shape: 'arrowUp' | 'arrowDown'; text: string }>;
+    exitPrice: number;
+    exitColor: string;
+    exitBar: number;
+    exitLine: IPriceLine | null;
+  } | null>(null);
+
   useEffect(() => {
     const el = box.current;
     if (!el) return;
@@ -152,6 +198,7 @@ export function TradeChart({
     // cuatro etiquetas de precio mas a la derecha tapan la de entrada y la de
     // salida, que son las dos que de verdad se consultan.
     const closes = data.bars.map((b) => b.c);
+    const lineas: Array<{ series: ISeriesApi<'Line'>; points: Array<{ time: UTCTimestamp; value: number; i: number }> }> = [];
 
     for (const e of prefs.emas) {
       if (!e.on) continue;
@@ -171,30 +218,33 @@ export function TradeChart({
         // dice en la leyenda de abajo, con su color.
       });
 
-      line.setData(
-        data.bars
-          .map((b, i) => ({ time: toChartTime(b.ts), value: values[i] }))
-          .filter((p): p is { time: UTCTimestamp; value: number } => p.value !== null),
-      );
+      // Se guarda el indice de la vela con cada punto: la serie de la EMA no
+      // tiene los nulos del principio, asi que al recortar no vale cortar por
+      // posicion, hay que filtrar por la vela a la que pertenece cada punto.
+      const points = data.bars
+        .map((b, i) => ({ time: toChartTime(b.ts), value: values[i], i }))
+        .filter((p): p is { time: UTCTimestamp; value: number; i: number } => p.value !== null);
+
+      line.setData(points);
+      lineas.push({ series: line, points });
     }
 
-    candles.setData(
-      data.bars.map((b) => ({
-        time: toChartTime(b.ts),
-        open: b.o,
-        high: b.h,
-        low: b.l,
-        close: b.c,
-      })),
-    );
+    const candleData = data.bars.map((b) => ({
+      time: toChartTime(b.ts),
+      open: b.o,
+      high: b.h,
+      low: b.l,
+      close: b.c,
+    }));
 
-    delta.setData(
-      data.bars.map((b) => ({
-        time: toChartTime(b.ts),
-        value: b.delta ?? 0,
-        color: (b.delta ?? 0) >= 0 ? 'rgba(46,204,113,0.55)' : 'rgba(231,76,60,0.55)',
-      })),
-    );
+    const deltaData = data.bars.map((b) => ({
+      time: toChartTime(b.ts),
+      value: b.delta ?? 0,
+      color: (b.delta ?? 0) >= 0 ? 'rgba(46,204,113,0.55)' : 'rgba(231,76,60,0.55)',
+    }));
+
+    candles.setData(candleData);
+    delta.setData(deltaData);
 
     // Cada ejecucion en SU vela. Si hubo entradas parciales se ven todas, que es
     // justo donde se suele ver si promediaste a la baja sin querer.
@@ -254,7 +304,6 @@ export function TradeChart({
         text: `${g.buy ? 'C' : 'V'} ${g.qty}`,
       }));
 
-    candles.setMarkers(markers);
 
     const op = data.operation;
 
@@ -267,14 +316,27 @@ export function TradeChart({
       title: 'entrada',
     });
 
-    candles.createPriceLine({
-      price: op.exit_price,
-      color: op.netPnl >= 0 ? '#2ecc71' : '#e74c3c',
-      lineWidth: 1,
-      lineStyle: 2,
-      axisLabelVisible: true,
-      title: 'salida',
-    });
+    // La linea de salida NO se crea aqui. La pone y la quita el efecto del
+    // recorte, que es el unico que sabe si la reproduccion ha llegado ya a
+    // ese momento. Con `cut` en null la pone de inmediato, asi que sin tocar
+    // los mandos se ve igual que siempre.
+    const exitBar = (() => {
+      const i = data.bars.findIndex((b) => b.ts >= op.closed_at);
+      return i < 0 ? data.bars.length - 1 : i;
+    })();
+
+    play.current = {
+      candles,
+      candleData,
+      lines: lineas,
+      delta,
+      deltaData,
+      markers,
+      exitPrice: op.exit_price,
+      exitColor: op.netPnl >= 0 ? '#2ecc71' : '#e74c3c',
+      exitBar,
+      exitLine: null,
+    };
 
     // Las killzones van como una capa de fondo dibujada a mano sobre el canvas
     // del grafico. lightweight-charts no tiene rectangulos por tiempo, y la
@@ -432,6 +494,7 @@ export function TradeChart({
       overlay.remove();
       chart.remove();
       chartRef.current = null;
+      play.current = null;
     };
     // `prefs` entra por contenido y no por identidad: el grafico entero se
     // reconstruye en cada cambio de esta lista, y con la identidad del objeto se
@@ -449,6 +512,67 @@ export function TradeChart({
     prefs.rightOffset,
     prefs.entryShare,
   ]);
+
+  /**
+   * El recorte. Es el unico sitio que decide que se ve.
+   *
+   * Corre DESPUES del efecto que construye el grafico, asi que si este se
+   * reconstruye -al cambiar un ajuste, por ejemplo- esto se vuelve a aplicar
+   * encima y el recorte no se pierde.
+   */
+  useEffect(() => {
+    const p = play.current;
+    if (!p) return;
+
+    // Se recorta contra el tamaño ACTUAL: al cambiar de temporalidad las velas
+    // pasan de 478 a 30 y `cut` se queda con el numero viejo. Sin esto,
+    // candleData[n-1] seria undefined y el grafico entero se cae.
+    const n = Math.min(cut ?? data.bars.length, data.bars.length);
+    if (n < 1) return;
+
+    p.candles.setData(p.candleData.slice(0, n));
+    p.delta.setData(p.deltaData.slice(0, n));
+    for (const l of p.lines) l.series.setData(l.points.filter((x) => x.i < n));
+
+    // Las flechas de ejecucion aparecen cuando les toca. Las de cierre caen en
+    // la vela del cierre, asi que se tapan solas mientras no se llegue.
+    const hasta = p.candleData[n - 1]!.time;
+    p.candles.setMarkers(p.markers.filter((m) => m.time <= hasta));
+
+    // La linea de salida: puesta solo si la reproduccion ya paso por ahi.
+    const verSalida = n > p.exitBar;
+    if (verSalida && !p.exitLine) {
+      p.exitLine = p.candles.createPriceLine({
+        price: p.exitPrice,
+        color: p.exitColor,
+        lineWidth: 1,
+        lineStyle: 2,
+        axisLabelVisible: true,
+        title: 'salida',
+      });
+    } else if (!verSalida && p.exitLine) {
+      p.candles.removePriceLine(p.exitLine);
+      p.exitLine = null;
+    }
+  }, [cut, data]);
+
+  /** El reloj. Se para solo al llegar al final. */
+  useEffect(() => {
+    if (!playing) return;
+
+    const id = setInterval(() => {
+      setCut((c) => {
+        const n = (c ?? 0) + 1;
+        if (n >= data.bars.length) {
+          setPlaying(false);
+          return data.bars.length;
+        }
+        return n;
+      });
+    }, 1000 / speed);
+
+    return () => clearInterval(id);
+  }, [playing, speed, data.bars.length]);
 
   if (data.bars.length === 0) {
     return (
@@ -484,6 +608,103 @@ export function TradeChart({
           equipo, llegan hasta el minuto en que se exportaron.
         </div>
       )}
+      {/* Mandos de reproduccion. Encima del grafico y no debajo: si estan
+          abajo, al pararla a mitad hay que bajar la vista justo cuando lo que
+          quieres es seguir mirando las velas. */}
+      {(() => {
+        const total = data.bars.length;
+        const n = cut ?? total;
+        const bar = data.bars[Math.max(0, n - 1)];
+        const op = data.operation;
+
+        // Recorrido desde tu entrada hasta la vela en curso, en PUNTOS. No en
+        // ticks: el tamaño del tick depende del instrumento y aqui no hace
+        // falta pedirlo para decir lo unico que importa, que es si vas arriba
+        // o abajo y cuanto.
+        const avance = bar
+          ? (bar.c - op.entry_price) * (op.direction === 'LONG' ? 1 : -1)
+          : 0;
+
+        const reproduciendo = cut !== null;
+
+        // De donde arranca si le das a play sin tocar nada: TU VELA DE ENTRADA.
+        // Empezar en la vela 1 deja el grafico practicamente negro -una vela
+        // sola en una caja de 600px- y parece que esta roto. Arrancando en la
+        // entrada ves todo el contexto que tenias delante al entrar, que
+        // ademas es el momento desde el que tiene sentido mirar.
+        const entrada = data.bars.findIndex((b) => b.ts >= op.opened_at);
+        const arranque = entrada > 0 ? entrada + 1 : Math.min(total, 30);
+
+        return (
+          <div className="replay-bar">
+            <button
+              className="replay-btn"
+              title="Volver a tu entrada"
+              onClick={() => { setPlaying(false); setCut(arranque); }}
+            >
+              ⏮
+            </button>
+
+            <button
+              className="replay-btn play"
+              title={playing ? 'Pausa' : 'Reproducir'}
+              onClick={() => {
+                // Al darle a play estando al final, vuelve a empezar: si no,
+                // el boton no hace nada y parece roto.
+                if (!playing && (cut === null || cut >= total)) setCut(arranque);
+                setPlaying(!playing);
+              }}
+            >
+              {playing ? '⏸' : '▶'}
+            </button>
+
+            <button
+              className="replay-btn"
+              title="Parar y enseñarlo todo"
+              onClick={() => { setPlaying(false); setCut(null); }}
+              disabled={!reproduciendo}
+            >
+              ⏹
+            </button>
+
+            <label className="replay-vel">
+              <select value={speed} onChange={(e) => setSpeed(Number(e.target.value))}>
+                {[1, 2, 4, 8, 16].map((v) => (
+                  <option key={v} value={v}>{v} velas/s</option>
+                ))}
+              </select>
+            </label>
+
+            {/* La barra es tambien el mando para elegir por donde empezar:
+                arrastrala donde quieras y dale a play desde ahi. */}
+            <input
+              className="replay-barra"
+              type="range"
+              min={1}
+              max={total}
+              value={n}
+              onChange={(e) => { setPlaying(false); setCut(Number(e.target.value)); }}
+            />
+
+            <span className="replay-pos">
+              {n} / {total}
+            </span>
+
+            {reproduciendo && bar && (
+              <span className={`replay-avance ${avance > 0 ? 'pos' : avance < 0 ? 'neg' : ''}`}>
+                {avance > 0 ? '+' : ''}{avance.toFixed(2)} pts
+              </span>
+            )}
+
+            {reproduciendo && n <= (play.current?.exitBar ?? 0) && (
+              <span className="replay-tapado" title="La salida y el resultado no se enseñan hasta que la reproduccion llegue">
+                final tapado
+              </span>
+            )}
+          </div>
+        );
+      })()}
+
       <div ref={box} className="chart-box" />
       <div className="op-meta">
         <label className="kz-toggle">

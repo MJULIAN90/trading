@@ -182,6 +182,21 @@ export interface Summary {
   avgLoss: number;
   payoff: number;
   breakevenPayoff: number;
+  /** Ganancias brutas / perdidas brutas. null si no hubo ninguna perdida. */
+  profitFactor: number | null;
+
+  /** Caida maxima desde un pico de la curva, en positivo. */
+  maxDrawdown: number;
+  drawdownPeak: number;
+  drawdownFrom: string | null;
+  drawdownTo: string | null;
+
+  tradedDays: number;
+  greenDays: number;
+  redDays: number;
+  dayWinRate: number;
+  bestDayPnl: number;
+  worstDayPnl: number;
   expectancy: number;
   best: number;
   worst: number;

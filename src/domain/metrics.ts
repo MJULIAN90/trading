@@ -87,6 +87,15 @@ export interface Summary {
   payoff: number;
   /** Payoff minimo que haria rentable este win rate. Si payoff < este, se pierde. */
   breakevenPayoff: number;
+  /**
+   * Ganancias brutas entre perdidas brutas. null si no hay ninguna perdida.
+   *
+   * No dice nada que el payoff y el acierto no digan ya -es el producto de los
+   * dos- pero es el idioma que habla todo el mundo, la mesa de fondeo
+   * incluida. Por encima de 1 se gana, por debajo se pierde, y a 1,0 exacto se
+   * esta pagando comisiones para quedarse igual.
+   */
+  profitFactor: number | null;
   expectancy: number;
   best: number;
   worst: number;
@@ -122,6 +131,13 @@ export function summarize(ops: Operation[]): Summary {
     avgLoss,
     payoff: avgLoss !== 0 ? Math.abs(avgWin / avgLoss) : 0,
     breakevenPayoff: winRate > 0 && winRate < 1 ? (1 - winRate) / winRate : 0,
+    profitFactor: (() => {
+      const g = wins.reduce((a, o) => a + o.gross_pnl, 0);
+      const p = Math.abs(losses.reduce((a, o) => a + o.gross_pnl, 0));
+      // Sin perdidas no hay factor que calcular; devolver Infinity pintaria un
+      // simbolo raro en la tarjeta y mentiria sobre una muestra de dos dias.
+      return p > 0 ? Number((g / p).toFixed(2)) : null;
+    })(),
     expectancy: ops.length ? ops.reduce((a, o) => a + o.gross_pnl, 0) / ops.length : 0,
     best: ops.length ? Math.max(...ops.map((o) => o.gross_pnl)) : 0,
     worst: ops.length ? Math.min(...ops.map((o) => o.gross_pnl)) : 0,
@@ -183,6 +199,103 @@ export function byDirection(ops: Operation[]) {
 }
 
 /** Curva de capital acumulada, en orden cronologico. */
+/**
+ * Cuanto llegaste a estar por debajo de tu mejor momento.
+ *
+ * Es el numero que decide si tu cuenta aguanta tu operativa, y no sale de
+ * ninguna otra metrica: puedes tener esperanza positiva y aun asi quebrar por
+ * el camino si el hoyo es mas hondo que lo que tienes depositado.
+ *
+ * Se recorre por FECHA DE CIERRE y no de apertura, que es cuando el dinero
+ * entra o sale de verdad. Con operaciones de minutos la diferencia es minima,
+ * pero con una que se queda abierta una hora el orden cambia y el hoyo
+ * tambien.
+ */
+export interface DrawdownInfo {
+  /** Caida maxima desde un pico, en positivo. 0 si nunca bajo. */
+  maxDrawdown: number;
+  /** Cuanto valia la curva en el pico del que arranco esa caida. */
+  drawdownPeak: number;
+  /** Jornada del pico y jornada del fondo, para poder ir a mirarlas. */
+  drawdownFrom: string | null;
+  drawdownTo: string | null;
+}
+
+export function drawdownOf(ops: Operation[]): DrawdownInfo {
+  const orden = [...ops].sort((a, b) => a.closed_at - b.closed_at);
+
+  let acc = 0;
+  let pico = 0;
+  let picoDia: string | null = null;
+
+  let peor = 0;
+  let peorPico = 0;
+  let desde: string | null = null;
+  let hasta: string | null = null;
+
+  for (const o of orden) {
+    acc += o.gross_pnl;
+
+    if (acc > pico) {
+      pico = acc;
+      picoDia = marketDate(o.closed_at);
+    }
+
+    const caida = pico - acc;
+    if (caida > peor) {
+      peor = caida;
+      peorPico = pico;
+      desde = picoDia;
+      hasta = marketDate(o.closed_at);
+    }
+  }
+
+  return {
+    maxDrawdown: Number(peor.toFixed(2)),
+    drawdownPeak: Number(peorPico.toFixed(2)),
+    drawdownFrom: desde,
+    drawdownTo: hasta,
+  };
+}
+
+/**
+ * La jornada como unidad, no la operacion.
+ *
+ * Un acierto del 31% por operacion y un 57% de jornadas en verde pueden
+ * convivir: basta con que las ganadoras caigan juntas. Es la cifra que el
+ * limite diario intenta mover, asi que conviene tenerla delante.
+ */
+export interface DayStats {
+  tradedDays: number;
+  greenDays: number;
+  redDays: number;
+  dayWinRate: number;
+  bestDayPnl: number;
+  worstDayPnl: number;
+}
+
+export function dayStats(ops: Operation[]): DayStats {
+  const porDia = new Map<string, number>();
+  for (const o of ops) {
+    const d = marketDate(o.opened_at);
+    porDia.set(d, (porDia.get(d) ?? 0) + o.gross_pnl);
+  }
+
+  const dias = [...porDia.values()];
+  // Una jornada que acaba exactamente en cero no es verde: no ganaste nada y
+  // pagaste comisiones por el camino.
+  const verdes = dias.filter((v) => v > 0).length;
+
+  return {
+    tradedDays: dias.length,
+    greenDays: verdes,
+    redDays: dias.length - verdes,
+    dayWinRate: dias.length > 0 ? Number((verdes / dias.length).toFixed(4)) : 0,
+    bestDayPnl: dias.length > 0 ? Number(Math.max(...dias).toFixed(2)) : 0,
+    worstDayPnl: dias.length > 0 ? Number(Math.min(...dias).toFixed(2)) : 0,
+  };
+}
+
 export function equityCurve(ops: Operation[]) {
   let acc = 0;
   return ops.map((o) => {
