@@ -254,7 +254,10 @@ if (existsSync(journal)) {
         return null;
       }
     };
-    const counts = ['fills', 'operations', 'context_snapshots', 'bars', 'economic_events']
+    const counts = [
+      'fills', 'operations', 'context_snapshots', 'bars', 'economic_events',
+      'global_quotes', 'global_news', 'global_earnings',
+    ]
       .map((t) => `${t}: ${rows(t) ?? 'no existe'}`)
       .join('\n');
     say(OK, 'Tablas', counts);
@@ -280,7 +283,46 @@ if (existsSync(calDir)) {
   if (files.length) say(OK, `${files.length} ficheros en ${calDir}`, files.join(', '));
   else say(WARN, `${calDir} esta vacio`, 'Deja ahi el calendario en .ics o .csv. Es opcional.');
 } else {
-  say(WARN, `No existe ${calDir}`, 'Es opcional: sin el, la pestana Noticias sale vacia.');
+  say(WARN, `No existe ${calDir}`, 'Es opcional: sin el, la pestana Calendario sale vacia.');
+}
+
+// --------------------------------------------------- contexto de mercado (News)
+
+section('Pestana News (contexto de mercado)');
+
+const finnhub = env('FINNHUB_API_KEY', '');
+const alpha = env('ALPHA_API_KEY', '');
+
+// Se dice si la clave ESTA, nunca cual es: este informe se pega en chats y en
+// incidencias, y una clave filtrada ahi no se puede recoger.
+if (!finnhub && !alpha) {
+  say(
+    WARN,
+    'Sin claves: la pestana News no pide nada',
+    'Es opcional y el resto funciona igual. Si la quieres, saca dos claves\n' +
+      'gratuitas (sin tarjeta) y ponlas en el .env:\n' +
+      '  FINNHUB_API_KEY=   https://finnhub.io/register\n' +
+      '  ALPHA_API_KEY=     https://www.alphavantage.co/support/#api-key',
+  );
+} else {
+  if (finnhub) say(OK, 'FINNHUB_API_KEY configurada', 'cotizaciones, titulares y resultados');
+  else say(WARN, 'Falta FINNHUB_API_KEY', 'Sin ella no hay cotizaciones, ni titulares, ni resultados.');
+
+  if (alpha) say(OK, 'ALPHA_API_KEY configurada', 'petroleo (WTI y Brent) y bonos a 10 y 30 anios');
+  else say(WARN, 'Falta ALPHA_API_KEY', 'Sin ella no hay petroleo ni tipos del Tesoro.');
+}
+
+// Esta variable no falta: SOBRA. Puesta, anula la cadencia que se adapta al
+// reloj de Nueva York, y el sintoma es que la pantalla va lenta en la apertura
+// sin que nada parezca roto.
+if (env('MARKET_REFRESH_MIN', '')) {
+  say(
+    WARN,
+    'MARKET_REFRESH_MIN esta puesta en el .env',
+    'Fija un intervalo constante y anula la cadencia por horario\n' +
+      '(5 min con el mercado abierto, 15 fuera de horas, 60 de noche).\n' +
+      'Comentala salvo que quieras ritmo fijo a proposito.',
+  );
 }
 
 // ------------------------------------------------------------------- resumen
