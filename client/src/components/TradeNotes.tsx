@@ -26,9 +26,23 @@ import {
 export function TradeNotes({
   operationId,
   prefs,
+  onSaved,
 }: {
   operationId: number;
   prefs: ChartPrefs;
+  /**
+   * Avisa de que la nota o las etiquetas ya estan guardadas en el servidor.
+   *
+   * Existe porque este panel no es el unico sitio donde se ven: el listado de
+   * la izquierda pinta un punto por cada etiqueta y un circulo si hay nota, y
+   * el globo del raton las lee. Esos datos vienen de la llamada que trajo el
+   * listado, que no se entera de nada de lo que pasa aqui dentro.
+   *
+   * Sin este aviso, escribias una nota, se guardaba bien, y la fila seguia sin
+   * su punto hasta que te ibas a otra pestaña y volvias — o sea que parecia
+   * que no se habia guardado.
+   */
+  onSaved?: () => void;
 }) {
   // Las sugerencias salen de los ajustes, no de una lista clavada en el codigo.
   //
@@ -89,6 +103,9 @@ export function TradeNotes({
       api.saveNotes(operationId, nextNote, nextTags).then((d) => {
         setData(d);
         setSaved(true);
+        // Despues de guardar, no antes: si se avisara al teclear, el listado
+        // se recargaria con cada letra.
+        onSaved?.();
       });
     }, 600);
   }

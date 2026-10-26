@@ -271,7 +271,18 @@ const KIND_CORTO: Record<Kind, string> = {
   conducta: 'Conducta',
 };
 
-function Detail({ op, offsetHours, prefs }: { op: Operation; offsetHours: number; prefs: ChartPrefs }) {
+function Detail({
+  op,
+  offsetHours,
+  prefs,
+  onNotesSaved,
+}: {
+  op: Operation;
+  offsetHours: number;
+  prefs: ChartPrefs;
+  /** Para avisar al listado de que esta fila cambio de notas o etiquetas. */
+  onNotesSaved: () => void;
+}) {
   const [tab, setTab] = useState<'grafico' | 'lectura' | 'numeros' | 'notas' | 'observaciones'>('grafico');
   const [reading, setReading] = useState<Narrative | null>(null);
   const flags = orderFlags(op);
@@ -321,7 +332,9 @@ function Detail({ op, offsetHours, prefs }: { op: Operation; offsetHours: number
           {tab === 'grafico' && <Replayer key={op.id} id={op.id} offsetHours={offsetHours} prefs={prefs} />}
           {tab === 'lectura' && (reading ? <Reading narrative={reading} /> : <div className="empty">leyendo la operacion...</div>)}
           {tab === 'numeros' && <Numbers op={op} />}
-          {tab === 'notas' && <TradeNotes key={op.id} operationId={op.id} prefs={prefs} />}
+          {tab === 'notas' && (
+            <TradeNotes key={op.id} operationId={op.id} prefs={prefs} onSaved={onNotesSaved} />
+          )}
 
           {tab === 'observaciones' && (
             <>
@@ -385,6 +398,21 @@ export function Operations({
   const [selected, setSelected] = useState<number | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  /**
+   * Contador que se sube al guardar una nota, para volver a pedir el listado.
+   *
+   * POR QUE RECARGAR Y NO PARCHEAR LA FILA A MANO. Lo que cambia al anotar no
+   * es solo el punto de esa fila: el catalogo de etiquetas de arriba lleva el
+   * numero de operaciones de cada una, y el servidor aplica sus propias reglas
+   * al guardar —una sola estrategia por operacion, por ejemplo—. Reconstruir
+   * todo eso aqui seria copiar reglas que ya viven en el servidor, y copiarlas
+   * es garantizar que algun dia dejen de coincidir.
+   *
+   * Cuesta una llamada por nota guardada, 600 ms despues de dejar de teclear,
+   * y el listado va paginado. No se nota.
+   */
+  const [revision, setRevision] = useState(0);
+
   // Cambiar filtros reinicia la paginacion: quedarse en la pagina 7 de un
   // listado que ahora tiene 2 no muestra nada y parece un fallo.
   useEffect(() => { setPage(1); }, [filters, onlyFlagged, pageSize, direction, result, sessions, days, tagFilter]);
@@ -417,7 +445,9 @@ export function Operations({
       })
       .catch((e: Error) => { if (!cancelled) setError(e.message); });
     return () => { cancelled = true; };
-  }, [filters, page, pageSize, onlyFlagged, direction, result, sessions, days, tagFilter]);
+    // `revision` va AQUI y no en el efecto que reinicia la paginacion: si
+    // estuviera alli, guardar una nota en la pagina 4 te devolveria a la 1.
+  }, [filters, page, pageSize, onlyFlagged, direction, result, sessions, days, tagFilter, revision]);
 
   if (error) return <div className="error">No se pudo cargar: {error}</div>;
   if (!data) return <div className="empty">cargando...</div>;
@@ -693,7 +723,12 @@ export function Operations({
       </div>
 
       {current ? (
-        <Detail op={current} offsetHours={offsetHours} prefs={prefs} />
+        <Detail
+          op={current}
+          offsetHours={offsetHours}
+          prefs={prefs}
+          onNotesSaved={() => setRevision((r) => r + 1)}
+        />
       ) : (
         <div className="detail"><div className="empty">selecciona una operacion</div></div>
       )}
