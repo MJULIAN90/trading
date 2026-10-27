@@ -26,9 +26,18 @@ export function polarityOf(tag: string, map: PolarityMap | undefined): Polarity 
   return map?.[tag] ?? 'neutra';
 }
 
-/** Clase CSS del color. Vacia para las neutras: se quedan con el estilo base. */
+/**
+ * Clase CSS del color.
+ *
+ * Las neutras tambien llevan clase, y antes no. Devolver cadena vacia las
+ * dejaba con el estilo base, que es el mismo gris que una estrategia o un
+ * contexto sin color: tres cosas distintas con la misma pinta.
+ *
+ * Y "sin calificar" no es un estado neutro, es un estado PENDIENTE: una
+ * conducta que todavia no has decidido si te cuesta dinero. De ahi el amarillo.
+ */
 export function polarityClass(p: Polarity): string {
-  return p === 'neutra' ? '' : p;
+  return p;
 }
 
 /** Orden dentro de un bloque: buenas, neutras, malas. */

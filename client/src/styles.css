@@ -355,6 +355,21 @@ svg { display: block; width: 100%; overflow: visible; }
   color: #8bf2ad;
 }
 
+/* AMARILLO lo que esta sin calificar. No es un color neutro a proposito:
+   una conducta sin calificar es una decision PENDIENTE -todavia no sabes si te
+   cuesta dinero- y conviene que pique un poco a la vista hasta resolverla.
+   Antes salia gris, igual que una estrategia sin color, asi que tres estados
+   distintos se veian iguales. */
+.tag.neutra, .tag-filter button.neutra {
+  border-color: rgba(241, 196, 15, 0.45);
+  color: var(--warn);
+}
+.tag.neutra.on, .tag-filter button.neutra.on {
+  background: rgba(241, 196, 15, 0.18);
+  border-color: var(--warn);
+  color: #f7dd6b;
+}
+
 .tag.mala, .tag-filter button.mala {
   border-color: var(--down);
   color: var(--down-ink);
@@ -423,6 +438,7 @@ svg { display: block; width: 100%; overflow: visible; }
   text-transform: uppercase;
 }
 .tag-group-title.buena { color: var(--up); }
+.tag-group-title.neutra { color: var(--warn); }
 .tag-group-title.mala { color: var(--down); }
 
 .tag-table td { vertical-align: middle; }
@@ -443,6 +459,7 @@ svg { display: block; width: 100%; overflow: visible; }
   width: 5px;
 }
 .op-dots .dot.buena { background: var(--up); }
+.op-dots .dot.neutra { background: var(--warn); }
 .op-dots .dot.mala { background: var(--down); }
 .op-dots .dot.nota { background: none; box-shadow: inset 0 0 0 1px var(--ink-muted); }
 
@@ -581,6 +598,7 @@ svg { display: block; width: 100%; overflow: visible; }
 }
 
 .op-globo .g-tags .dot.buena { background: var(--up); }
+.op-globo .g-tags .dot.neutra { background: var(--warn); }
 .op-globo .g-tags .dot.mala { background: var(--down); }
 
 .op-globo .g-nota {
@@ -1537,6 +1555,7 @@ code {
   text-transform: uppercase;
 }
 .tag-group-sub.buena { color: var(--up); }
+.tag-group-sub.neutra { color: var(--warn); }
 .tag-group-sub.mala { color: var(--down); }
 
 /* Aviso de que lo que se ve no es lo que parece. Grande y encima del grafico

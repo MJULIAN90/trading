@@ -234,8 +234,18 @@ export function TradeNotes({
               })
             ) : (
               <div className="notes-tags">
+                {/* Con `tagClass` y no con "tag" a secas: eso devuelve el eje
+                    -estrategia o contexto-, que es lo que les da color. Los
+                    estilos ya existian; estos botones eran los unicos que no
+                    pedian la clase, asi que salian grises y no habia forma de
+                    distinguir "scalper" de una etiqueta sin calificar. */}
                 {delEje.map((t) => (
-                  <button key={t} className="tag" onClick={() => addTag(t)} title={KIND_HELP[eje]}>
+                  <button
+                    key={t}
+                    className={`tag ${tagClass(t, prefs.tagPolarity, prefs.tagKind)}`}
+                    onClick={() => addTag(t)}
+                    title={KIND_HELP[eje]}
+                  >
                     + {t}
                   </button>
                 ))}
