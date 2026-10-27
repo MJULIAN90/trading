@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import {
   TIMEFRAMES,
   api,
@@ -143,9 +143,38 @@ export function SettingsPanel({
     (TABS as readonly string[]).includes(v),
   );
 
-  useEffect(() => { setDraft(prefs); }, [prefs]);
-  useEffect(() => { setFee(String(commission)); }, [commission]);
-  useEffect(() => { setLimite(String(dailyLimit)); }, [dailyLimit]);
+  /**
+   * Si hay cambios a medio hacer, en un ref.
+   *
+   * En un ref y no en estado para poder consultarlo DENTRO de los efectos de
+   * abajo sin que esos efectos dependan de el: si dependieran, saltarian cada
+   * vez que el borrador pasa de limpio a sucio, que es lo contrario de lo que
+   * se quiere.
+   */
+  const sucio = useRef(false);
+
+  /**
+   * Trae lo que haya cambiado en el servidor... SALVO si estas editando.
+   *
+   * ESTE ERA EL FALLO DE LAS DOS PULSACIONES. Antes era `setDraft(prefs)` a
+   * secas, asi que cualquier cosa que cambiara las preferencias en el servidor
+   * te borraba el borrador por debajo. Y varias acciones de esta misma pantalla
+   * las cambian a mitad de edicion: renombrar una etiqueta las guarda al
+   * momento y luego llama a `onSaved()`, que recarga el dashboard y vuelve con
+   * la version del servidor, que no lleva la etiqueta que acabas de escribir y
+   * todavia no has guardado.
+   *
+   * El efecto era exactamente lo que se veia: escribes la etiqueta, pulsas
+   * Guardar, y se guarda una lista que ya no la contiene. Parece que el boton
+   * no hace nada. La vuelves a escribir, pulsas otra vez, y entonces si.
+   *
+   * `applyRename` ya llevaba escrito que no hay que pisar el borrador con lo
+   * del servidor. Tenia razon; lo que faltaba era que este efecto hiciera lo
+   * mismo.
+   */
+  useEffect(() => { if (!sucio.current) setDraft(prefs); }, [prefs]);
+  useEffect(() => { if (!sucio.current) setFee(String(commission)); }, [commission]);
+  useEffect(() => { if (!sucio.current) setLimite(String(dailyLimit)); }, [dailyLimit]);
 
   useEffect(() => {
     // Informativo: si falla, la pantalla de ajustes sigue sirviendo para lo
@@ -171,6 +200,10 @@ export function SettingsPanel({
     JSON.stringify(draft) !== JSON.stringify(prefs) ||
     Number(fee) !== commission ||
     Number(limite) !== dailyLimit;
+
+  // Se copia al ref en cada render, antes de que corran los efectos: asi, si
+  // llega una recarga del servidor, ya sabe si puede pisar el borrador.
+  sucio.current = dirty;
 
   /** Recuenta los usos. Despues de renombrar los numeros cambian. */
   async function reloadUse() {

@@ -179,6 +179,26 @@ td { text-align: right; padding: 7px 8px; border-top: 1px solid var(--line); fon
    de nombres pegada al borde se lee peor que una lista. */
 th.izq, td.izq { text-align: left; }
 
+/* FILA RESALTADA AL PASAR EL RATON.
+   Varias tablas tienen cinco columnas de desplegables identicos -la de
+   etiquetas son veintiuna filas de "Conducta / buena / todavia sin
+   operaciones"- y entre el chip de la izquierda y la x de la derecha se pierde
+   de vista en que fila estas. El fondo resuelve el seguimiento sin añadir
+   ruido, porque solo aparece donde esta el raton.
+
+   Va en `td` y no en `tr`: un `<tr>` no acepta fondo de forma fiable con
+   `border-collapse`, y el borde acabaria partido. Y con transicion para que no
+   parpadee al recorrer la tabla deprisa. */
+tbody tr:hover td {
+  background: rgba(255, 255, 255, 0.045);
+}
+tbody td { transition: background 90ms ease-out; }
+
+/* La fila marcada manda sobre el raton: si algo esta resaltado por un motivo
+   -resultados inminentes, una fuente caida- pasar por encima no debe
+   disimularlo. Por eso va DESPUES y con mas especificidad. */
+tbody tr.hi:hover td { background: rgba(231, 76, 60, 0.12); }
+
 .note { color: var(--ink-muted); font-size: 12px; margin-top: 10px; line-height: 1.6; }
 
 svg { display: block; width: 100%; overflow: visible; }
