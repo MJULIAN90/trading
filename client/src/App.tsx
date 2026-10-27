@@ -22,6 +22,7 @@ import { date, dateTime, num, pct, sessionLabel, setMarketOffset, signClass, sig
 import { TodayBand } from './components/TodayBand';
 import { useSort } from './sortable';
 import { AlignmentPanel } from './components/AlignmentPanel';
+import { Boundary } from './components/Boundary';
 import { GlobalPanel } from './components/GlobalPanel';
 
 function Tiles({ s, costs }: { s: Dashboard['summary']; costs: Dashboard['costs'] }) {
@@ -176,6 +177,20 @@ export default function App() {
   const [live, setLive] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
 
+  /**
+   * Contador que sube SOLO al pulsar "Actualizar" a mano.
+   *
+   * El boton recargaba el dashboard, que es lo que alimenta a casi toda la
+   * aplicacion, pero el listado de operaciones pide sus datos por su cuenta y
+   * no se enteraba: para refrescarlo habia que irse a Resumen y volver, que
+   * es lo que lo desmonta y lo vuelve a montar.
+   *
+   * No lo sube el refresco automatico de cada medio minuto a proposito:
+   * recargar el listado por debajo mientras estas leyendo una operacion mueve
+   * el suelo sin que lo hayas pedido.
+   */
+  const [refresco, setRefresco] = useState(0);
+
   const load = useCallback(() => {
     api
       .dashboard(filters)
@@ -282,7 +297,7 @@ export default function App() {
           </select>
         </label>
         {data && <CommissionSetting value={data.costSettings.commissionPerContract} onChange={saveCommission} />}
-        <button onClick={load}>Actualizar</button>
+        <button onClick={() => { load(); setRefresco((r) => r + 1); }}>Actualizar</button>
         <span className="live"><b>en vivo</b> · {live}</span>
       </div>
 
@@ -354,6 +369,12 @@ export default function App() {
               ))}
             </div>
           )}
+
+          {/* Un panel que revienta al pintar ya no deja la pagina en blanco.
+              La barra de pestañas se queda FUERA a proposito: si el error se
+              la llevara, no habria forma de irse a otra pestaña.
+              `key={tab}` limpia el error al cambiar de pestaña. */}
+          <Boundary key={tab} nombre={tab}>
 
           {tab === 'mercado' && (
             <>
@@ -470,7 +491,12 @@ export default function App() {
           )}
 
           {tab === 'operaciones' && (
-            <Operations filters={filters} offsetHours={data.marketOffsetHours} prefs={chartPrefs ?? data.chartPrefs} />
+            <Operations
+              filters={filters}
+              offsetHours={data.marketOffsetHours}
+              prefs={chartPrefs ?? data.chartPrefs}
+              refreshKey={refresco}
+            />
           )}
 
           {tab === 'costes' && (
@@ -479,6 +505,8 @@ export default function App() {
               <ScratchPanel data={data.scratch} operations={data.count} />
             </>
           )}
+
+          </Boundary>
         </>
       )}
     </>

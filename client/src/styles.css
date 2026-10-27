@@ -1573,6 +1573,18 @@ code {
 }
 .animo.tibio { color: var(--ink-dim); }
 
+/* Cabecera de la columna de operaciones: recargar y de cuando son los datos. */
+.list-top {
+  align-items: center;
+  display: flex;
+  gap: 10px;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+.list-top .note { margin: 0; font-size: 11px; }
+.list-top .recargar { font-size: 12px; padding: 4px 10px; }
+.list-top .recargar:hover { border-color: var(--info); color: var(--info); }
+
 /* Cabecera de la lista de noticias: cuantas hay y los botones de pagina. */
 .paginado {
   align-items: center;

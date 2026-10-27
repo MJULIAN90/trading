@@ -362,10 +362,13 @@ export function Operations({
   filters,
   offsetHours = -4,
   prefs,
+  refreshKey = 0,
 }: {
   filters: Filters;
   offsetHours?: number;
   prefs: ChartPrefs;
+  /** Sube al pulsar "Actualizar" arriba. Vuelve a pedir el listado. */
+  refreshKey?: number;
 }) {
   const [page, setPage] = useState(1);
   // 15 por defecto: con esa cantidad el listado entra entero sin barra de
@@ -413,9 +416,34 @@ export function Operations({
    */
   const [revision, setRevision] = useState(0);
 
+  /** Cuando se cargo el listado que estas viendo. */
+  const [cargado, setCargado] = useState(() => Date.now());
+
+  /**
+   * Recargar a mano. VUELVE A LA PAGINA 1, y esa es la parte importante.
+   *
+   * Las operaciones nuevas entran por arriba -el listado va de la mas reciente
+   * a la mas antigua-, asi que recargar estando en la pagina 3 vuelve a pedir
+   * los datos, los recibe, y no enseña ni una de las nuevas. Parece que el
+   * boton no hace nada.
+   *
+   * Era justo lo que hacia que funcionara irse a Resumen y volver: eso desmonta
+   * el componente y la pagina vuelve a 1 de rebote.
+   *
+   * Guardar una nota NO pasa por aqui: ahi se recarga igual pero conservando la
+   * pagina, porque no quieres que anotar la operacion 40 te mande a la 1.
+   */
+  const recargar = () => {
+    setPage(1);
+    setRevision((r) => r + 1);
+  };
+
   // Cambiar filtros reinicia la paginacion: quedarse en la pagina 7 de un
   // listado que ahora tiene 2 no muestra nada y parece un fallo.
-  useEffect(() => { setPage(1); }, [filters, onlyFlagged, pageSize, direction, result, sessions, days, tagFilter]);
+  // `refreshKey` entra aqui -y no solo en la peticion- por el mismo motivo que
+  // el boton: el "Actualizar" de la cabecera se pulsa para ver lo ultimo, y lo
+  // ultimo esta en la pagina 1.
+  useEffect(() => { setPage(1); }, [filters, onlyFlagged, pageSize, direction, result, sessions, days, tagFilter, refreshKey]);
 
   useEffect(() => {
     let cancelled = false;
@@ -439,6 +467,7 @@ export function Operations({
         if (cancelled) return;
         setData(d);
         setError(null);
+        setCargado(Date.now());
         // Se abre la primera por defecto: un panel de detalle vacio no explica
         // que hay que hacer para llenarlo.
         setSelected((s) => (s !== null && d.items.some((o) => o.id === s) ? s : d.items[0]?.id ?? null));
@@ -447,7 +476,7 @@ export function Operations({
     return () => { cancelled = true; };
     // `revision` va AQUI y no en el efecto que reinicia la paginacion: si
     // estuviera alli, guardar una nota en la pagina 4 te devolveria a la 1.
-  }, [filters, page, pageSize, onlyFlagged, direction, result, sessions, days, tagFilter, revision]);
+  }, [filters, page, pageSize, onlyFlagged, direction, result, sessions, days, tagFilter, revision, refreshKey]);
 
   if (error) return <div className="error">No se pudo cargar: {error}</div>;
   if (!data) return <div className="empty">cargando...</div>;
@@ -457,6 +486,19 @@ export function Operations({
   return (
     <div className="master-detail">
       <div className="master">
+        {/* Lo primero de la columna: cuantas hay, de cuando son, y el boton de
+            recargar. Estaba abajo del todo, detras de los filtros y de la
+            lista entera, que es como tener el interruptor fuera de la
+            habitacion. */}
+        <div className="list-top">
+          <button className="recargar" onClick={recargar} title="Vuelve a pedir el listado y salta a la pagina 1, que es donde entran las nuevas">
+            ↻ actualizar
+          </button>
+          <span className="note">
+            {data.total} ops · cargado {dateTime(cargado)}
+          </span>
+        </div>
+
         {/* Separar compras de ventas no es solo filtrar: el mismo mercado se
             opera distinto en cada sentido, y mezclarlos esconde que uno de los
             dos lados puede estar costando todo el dinero. */}
@@ -717,6 +759,7 @@ export function Operations({
 
         <div className="pager">
           <span className="info">{data.total} · pag {data.page}/{data.totalPages}</span>
+
           <button disabled={data.page <= 1} onClick={() => setPage((p) => p - 1)}>‹</button>
           <button disabled={data.page >= data.totalPages} onClick={() => setPage((p) => p + 1)}>›</button>
         </div>

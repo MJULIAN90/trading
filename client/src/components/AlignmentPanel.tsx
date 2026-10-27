@@ -44,14 +44,35 @@ const MINIMO = 15;
 
 export function AlignmentPanel({ query }: { query: string }) {
   const [data, setData] = useState<Report | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     let vivo = true;
     setData(null);
-    fetch(`/api/alignment${query}`)
-      .then((r) => r.json())
-      .then((d) => { if (vivo) setData(d as Report); })
-      .catch(() => {});
+    setError(null);
+
+    // EL INTERROGANTE NO SOBRA. `qs()` devuelve "account=17011740", sin el `?`
+    // delante, y todos los demas sitios lo ponen ellos. Aqui faltaba: sin
+    // filtros la cadena va vacia y la URL sale bien de casualidad, pero al
+    // elegir una cuenta se pedia "/api/alignmentaccount=17011740", que no
+    // existe. Por eso el panel solo reventaba al tocar el desplegable.
+    fetch(`/api/alignment?${query}`)
+      .then(async (r) => {
+        // Comprobar `ok` ANTES de leer el cuerpo. Un 404 de Fastify tambien es
+        // JSON valido -{statusCode, error, message}-, asi que `.json()` no
+        // falla: devuelve un objeto sin `buckets`, y el fallo aparecia mucho
+        // mas tarde como "undefined.map" dentro del render, que no dice nada
+        // de la URL equivocada.
+        if (!r.ok) throw new Error(`el servidor contesto ${r.status}`);
+
+        const d = (await r.json()) as Report;
+        if (!Array.isArray(d.buckets) || !Array.isArray(d.byFrame))
+          throw new Error('la respuesta no tiene la forma esperada');
+        return d;
+      })
+      .then((d) => { if (vivo) setData(d); })
+      .catch((e: Error) => { if (vivo) setError(e.message); });
+
     return () => { vivo = false; };
   }, [query]);
 
@@ -67,6 +88,13 @@ export function AlignmentPanel({ query }: { query: string }) {
     },
     null,
   );
+
+  // Un panel que falla se queda en su sitio y lo dice. Antes se tragaba el
+  // error y se quedaba en "calculando..." para siempre, o se llevaba por
+  // delante la pestana entera al pintar.
+  if (error !== null) {
+    return <div className="error">No se pudo calcular la alineacion: {error}</div>;
+  }
 
   if (data === null) return <div className="empty">calculando la alineacion...</div>;
   if (data.analyzed === 0) {
