@@ -113,6 +113,59 @@ export function reviewOperations(
       }
     }
 
+    /**
+     * Insistir en el MISMO LADO despues de perder, dentro de la misma vela de
+     * 15 minutos.
+     *
+     * LO QUE SE MIDIO, y por que la bandera no es "reentraste en la misma
+     * vela". Esa regla general, sobre 375 operaciones, NO DA NADA: tomar solo
+     * la primera de cada vela habria dado -1.413,50 frente a los -1.367,50
+     * reales, la permutacion sale p=0,21, la mediana dice lo contrario que la
+     * media, y el unico grupo positivo -las terceras entradas, +2.064,50- son
+     * TRES operaciones de 692, 662 y 534. Sin ellas, +176 en 49.
+     *
+     * Lo que si separa es POR QUE se reentra:
+     *
+     *   tras perder, mismo lado ....... 109 ops   -13,77/op   mediana -29,00
+     *   tras perder, lado contrario .... 38 ops    +7,42/op   mediana  -1,25
+     *   tras ganar,  mismo lado ........ 22 ops    -5,14/op   mediana  +2,50
+     *
+     * La primera fila suma -1.500,50, mas que la perdida del periodo entero. Y
+     * ahi la MEDIANA acompaña a la media, asi que no son cuatro operaciones
+     * grandes: es el grupo entero. Aguanta el recorte de tres por punta
+     * (-15,51 frente a -3,47 del resto).
+     *
+     * PROVISIONAL, y conviene que quede escrito. La permutacion da p=0,074,
+     * por encima del 0,05 que se exige aqui. Y por cuartos vive en la primera
+     * mitad: -39,40 y -33,66 en los dos primeros, +7,22 y +1,79 en los dos
+     * ultimos. O ya se corrigio, o nunca estuvo. Repetir con noviembre antes
+     * de darla por buena.
+     *
+     * Compara `gross_pnl` como las banderas vecinas; la medicion se hizo en
+     * neto. La diferencia son dos ticks: mueve algun caso de borde, no el
+     * grupo.
+     */
+    const MISMA_VELA_MS = 15 * 60_000;
+
+    if (
+      prev &&
+      prev.gross_pnl <= 0 &&
+      prev.direction === op.direction &&
+      Math.floor(prev.opened_at / MISMA_VELA_MS) === Math.floor(op.opened_at / MISMA_VELA_MS)
+    ) {
+      const seg = Math.max(0, Math.round((op.opened_at - prev.closed_at) / 1000));
+      flags.push({
+        code: 'insist_same_candle',
+        kind: 'decision',
+        severity: 'alert',
+        title: 'Insististe en el mismo lado tras perder',
+        detail:
+          `Perdiste ${prev.gross_pnl.toFixed(2)} y volviste a entrar en ` +
+          `${op.direction === 'LONG' ? 'largo' : 'corto'} ${seg} segundos despues, ` +
+          'dentro de la misma vela de 15 minutos.',
+      });
+    }
+
     if (lossStreak >= config.lossStreakThreshold) {
       flags.push({
         code: 'loss_streak',
