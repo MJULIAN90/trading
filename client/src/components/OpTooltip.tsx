@@ -28,6 +28,17 @@ export interface GloboEtiqueta {
 export interface GloboDatos {
   /** Caja de la fila que lo dispara, en coordenadas de pantalla. */
   ancla: { top: number; bottom: number; left: number };
+  /**
+   * Cuando fue y cuanto duro: "27/10 09:01:10 → 09:02:46 · 1m 36s".
+   *
+   * La columna de la fila solo lleva la apertura, y con el panel estrecho se
+   * queda sin sitio. Aqui cabe entera, y con la hora de salida y la duracion
+   * al lado: en operaciones de noventa segundos de mediana, cuanto aguantaste
+   * es la mitad de la historia.
+   */
+  cuando: string;
+  /** La killzone en la que abrio. Va aqui porque la fila no la enseña. */
+  sesion: string;
   /** "0 ticks x 2 contratos x $0,50". null si el contrato no esta en la tabla. */
   formula: string | null;
   bruto: string | null;
@@ -84,6 +95,13 @@ export function OpTooltip({ datos }: { datos: GloboDatos }) {
         visibility: pos === null ? 'hidden' : 'visible',
       }}
     >
+      {/* Lo primero: cuando y en que killzone. Es lo que situa todo lo demas,
+          y es justo lo que la fila no puede enseñar por falta de ancho. */}
+      <div className="g-cuando">
+        {datos.cuando}
+        <span className="g-sesion">{datos.sesion}</span>
+      </div>
+
       {hayCuenta && (
         <div className="g-cuenta">
           {datos.formula !== null && <div className="g-formula">{datos.formula}</div>}

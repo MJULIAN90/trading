@@ -693,6 +693,12 @@ export function Operations({
             // salga en negativo: la ida y vuelta se paga igual.
             const detalle = (caja: DOMRect): GloboDatos => ({
               ancla: { top: caja.top, bottom: caja.bottom, left: caja.left },
+              // La salida solo con la hora: la fecha ya la lleva la apertura y
+              // repetirla en una operacion de noventa segundos es ruido.
+              cuando:
+                `${dateTime(op.opened_at)} → ${dateTime(op.closed_at).slice(6)}` +
+                ` · ${duration(op.duration_sec)}`,
+              sesion: sessionLabel(op.session),
               formula:
                 op.ticks === null || op.tickValue === null
                   ? null

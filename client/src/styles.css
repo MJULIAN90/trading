@@ -556,6 +556,29 @@ svg { display: block; width: 100%; overflow: visible; }
   pointer-events: none;
 }
 
+/* Cuando fue, cuanto duro y en que killzone. Lo primero del globo: es lo que
+   situa todo lo demas, y es lo unico que la fila no puede enseñar porque la
+   columna de apertura se queda sin ancho. */
+.op-globo .g-cuando {
+  align-items: baseline;
+  border-bottom: 1px solid var(--line);
+  color: var(--ink-1);
+  display: flex;
+  font-size: 12px;
+  font-variant-numeric: tabular-nums;
+  gap: 10px;
+  justify-content: space-between;
+  margin-bottom: 6px;
+  padding-bottom: 5px;
+}
+.op-globo .g-sesion {
+  color: var(--ink-muted);
+  flex: none;
+  font-size: 11px;
+  letter-spacing: .03em;
+  text-transform: uppercase;
+}
+
 .op-globo .g-formula {
   color: var(--ink-muted);
   margin-bottom: 4px;
