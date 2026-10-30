@@ -47,7 +47,9 @@ export function TodayBand() {
     <div className={`hoy ${hoy.state}`}>
       <div className="hoy-linea">
         <span className="hoy-titulo">
-          {hoy.state === 'pasado' ? 'Limite diario superado' : 'Hoy'}
+          {hoy.state === 'pasado'
+            ? 'Limite diario superado'
+            : `Hoy · jornada de mercado (${hoy.date})`}
         </span>
 
         <span className={`hoy-pnl ${hoy.netPnl < 0 ? 'neg' : hoy.netPnl > 0 ? 'pos' : ''}`}>

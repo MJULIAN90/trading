@@ -28,7 +28,7 @@ import { globalReport, type Alert } from '../domain/global.js';
 import { refreshGlobal, startMarketRefresh } from '../ingest/market.js';
 import { alignmentBreakdown } from '../domain/alignment.js';
 import { openingStats } from '../domain/openings.js';
-import { marketDate } from '../domain/sessions.js';
+import { calendarDate } from '../domain/sessions.js';
 import { replay } from '../domain/replay.js';
 import { patternReport } from '../domain/pattern.js';
 import { TIMEFRAMES, getChartPrefs, setChartPrefs } from '../domain/prefs.js';
@@ -212,7 +212,7 @@ app.get('/api/operations', async (req) => {
   const dayIndex = new Map<string, { date: string; count: number; pnl: number }>();
 
   for (const o of beforeDays) {
-    const d = marketDate(o.opened_at);
+    const d = calendarDate(o.opened_at);
     const cur = dayIndex.get(d) ?? { date: d, count: 0, pnl: 0 };
     cur.count++;
     cur.pnl += o.gross_pnl;
@@ -223,7 +223,7 @@ app.get('/api/operations', async (req) => {
     .map((d) => ({ ...d, pnl: Number(d.pnl.toFixed(2)) }))
     .sort((a, b) => b.date.localeCompare(a.date));
 
-  const filtered = beforeDays.filter((o) => (days ? days.has(marketDate(o.opened_at)) : true));
+  const filtered = beforeDays.filter((o) => (days ? days.has(calendarDate(o.opened_at)) : true));
 
   const start = (page - 1) * pageSize;
 

@@ -15,7 +15,7 @@ import { num, signedUsd } from '../format';
  */
 
 export interface DayStat {
-  date: string; // YYYY-MM-DD, fecha de MERCADO
+  date: string; // YYYY-MM-DD, dia natural (medianoche de Nueva York)
   count: number;
   pnl: number;
 }
@@ -32,7 +32,7 @@ const MONTHS = [
 const WEEKDAYS = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
 
 /**
- * Las fechas vienen como texto YYYY-MM-DD y son fechas de MERCADO, no instantes.
+ * Las fechas vienen como texto YYYY-MM-DD y son dias naturales, no instantes.
  * Se trocean a mano en vez de pasarlas por `new Date(texto)`, que las interpreta
  * como medianoche UTC y en un navegador al oeste las corre un dia hacia atras.
  */
@@ -63,11 +63,14 @@ export function DayCalendar({
   selected,
   onToggle,
   onClear,
+  basis = 'net',
 }: {
   days: DayStat[];
   selected: string[];
   onToggle: (date: string) => void;
   onClear: () => void;
+  /** Sobre que cifra vienen los pnl: neto o bruto. */
+  basis?: 'net' | 'gross';
 }) {
   const index = useMemo(() => new Map(days.map((d) => [d.date, d])), [days]);
 
@@ -114,9 +117,9 @@ export function DayCalendar({
               neto, el bruto, los ticks o cuantas operaciones hubo. */}
           <b
             className={monthTotal > 0 ? 'pos' : monthTotal < 0 ? 'neg' : ''}
-            title="Resultado neto del mes, con las comisiones ya descontadas"
+            title={`Resultado ${basis === 'net' ? 'neto, con las comisiones ya descontadas' : 'bruto, antes de comisiones'} del mes`}
           >
-            <i>neto</i> {signedUsd(monthTotal, 0)} <span className="note">USD</span>
+            <i>{basis === 'net' ? 'neto' : 'bruto'}</i> {signedUsd(monthTotal, 0)} <span className="note">USD</span>
           </b>
         </span>
         <button
@@ -152,7 +155,7 @@ export function DayCalendar({
               key={i}
               className={`cal-cell day ${on ? 'on' : ''}`}
               style={{ background: `rgba(${arm}, ${(0.16 + strength * 0.62).toFixed(2)})` }}
-              title={`${date} · ${stat.count} operacion${stat.count === 1 ? '' : 'es'} · ${signedUsd(stat.pnl)} USD`}
+              title={`${date} · ${stat.count} operacion${stat.count === 1 ? '' : 'es'} · ${signedUsd(stat.pnl)} USD ${basis === 'net' ? 'neto' : 'bruto'}`}
               onClick={() => onToggle(date)}
             >
               <span className="n">{c.day}</span>

@@ -171,7 +171,11 @@ function FlagTable({ rows }: { rows: Array<{ code: string; title: string; count:
 }
 
 export default function App() {
-  const [filters, setFilters] = useState<Filters>({});
+  // Mismo corte y misma base que ensena Quantower en la cuenta: dia natural
+  // (medianoche de Nueva York) y bruto. El selector de Base sigue ahi para
+  // mirar el neto cuando haga falta; el limite diario, en cambio, va siempre
+  // contra la jornada de mercado (18:00).
+  const [filters, setFilters] = useState<Filters>({ basis: 'gross' });
   const [tab, setTab] = useState<Tab>('resumen');
   const [data, setData] = useState<Dashboard | null>(null);
   const [live, setLive] = useState<string>('');
@@ -257,7 +261,7 @@ export default function App() {
       <div className="sub">
         {data
           ? `${data.count} operaciones${data.count && data.equity.length ? ` · hasta ${date(data.equity[data.equity.length - 1]!.ts)}` : ''} · ` +
-            `cifras en ${data.basis === 'net' ? 'NETO, con comisiones' : 'BRUTO'} · hora de mercado`
+            `cifras en ${data.basis === 'net' ? 'NETO, con comisiones' : 'BRUTO'} · dia natural (medianoche NY) · hora de mercado`
           : 'cargando...'}
       </div>
 
@@ -450,10 +454,10 @@ export default function App() {
               </div>
 
               <div className="panel">
-                <h2>Resumen por jornada</h2>
+                <h2>Resumen por dia</h2>
                 <div className="note" style={{ marginBottom: 8 }}>
                   Cuantas operaciones hubo cada dia, como se repartieron entre compras y
-                  ventas, y cuanto dejo cada jornada. Las cifras de dinero son{' '}
+                  ventas, y cuanto dejo cada dia. Las cifras de dinero son{' '}
                   <b>dolares por contrato</b>, en bruto: sin comisiones.
                 </div>
                 <DayTable

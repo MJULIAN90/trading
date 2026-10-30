@@ -51,7 +51,7 @@ export function DayTable({ rows, label }: { rows: Group[]; label: (k: string | n
         onChange={setLimit}
         total={rows.length}
         shown={visibles.length}
-        noun="jornadas"
+        noun="dias"
       />
 
       <table>

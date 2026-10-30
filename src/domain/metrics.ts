@@ -1,5 +1,5 @@
 import { db } from '../db/index.js';
-import { marketDate, marketHour } from './sessions.js';
+import { calendarDate, marketHour } from './sessions.js';
 
 export interface Operation {
   id: number;
@@ -56,11 +56,12 @@ export function listOperations(f: Filter = {}): Operation[] {
     )
     .all(...params) as Operation[];
 
-  // El filtro por fecha va sobre la fecha de MERCADO, no la del calendario UTC:
-  // una sesion de Asia que arranca a las 20:00 de Nueva York pertenece al dia
-  // de mercado siguiente, y filtrar por UTC la partiria en dos.
+  // El filtro por fecha va sobre el dia natural (medianoche de Nueva York),
+  // que es el mismo corte con el que el broker cierra el saldo. Si se usara el
+  // calendario UTC, una operacion de las 21:00 de Nueva York caeria al dia
+  // siguiente.
   return rows.filter((o) => {
-    const d = marketDate(o.opened_at);
+    const d = calendarDate(o.opened_at);
     if (f.from && d < f.from) return false;
     if (f.to && d > f.to) return false;
     return true;
@@ -165,7 +166,7 @@ export function bySession(ops: Operation[]) {
 }
 
 export function byDay(ops: Operation[]) {
-  return groupBy(ops, (o) => marketDate(o.opened_at)).sort((a, b) => String(a.key).localeCompare(String(b.key)));
+  return groupBy(ops, (o) => calendarDate(o.opened_at)).sort((a, b) => String(a.key).localeCompare(String(b.key)));
 }
 
 /**
@@ -182,8 +183,8 @@ export function byDay(ops: Operation[]) {
  */
 export function byWeekday(ops: Operation[]) {
   return groupBy(ops, (o) => {
-    const d = marketDate(o.opened_at);
-    // marketDate devuelve YYYY-MM-DD ya desplazado; se interpreta a mediodia
+    const d = calendarDate(o.opened_at);
+    // calendarDate devuelve YYYY-MM-DD ya desplazado; se interpreta a mediodia
     // UTC para que ningun desfase lo mueva de dia al construir la fecha.
     const [y, m, day] = d.split('-').map(Number);
     return new Date(Date.UTC(y!, m! - 1, day!, 12)).getUTCDay();
@@ -238,7 +239,7 @@ export function drawdownOf(ops: Operation[]): DrawdownInfo {
 
     if (acc > pico) {
       pico = acc;
-      picoDia = marketDate(o.closed_at);
+      picoDia = calendarDate(o.closed_at);
     }
 
     const caida = pico - acc;
@@ -246,7 +247,7 @@ export function drawdownOf(ops: Operation[]): DrawdownInfo {
       peor = caida;
       peorPico = pico;
       desde = picoDia;
-      hasta = marketDate(o.closed_at);
+      hasta = calendarDate(o.closed_at);
     }
   }
 
@@ -277,7 +278,7 @@ export interface DayStats {
 export function dayStats(ops: Operation[]): DayStats {
   const porDia = new Map<string, number>();
   for (const o of ops) {
-    const d = marketDate(o.opened_at);
+    const d = calendarDate(o.opened_at);
     porDia.set(d, (porDia.get(d) ?? 0) + o.gross_pnl);
   }
 

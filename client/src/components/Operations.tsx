@@ -530,6 +530,7 @@ export function Operations({
           <DayCalendar
             days={data.days}
             selected={days}
+            basis={filters.basis ?? 'net'}
             onToggle={(d) => setDays((cur) => (cur.includes(d) ? cur.filter((x) => x !== d) : [...cur, d]))}
             onClear={() => setDays([])}
           />
