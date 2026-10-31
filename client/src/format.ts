@@ -1,14 +1,31 @@
 /**
- * Todas las horas se formatean con el desfase de mercado, nunca con la zona del
- * navegador: lo que se ve aqui tiene que coincidir con lo que marcaba el grafico
- * de Quantower mientras operabas.
+ * EL RELOJ DE LA APLICACION, en un solo sitio.
  *
- * El desfase se calcula POR FECHA. Esta logica esta duplicada del servidor
- * (src/domain/clock.ts) porque el cliente no comparte codigo con el, y se
- * prefiere la duplicacion a mandar un desfase fijo desde la API: con un valor
- * unico, un listado que cruce el cambio de hora mostraria la mitad de las
- * operaciones corridas una hora.
+ * Dos relojes posibles, y el que manda se elige en Ajustes > Grafico:
+ *
+ *   LOCAL    el de este ordenador. Es el que marca Quantower en pantalla y el
+ *            que tiene uno en la cabeza mientras opera. Por defecto.
+ *   MERCADO  hora de Nueva York. Util para hablar con alguien de fuera o para
+ *            comparar con una tabla de sesiones.
+ *
+ * Por que importa que se pueda elegir: Nueva York cambia de hora dos veces al
+ * ano y Colombia no. De noviembre a marzo las dos coinciden; de marzo a
+ * noviembre, el diario iba una hora por delante del reloj del PC sin que nada
+ * en pantalla lo dijera, y una operacion de las 09:11 aparecia como las 10:11.
+ *
+ * LA ELECCION ES SOLO DE PRESENTACION. Las killzones, el corte de jornada a
+ * las 18:00 y todas las metricas se siguen calculando en hora de mercado en el
+ * servidor, que es donde tienen que calcularse. Aqui solo se decide con que
+ * desfase se pinta un instante.
+ *
+ * El desfase de mercado se calcula POR FECHA. Esta logica esta duplicada del
+ * servidor (src/domain/clock.ts) porque el cliente no comparte codigo con el,
+ * y se prefiere la duplicacion a mandar un desfase fijo desde la API: con un
+ * valor unico, un listado que cruce el cambio de hora mostraria la mitad de
+ * las operaciones corridas una hora.
  */
+const pad = (n: number) => String(n).padStart(2, '0');
+
 let marketStandardOffset = -5;
 
 /** Ancla de invierno. Un -4 se interpreta como "describe el verano". */
@@ -32,10 +49,80 @@ export function marketOffsetAt(ts: number): number {
   return isUsDst(ts) ? marketStandardOffset + 1 : marketStandardOffset;
 }
 
-const pad = (n: number) => String(n).padStart(2, '0');
+export type Reloj = 'local' | 'mercado';
+
+let reloj: Reloj = 'local';
+
+export function setClock(modo: Reloj) {
+  reloj = modo === 'mercado' ? 'mercado' : 'local';
+}
+
+export function getClock(): Reloj {
+  return reloj;
+}
+
+/**
+ * El desfase con el que se PINTA un instante, en horas.
+ *
+ * En local se pregunta por el instante concreto y no una sola vez: hay zonas
+ * que cambian de hora, y `getTimezoneOffset` de "ahora" aplicado a una
+ * operacion de hace tres meses la correria una hora. Colombia no cambia, pero
+ * esto no tiene por que saberlo.
+ */
+export function displayOffsetAt(ts: number): number {
+  return reloj === 'mercado' ? marketOffsetAt(ts) : -new Date(ts).getTimezoneOffset() / 60;
+}
+
+/** "NY" o "local", para poner al lado de una hora y que no haya duda. */
+export function zonaCorta(): string {
+  return reloj === 'mercado' ? 'NY' : 'local';
+}
+
+/** "hora de Nueva York" / "hora de este ordenador". Para textos largos. */
+export function zonaLarga(): string {
+  return reloj === 'mercado' ? 'hora de Nueva York' : 'hora de este ordenador';
+}
+
+/**
+ * En que tramo de la sesion americana cayo un precio.
+ *
+ * Se mira SIEMPRE con el reloj de Nueva York, aunque la pantalla este en hora
+ * local: los tramos los define el mercado, no el sitio desde donde se mira.
+ * Lo que cambia con el reloj es la hora que se escribe al lado, no el tramo.
+ *
+ *   regular   09:30 a 16:00, la sesion de verdad
+ *   pre       04:00 a 09:30
+ *   post      16:00 a 20:00
+ *   nocturno  el resto, cuando solo quedan los futuros
+ *
+ * Igual que `faseDeMercado` en el servidor. Duplicado por lo mismo que el
+ * desfase: el cliente no comparte codigo, y mandar un valor calculado una vez
+ * clasificaria mal cualquier precio que no fuera el de ese instante.
+ */
+export type FaseCotizacion = 'regular' | 'pre' | 'post' | 'nocturno' | 'finde' | 'desconocida';
+
+export function faseDeCotizacion(ts: number | null): FaseCotizacion {
+  if (ts === null) return 'desconocida';
+
+  const ny = new Date(ts + marketOffsetAt(ts) * 3600_000);
+  const dia = ny.getUTCDay();
+  if (dia === 0 || dia === 6) return 'finde';
+
+  const min = ny.getUTCHours() * 60 + ny.getUTCMinutes();
+  if (min >= 570 && min < 960) return 'regular';
+  if (min >= 240 && min < 570) return 'pre';
+  if (min >= 960 && min < 1200) return 'post';
+  return 'nocturno';
+}
+
+/** HH:MM de un instante, en el reloj activo. */
+export function hora(ts: number): string {
+  const d = new Date(ts + displayOffsetAt(ts) * 3600_000);
+  return `${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}`;
+}
 
 export function dateTime(ts: number): string {
-  const d = new Date(ts + marketOffsetAt(ts) * 3600_000);
+  const d = new Date(ts + displayOffsetAt(ts) * 3600_000);
   return `${pad(d.getUTCDate())}/${pad(d.getUTCMonth() + 1)} ${pad(d.getUTCHours())}:${pad(d.getUTCMinutes())}:${pad(d.getUTCSeconds())}`;
 }
 

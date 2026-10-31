@@ -25,6 +25,9 @@ async function main() {
       `  fills: ${trades.fillsRead} leidos, ${trades.fillsNew} nuevos   |   ` +
         `operaciones: ${trades.operations} reconstruidas, ${trades.operationsNew} nuevas`,
     );
+    if (trades.repriced > 0) {
+      console.log(`  PnL recalculado desde los precios en ${trades.repriced} operaciones`);
+    }
   } else {
     console.log('operaciones de Quantower: no se encontro user-trades.db');
     console.log('  (configura QUANTOWER_ROOT o QUANTOWER_TRADES_DB si deberia estar ahi)');

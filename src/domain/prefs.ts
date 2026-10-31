@@ -110,7 +110,25 @@ export interface ChartPrefs {
    * conducta competirian por la misma casilla.
    */
   tagKind: Record<string, TagKind>;
+
+  /**
+   * Con que reloj se PINTAN las horas: el de este ordenador o el de Nueva York.
+   *
+   * Solo presentacion. Las killzones, el corte de jornada de las 18:00 y todas
+   * las metricas se siguen calculando en hora de mercado en el servidor, que
+   * es donde tienen que calcularse; esto decide unicamente con que desfase se
+   * dibuja un instante en pantalla.
+   *
+   * Por defecto `local`, que es lo que marca Quantower mientras operas. Nueva
+   * York cambia de hora dos veces al ano y Colombia no: de marzo a noviembre
+   * el diario iba una hora por delante del reloj del PC sin que nada lo
+   * dijera, y una operacion de las 09:11 salia como las 10:11.
+   */
+  clock: Reloj;
 }
+
+/** Reloj con el que se pintan las horas. */
+export type Reloj = 'local' | 'mercado';
 
 /** Como califica el una etiqueta. Ausente = neutra. Solo aplica a conducta. */
 export type TagPolarity = 'buena' | 'mala';
@@ -135,6 +153,7 @@ export const DEFAULT_CHART: ChartPrefs = {
   deltaShare: 0.18,
   rightOffset: 6,
   entryShare: 0.70,
+  clock: 'local',
   noteTags: [
     'entre tarde',
     'entre pronto',
@@ -289,6 +308,7 @@ export function getChartPrefs(): ChartPrefs {
       noteTags: tagsOr(raw.noteTags),
       tagPolarity: polarityOr(raw.tagPolarity),
       tagKind: kindOr(raw.tagKind),
+      clock: raw.clock === 'mercado' ? 'mercado' : 'local',
     };
   } catch {
     return structuredClone(DEFAULT_CHART);

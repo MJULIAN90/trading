@@ -1044,10 +1044,24 @@ svg { display: block; width: 100%; overflow: visible; }
 
 .cal-title b { font-weight: 600; }
 
+/* Cinco columnas, de lunes a viernes. Con la jornada de mercado cortada a las
+   18:00 de Nueva York no existe el fin de semana: lo del domingo por la tarde
+   es del lunes. */
 .cal-grid {
   display: grid;
   gap: 2px;
-  grid-template-columns: repeat(7, 1fr);
+  grid-template-columns: repeat(5, 1fr);
+}
+
+.cal-aviso {
+  background: rgba(241, 196, 15, 0.1);
+  border: 1px solid rgba(241, 196, 15, 0.4);
+  border-radius: 4px;
+  color: #f6e5a0;
+  font-size: 11px;
+  line-height: 1.5;
+  margin-top: 8px;
+  padding: 7px 9px;
 }
 
 .cal-weekdays {
@@ -1678,3 +1692,229 @@ code {
   font-variant-numeric: tabular-nums;
 }
 .cuota.apurada { color: var(--down); }
+
+/* ---------------------------------------------------- franja de resultados
+   Pegada a la barra de filtros y visible en todas las pestañas. Dos estados,
+   y el color los separa antes de leer nada: ambar es una CITA -algo que va a
+   pasar- y rojo es un HECHO -algo que ya salio mal-. */
+
+.tira-resultados {
+  align-items: center;
+  border-radius: 5px;
+  display: flex;
+  flex-wrap: wrap;
+  font-size: 12px;
+  gap: 10px 14px;
+  margin: -8px 0 14px;
+  padding: 8px 12px;
+}
+
+.tira-resultados > b {
+  border-radius: 3px;
+  font-size: 10px;
+  letter-spacing: 0.5px;
+  padding: 3px 8px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.tira-resultados.proximos {
+  background: rgba(241, 196, 15, 0.1);
+  border: 1px solid rgba(241, 196, 15, 0.45);
+  color: #f6e5a0;
+}
+
+.tira-resultados.proximos > b { background: var(--warn); color: #1a1a19; }
+
+.tira-resultados.fallo {
+  background: rgba(224, 62, 62, 0.1);
+  border: 1px solid rgba(224, 62, 62, 0.5);
+  color: #ffc9c9;
+}
+
+.tira-resultados.fallo > b { background: var(--down); color: #fff; }
+
+.tira-resultados .citas { display: flex; flex-wrap: wrap; gap: 6px 18px; }
+
+.tira-resultados .cita {
+  align-items: baseline;
+  display: inline-flex;
+  gap: 7px;
+}
+
+.tira-resultados .cita > b { font-weight: 700; letter-spacing: 0.3px; }
+.tira-resultados .cita > i { color: var(--ink-2); font-style: normal; }
+
+/* La hora. Subrayada con puntos, como todo lo que tiene explicacion detras:
+   no es un dato publicado, es nuestra convencion. */
+.tira-resultados .cita > u {
+  cursor: help;
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
+}
+
+.tira-resultados .cita > em {
+  color: var(--ink-dim);
+  font-size: 10px;
+  font-style: normal;
+  letter-spacing: 0.4px;
+  text-transform: uppercase;
+}
+
+.tira-resultados .cita > strong { font-variant-numeric: tabular-nums; font-weight: 600; }
+
+/* La ultima hora se pone en blanco y a pulso: a esa distancia ya no es un
+   dato de agenda, es algo que esta a punto de pasar. */
+.tira-resultados .cita.ya > strong { color: #fff; }
+.tira-resultados .cita.ya > b { color: #fff; }
+
+.tira-resultados .cita.apagada { opacity: 0.55; }
+
+/* ---------------------------------------------------------------- la alarma
+   Modal de verdad: tapa la pantalla y no se cierra solo. El sonido para
+   cuando se pulsa el boton, asi que el boton tiene que ser lo unico que se
+   pueda pulsar. */
+
+.alarma-fondo {
+  align-items: center;
+  background: rgba(8, 9, 13, 0.82);
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  position: fixed;
+  z-index: 200;
+}
+
+.alarma {
+  background: var(--panel);
+  border: 1px solid var(--warn);
+  border-radius: 10px;
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.6);
+  max-width: 420px;
+  padding: 26px 30px 24px;
+  text-align: center;
+}
+
+.alarma .hito {
+  background: var(--warn);
+  border-radius: 3px;
+  color: #1a1a19;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  padding: 4px 10px;
+  text-transform: uppercase;
+}
+
+.alarma h2 { font-size: 20px; margin: 16px 0 2px; }
+.alarma .quien { color: var(--ink-2); font-size: 13px; margin: 0 0 16px; }
+.alarma .momento { color: var(--ink-1); font-size: 13px; line-height: 1.6; margin: 0 0 14px; }
+.alarma .momento small { color: var(--ink-dim); font-size: 11px; }
+
+.alarma .restante {
+  color: var(--warn);
+  font-size: 30px;
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  margin: 0;
+}
+
+.alarma .esperado { color: var(--ink-muted); font-size: 12px; margin: 6px 0 0; }
+
+.alarma button {
+  background: var(--warn);
+  border: 0;
+  border-radius: 5px;
+  color: #1a1a19;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 700;
+  margin-top: 20px;
+  padding: 10px 28px;
+}
+
+.alarma button:hover { filter: brightness(1.1); }
+
+/* Las notas, debajo del grafico y en la misma vista.
+   Una linea arriba para separarlas de las velas sin montar otra caja: ya
+   estamos dentro del panel de la operacion y una caja dentro de otra caja
+   solo come ancho. */
+.notas-bajo-grafico {
+  border-top: 1px solid var(--line);
+  margin-top: 14px;
+  padding-top: 14px;
+}
+
+/* La hora de los resultados en la tabla de acciones. Subrayada con puntos
+   porque es una convencion nuestra, no un dato que publique la empresa. */
+.hora-convencion {
+  cursor: help;
+  margin-left: 7px;
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
+}
+
+/* El precio, con su procedencia debajo. Dos lineas en la misma celda y no una
+   columna aparte: la tabla ya tiene ocho columnas y el dato solo tiene sentido
+   pegado al numero que califica. */
+.precio-celda { line-height: 1.35; }
+
+.precio-celda .cotiz {
+  display: block;
+  font-size: 10px;
+  letter-spacing: 0.2px;
+  margin-top: 1px;
+}
+
+/* Solo se colorea lo que NO es la sesion regular. Si todo llevara color, el
+   color dejaria de avisar de nada; asi el ojo se va justo a las filas cuyo
+   precio no es el de la sesion que estas mirando. */
+.precio-celda .cotiz.regular { color: var(--ink-dim); }
+.precio-celda .cotiz.pre { color: var(--info); }
+.precio-celda .cotiz.post { color: var(--accent); }
+.precio-celda .cotiz.nocturno,
+.precio-celda .cotiz.finde,
+.precio-celda .cotiz.desconocida { color: var(--warn); opacity: 0.8; }
+
+/* Filas con pocas operaciones en el panel de scalper. Se apagan en vez de
+   esconderse: con cuatro operaciones un 100 % de acierto no es una medicion,
+   pero taparlo haria pensar que esa killzone no tiene datos. */
+tbody tr.apagada { opacity: 0.5; }
+
+/* La tercera franja: el calendario economico.
+   Azul y no ambar ni rojo. Los tres colores dicen tres cosas distintas:
+   ambar una cita de resultados, rojo un resultado que ya salio mal, y azul
+   algo que no depende de ninguna empresa sino del calendario. */
+.tira-resultados.calendario {
+  background: rgba(90, 170, 255, 0.09);
+  border: 1px solid rgba(90, 170, 255, 0.42);
+  color: #cfe3ff;
+}
+
+.tira-resultados.calendario > b { background: var(--info); color: #0c1420; }
+
+.alarma.calendario { border-color: var(--info); }
+.alarma.calendario .hito { background: var(--info); color: #0c1420; }
+.alarma.calendario .restante { color: var(--info); }
+.alarma.calendario button { background: var(--info); color: #0c1420; }
+
+/* La rejilla de "de cuales": los cuatro marcos en pequeño, encendidos segun
+   la frecuencia con la que estuvieron a favor dentro de esa fila. Es lo que
+   contesta "¿de que tiempo me estas hablando?" sin abrir otra tabla. */
+.marcos-mini { display: inline-flex; gap: 4px; }
+
+.marcos-mini i {
+  border: 1px solid var(--line);
+  border-radius: 3px;
+  cursor: help;
+  font-size: 10px;
+  font-style: normal;
+  letter-spacing: 0.2px;
+  min-width: 26px;
+  padding: 1px 4px;
+  text-align: center;
+}
+
+.marcos-mini i.alto { background: rgba(232, 234, 240, 0.14); color: var(--ink); border-color: var(--ink-dim); }
+.marcos-mini i.medio { color: var(--ink-2); }
+.marcos-mini i.bajo { color: var(--ink-dim); opacity: 0.55; }

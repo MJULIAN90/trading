@@ -5,6 +5,7 @@ import {
   timeframeLabel,
   type ChartPrefs,
   type CostSettings,
+  type EarningsSettings,
   type EmaSetting,
   type TagImpact,
 } from '../api';
@@ -30,13 +31,14 @@ import {
  * sitio. No tiene nada que ver con el grafico, y mientras estuvo ahi era
  * invisible para cualquiera que no supiera que estaba.
  */
-const TABS = ['grafico', 'etiquetas', 'costes', 'datos'] as const;
+const TABS = ['grafico', 'etiquetas', 'costes', 'avisos', 'datos'] as const;
 type Tab = (typeof TABS)[number];
 
 const TAB_LABEL: Record<Tab, string> = {
   grafico: 'Grafico',
   etiquetas: 'Etiquetas',
   costes: 'Costes',
+  avisos: 'Avisos',
   datos: 'Datos',
 };
 
@@ -119,6 +121,18 @@ export function SettingsPanel({
   const [fee, setFee] = useState(String(commission));
   const [limite, setLimite] = useState(String(dailyLimit));
   const [tagDraft, setTagDraft] = useState('');
+  /**
+   * La convencion horaria de los informes de resultados.
+   *
+   * Se pide aqui en vez de llegar por props como la comision porque no sale
+   * del panel de control: vive en su propio endpoint, que es el que alimenta
+   * la franja de arriba. Mientras no llega, los campos quedan vacios y no se
+   * puede guardar nada, que es mejor que enseñar un valor por defecto que no
+   * es el que hay guardado.
+   */
+  const [horas, setHoras] = useState<EarningsSettings | null>(null);
+  const [amc, setAmc] = useState('');
+  const [bmo, setBmo] = useState('');
   const [saving, setSaving] = useState(false);
   const [saved, setSaved] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
@@ -194,12 +208,24 @@ export function SettingsPanel({
         setTagStats(s);
       })
       .catch(() => {});
+
+    api.earnings()
+      .then((r) => {
+        setHoras(r.settings);
+        setAmc(r.settings.amcHour);
+        setBmo(r.settings.bmoHour);
+      })
+      .catch(() => {});
   }, []);
+
+  const horasCambiadas =
+    horas !== null && (amc !== horas.amcHour || bmo !== horas.bmoHour);
 
   const dirty =
     JSON.stringify(draft) !== JSON.stringify(prefs) ||
     Number(fee) !== commission ||
-    Number(limite) !== dailyLimit;
+    Number(limite) !== dailyLimit ||
+    horasCambiadas;
 
   // Se copia al ref en cada render, antes de que corran los efectos: asi, si
   // llega una recarga del servidor, ya sabe si puede pisar el borrador.
@@ -289,6 +315,16 @@ export function SettingsPanel({
       if (Number.isFinite(l) && l >= 0 && l !== dailyLimit) cambios.dailyLossLimit = l;
       if (Object.keys(cambios).length > 0) await api.saveSettings(cambios);
 
+      if (horasCambiadas) {
+        // El servidor devuelve lo que de verdad guardo. Si escribiste "25:70"
+        // te lo rechaza y se queda con lo anterior, y el campo tiene que
+        // enseñar eso y no lo que tecleaste.
+        const aplicado = await api.saveEarningsSettings({ amcHour: amc, bmoHour: bmo });
+        setHoras(aplicado);
+        setAmc(aplicado.amcHour);
+        setBmo(aplicado.bmoHour);
+      }
+
       setSaved(new Date().toLocaleTimeString());
       onSaved();
     } catch (e) {
@@ -361,6 +397,30 @@ export function SettingsPanel({
             />
             killzones encendidas
           </label>
+
+          <label title="Con que reloj se pintan TODAS las horas de la aplicacion. No cambia ninguna metrica.">
+            Reloj
+            <select
+              value={draft.clock}
+              onChange={(e) => setDraft({ ...draft, clock: e.target.value as 'local' | 'mercado' })}
+            >
+              <option value="local">este ordenador</option>
+              <option value="mercado">Nueva York</option>
+            </select>
+          </label>
+        </div>
+
+        <div className="note">
+          <b>El reloj es solo presentacion.</b> Las killzones, el corte de jornada de las
+          18:00 y todas las metricas se calculan siempre en hora de mercado, en el servidor.
+          Esto decide unicamente con que hora se dibuja cada instante en pantalla.
+          <br />
+          Nueva York cambia de hora dos veces al ano y Colombia no: de noviembre a marzo
+          las dos coinciden, y de marzo a noviembre se separan una hora. Con el reloj en
+          &quot;Nueva York&quot; una operacion de las 09:11 de tu reloj salia como las
+          10:11 sin que nada en pantalla lo dijera. Con &quot;este ordenador&quot; coincide
+          con lo que marca Quantower mientras operas, y la killzone sigue diciendo la
+          verdad: NY AM a las 08:30 de tu reloj en verano es NY AM igual.
         </div>
 
         {/* Margenes del grafico. Se guardan aqui, en el servidor, para que
@@ -709,6 +769,46 @@ export function SettingsPanel({
       </div>
       )}
 
+      {tab === 'avisos' && (
+      <div className="panel">
+        <h2>Avisos de resultados</h2>
+
+        <div className="filters">
+          <label title="Hora de Nueva York para las empresas que presentan despues del cierre">
+            Despues del cierre
+            <input type="time" value={amc} style={{ width: 110 }} onChange={(e) => setAmc(e.target.value)} />
+            NY
+          </label>
+
+          <label title="Hora de Nueva York para las empresas que presentan antes de la apertura">
+            Antes de abrir
+            <input type="time" value={bmo} style={{ width: 110 }} onChange={(e) => setBmo(e.target.value)} />
+            NY
+          </label>
+        </div>
+
+        <div className="note">
+          <b>Esta hora no la publica nadie.</b> Ni Alpha Vantage ni Finnhub dan el minuto: dan el
+          dia y, como mucho, &quot;antes de abrir&quot; o &quot;despues del cierre&quot;. Estas dos
+          cifras son una CONVENCION nuestra -el mercado cierra a las 16:00 y abre a las 09:30-, y
+          por eso salen siempre con la palabra &quot;convencion&quot; al lado en la franja de
+          arriba. El dia que sepas la hora de verdad de una empresa, cambiala aqui.
+        </div>
+
+        <div className="note">
+          <b>Sobre esa hora se cuentan las cuatro alarmas</b>: a 1 dia, 6 horas, 1 hora y 15
+          minutos. Suenan con un modal que no se quita solo. Si abres el diario con el informe ya
+          encima, suena solo el aviso mas cercano de los que te hayas perdido, no los cuatro
+          seguidos. Mover estas horas mueve las alarmas.
+        </div>
+
+        <div className="note">
+          La franja ensena a quien presenta en <b>3 dias o menos</b>. Lo que queda mas lejos sale
+          en la pestana News, en la columna &quot;Prox. resultados&quot;.
+        </div>
+      </div>
+      )}
+
       {/* La barra de guardar se esconde en "Datos", que no tiene nada que
           guardar... salvo que haya cambios pendientes en otra pestana. Un
           aviso de "hay cambios sin guardar" que desaparece al cambiar de
@@ -718,7 +818,12 @@ export function SettingsPanel({
         <button className="primary" disabled={!dirty || saving} onClick={save}>
           {saving ? 'Guardando...' : 'Guardar'}
         </button>
-        <button disabled={!dirty || saving} onClick={() => { setDraft(prefs); setFee(String(commission)); setLimite(String(dailyLimit)); }}>
+        <button disabled={!dirty || saving} onClick={() => {
+          setDraft(prefs);
+          setFee(String(commission));
+          setLimite(String(dailyLimit));
+          if (horas) { setAmc(horas.amcHour); setBmo(horas.bmoHour); }
+        }}>
           Descartar
         </button>
         {error && <span className="neg">No se pudo guardar: {error}</span>}

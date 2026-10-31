@@ -24,11 +24,14 @@ import {
 import { DEFAULT_REVIEW_CONFIG, flagImpact, reviewOperations } from '../domain/review.js';
 import { barsBySymbol, refreshBars } from '../domain/bars.js';
 import { todayReport } from '../domain/today.js';
+import { earningsReport, setEarningsSettings } from '../domain/earnings.js';
+import { DEFAULT_SCALPER, scalperReport } from '../domain/scalper.js';
+import { sessionDrawdown } from '../domain/sessionDrawdown.js';
 import { globalReport, type Alert } from '../domain/global.js';
 import { refreshGlobal, startMarketRefresh } from '../ingest/market.js';
 import { alignmentBreakdown } from '../domain/alignment.js';
 import { openingStats } from '../domain/openings.js';
-import { calendarDate } from '../domain/sessions.js';
+import { marketDate } from '../domain/sessions.js';
 import { replay } from '../domain/replay.js';
 import { patternReport } from '../domain/pattern.js';
 import { TIMEFRAMES, getChartPrefs, setChartPrefs } from '../domain/prefs.js';
@@ -50,6 +53,7 @@ import { excursionOf, excursionSummary } from '../domain/excursion.js';
 import { narrate } from '../domain/narrative.js';
 import { DEFAULT_SCRATCH, scratchReport } from '../domain/scratch.js';
 import {
+  agendaEconomica,
   blackoutAt,
   calendarStatus,
   clearEvents,
@@ -211,8 +215,18 @@ app.get('/api/operations', async (req) => {
   // forma de cambiar de dia sin limpiar el filtro primero.
   const dayIndex = new Map<string, { date: string; count: number; pnl: number }>();
 
+  // JORNADA DE MERCADO, no dia de calendario.
+  //
+  // Estuvo un tiempo por fecha natural para que cuadrara con lo que ensena
+  // Quantower en la cuenta, y eso metia DOMINGOS en el calendario: lo operado
+  // el domingo por la tarde, cuando el mercado acaba de abrir, caia en su
+  // propia casilla. Ninguna mesa de fondeo cuenta asi. La sesion que abre el
+  // domingo por la tarde y cierra el lunes ES el lunes, y la que abre el lunes
+  // por la tarde es el martes. Eso es exactamente `marketDate`, que rueda a
+  // las 18:00 de Nueva York, y es el mismo corte que usan el limite diario y
+  // todas las metricas.
   for (const o of beforeDays) {
-    const d = calendarDate(o.opened_at);
+    const d = marketDate(o.opened_at);
     const cur = dayIndex.get(d) ?? { date: d, count: 0, pnl: 0 };
     cur.count++;
     cur.pnl += o.gross_pnl;
@@ -223,7 +237,7 @@ app.get('/api/operations', async (req) => {
     .map((d) => ({ ...d, pnl: Number(d.pnl.toFixed(2)) }))
     .sort((a, b) => b.date.localeCompare(a.date));
 
-  const filtered = beforeDays.filter((o) => (days ? days.has(calendarDate(o.opened_at)) : true));
+  const filtered = beforeDays.filter((o) => (days ? days.has(marketDate(o.opened_at)) : true));
 
   const start = (page - 1) * pageSize;
 
@@ -361,6 +375,7 @@ app.get('/api/dashboard', async (req) => {
     marketOffsetHours: MARKET_UTC_OFFSET_HOURS,
     summary: { ...summarize(ops), ...streaks(ops), ...drawdownOf(ops), ...dayStats(ops) },
     bySession: bySession(ops),
+    sessionDrawdown: sessionDrawdown(ops, getCostSettings().dailyLossLimit),
     byDay: byDay(ops),
     byWeekday: byWeekday(ops),
     byHour: byHour(ops),
@@ -545,6 +560,38 @@ app.get('/api/global', async () => ({ ...globalReport(), alerts: ultimasAlertas 
 app.post('/api/global/refresh', async () => refreshGlobal(true));
 
 /**
+ * Quien presenta resultados en los proximos dias y como salio lo ya presentado.
+ *
+ * Endpoint propio y no un trozo de `/api/global` porque lo pide la BARRA, que
+ * esta en todas las pestanas y se refresca sola cada minuto. Colgarlo del
+ * informe de mercado obligaria a traerse las cotizaciones, las noticias y el
+ * estado de las cinco fuentes para pintar dos lineas.
+ *
+ * Lee de la base como todo lo demas: no gasta ni una peticion de cuota.
+ */
+app.get('/api/earnings', async (req) => {
+  const q = req.query as { days?: string };
+  const dias = Number(q.days);
+  return earningsReport(Number.isFinite(dias) && dias > 0 && dias <= 30 ? dias : 3);
+});
+
+/**
+ * Lo que viene en el calendario economico, con la misma forma que la agenda de
+ * resultados. Lo pide la misma franja de la barra, asi que va aparte de
+ * `/api/calendar`, que trae el panel entero con su buscador y su paginado.
+ */
+app.get('/api/calendar/agenda', async (req) => {
+  const q = req.query as { days?: string };
+  const dias = Number(q.days);
+  return { now: Date.now(), agenda: agendaEconomica(Number.isFinite(dias) && dias > 0 && dias <= 60 ? dias : 7) };
+});
+
+app.put('/api/earnings/settings', async (req) => {
+  const body = (req.body ?? {}) as { amcHour?: string; bmoHour?: string };
+  return setEarningsSettings({ amcHour: body.amcHour, bmoHour: body.bmoHour });
+});
+
+/**
  * Como te fue segun con cuantos marcos estabas alineado con la pila de medias.
  *
  * El cruce entre las dos mitades del diario: tus operaciones por un lado, el
@@ -633,6 +680,27 @@ app.get('/api/calendar/blackout', async (req) => {
 
 /** MAE y MFE del conjunto filtrado: donde esta de verdad el stop. */
 app.get('/api/excursion', async (req) => excursionSummary(loadOperations(req.query as Record<string, unknown>)));
+
+/**
+ * "¿Y si saliera siempre en el mismo numero de ticks?"
+ *
+ * Los tres parametros son del usuario y van por query, no guardados: la gracia
+ * de esta pantalla es mover el objetivo y ver como cambia el acierto, y un
+ * valor guardado en la base convertiria cada prueba en una escritura.
+ */
+app.get('/api/scalper', async (req) => {
+  const q = req.query as Record<string, unknown>;
+  const n = (v: unknown, def: number, min: number, max: number) => {
+    const x = Number(v);
+    return Number.isFinite(x) ? Math.min(max, Math.max(min, Math.round(x))) : def;
+  };
+
+  return scalperReport(loadOperations(q), {
+    target: n(q.target, DEFAULT_SCALPER.target, 1, 500),
+    stop: n(q.stop, DEFAULT_SCALPER.stop, 1, 500),
+    horizonMin: n(q.horizon, DEFAULT_SCALPER.horizonMin, 5, 1440),
+  });
+});
 
 app.get('/api/operations/:id/notes', async (req) => {
   const { id } = req.params as { id: string };

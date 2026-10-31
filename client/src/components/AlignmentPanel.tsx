@@ -20,6 +20,10 @@ type FrameName = 'm1' | 'm15' | 'h1' | 'h4';
 interface Bucket {
   favor: number;
   operations: number;
+  /** De esas, cuantas tenian al menos un marco explicitamente en contra. */
+  conPila: number;
+  /** En cuantas operaciones del cajon iba a favor cada marco. */
+  porMarco: Record<FrameName, number>;
   wins: number;
   hitRate: number;
   netPnl: number;
@@ -36,6 +40,9 @@ interface Report {
 }
 
 const FRAME_LABEL: Record<FrameName, string> = { m1: '1 minuto', m15: '15 minutos', h1: '1 hora', h4: '4 horas' };
+
+/** Para la rejilla pequeña de la primera tabla, donde no cabe el nombre largo. */
+const FRAME_CORTO: Record<FrameName, string> = { m1: '1m', m15: '15m', h1: '1h', h4: '4h' };
 
 const pc = (v: number) => `${(v * 100).toFixed(1)}%`;
 
@@ -104,17 +111,36 @@ export function AlignmentPanel({ query }: { query: string }) {
   return (
     <>
       <div className="note" style={{ marginBottom: 10 }}>
-        De tus <b>{data.analyzed}</b> operaciones, con cuantos marcos estabas a favor de la pila de
-        medias (8 &gt; 21 &gt; 55 &gt; 200, precio por encima) en el momento de entrar. Se calcula
-        sobre la ultima vela <b>cerrada</b> de cada marco, asi que es informacion que tenias
-        delante. {data.skipped > 0 && <>No se pudieron evaluar {data.skipped} por falta de velas guardadas.</>}
+        <b>No es un marco: son los cuatro a la vez — 1 minuto, 15 minutos, 1 hora y 4 horas.</b>{' '}
+        De tus <b>{data.analyzed}</b> operaciones, en cuantos de ellos estabas a favor de la pila
+        de medias —<b>8 &gt; 21 &gt; 55 &gt; 200 con el precio por encima</b>, la pila entera y no
+        un cruce suelto— en el instante de entrar. Se evalua sobre la ultima vela{' '}
+        <b>cerrada</b> de cada marco: a las 13:07 la de 15m todavia no ha cerrado, y usarla seria
+        leer informacion que no tenias.
+        {data.skipped > 0 && <> No se pudieron evaluar {data.skipped} por falta de velas guardadas.</>}
+      </div>
+
+      <div className="note" style={{ marginBottom: 10 }}>
+        <b>Esta primera tabla cuenta CUANTOS, no cual.</b> &quot;2 de 4&quot; no dice si eran el de
+        1m y el de 15m o el de 1h y el de 4h: son todas las operaciones en las que dos
+        cualesquiera iban a favor. Por eso cada fila lleva al lado en <b>cuales</b> se apoya de
+        verdad. Para saber que marco pesa mas, la segunda tabla.
       </div>
 
       <table>
         <thead>
           <tr>
-            <th>Marcos a favor</th>
+            <th>Cuantos de los 4</th>
             <th>Operaciones</th>
+            <th
+              className="izq"
+              title="De las operaciones de esta fila, en que porcentaje iba a favor cada uno de los cuatro marcos. Es lo que dice de QUE marcos habla la fila."
+            >
+              De cuales
+            </th>
+            <th title="De esas operaciones, cuantas tenian la pila ENREDADA en el resto de marcos: las medias cruzadas, sin orden. No es lo mismo que tenerla en contra.">
+              Sin pila
+            </th>
             <th>Acierto</th>
             <th>Neto</th>
             <th title="Lo unico comparable entre filas con distinto numero de operaciones">Media por operacion</th>
@@ -130,6 +156,29 @@ export function AlignmentPanel({ query }: { query: string }) {
                 {b.favor === 0 && <span className="note"> · ninguno</span>}
               </td>
               <td className={b.operations < MINIMO ? 'note' : ''}>{b.operations}</td>
+              <td className="izq">
+                {b.operations === 0 ? (
+                  <span className="note">—</span>
+                ) : (
+                  <span className="marcos-mini">
+                    {(['m1', 'm15', 'h1', 'h4'] as const).map((f) => {
+                      const parte = b.porMarco[f] / b.operations;
+                      return (
+                        <i
+                          key={f}
+                          className={parte >= 0.66 ? 'alto' : parte >= 0.33 ? 'medio' : 'bajo'}
+                          title={`${FRAME_LABEL[f]}: a favor en ${b.porMarco[f]} de ${b.operations}`}
+                        >
+                          {FRAME_CORTO[f]}
+                        </i>
+                      );
+                    })}
+                  </span>
+                )}
+              </td>
+              <td className="note">
+                {b.operations === 0 ? '—' : b.operations - b.conPila}
+              </td>
               <td className={b.operations < MINIMO ? 'note' : ''}>
                 {b.operations === 0 ? '—' : pc(b.hitRate)}
               </td>
@@ -142,8 +191,17 @@ export function AlignmentPanel({ query }: { query: string }) {
       </table>
 
       <div className="note" style={{ margin: '10px 0' }}>
-        Las filas con menos de {MINIMO} operaciones salen apagadas: con esa muestra el porcentaje no
-        dice nada, y el numero de operaciones manda siempre sobre el acierto.
+        En <b>de cuales</b>, el marco se enciende cuanto mas a menudo estuvo a favor dentro de esa
+        fila: blanco si fue en dos de cada tres operaciones o mas, gris medio entre un tercio y
+        dos tercios, y apagado por debajo. Pasa el raton por encima para la cuenta exacta.
+        <br />
+        <b>La columna &quot;sin pila&quot; es la que evita la lectura facil.</b> En el cajon de 0 a
+        favor cabe tanto &quot;entraste contra toda la estructura&quot; como &quot;no habia
+        estructura ninguna, las medias enredadas&quot;, y son cosas distintas. Si esa columna es
+        alta, la fila no habla de ir a contracorriente: habla de operar en un mercado sin forma.
+        <br />
+        Las filas con menos de {MINIMO} operaciones salen apagadas: con esa muestra el porcentaje
+        no dice nada, y el numero de operaciones manda siempre sobre el acierto.
       </div>
 
       <h2 style={{ marginTop: 18 }}>Marco a marco</h2>
@@ -188,10 +246,23 @@ export function AlignmentPanel({ query }: { query: string }) {
       </table>
 
       <div className="note" style={{ marginTop: 10 }}>
-        <b>Ojo con leer esto como una regla.</b> Son {data.analyzed} operaciones repartidas en cinco
-        cajones, y en el historico los cuatro marcos solo coinciden el 8% del tiempo: el cajon de
-        &quot;4 de 4&quot; va a tener pocos casos durante bastante tiempo. Sirve para orientar, no
-        todavia para decidir.
+        <b>Esto todavia NO es una regla, y esta medido.</b> Con las 573 operaciones del 31 de
+        octubre, pasado por permutacion:
+        <br />
+        · El cajon de <b>0 a favor</b> contra el resto da 14 USD por operacion de diferencia con{' '}
+        <b>p = 0,24</b>: no se distingue del azar. Y la mitad de ese cajon son operaciones sin
+        pila, no contra la pila.
+        <br />
+        · De los cuatro marcos, solo el de <b>15 minutos</b> llega a p = 0,023, que pasa por los
+        pelos la correccion por cuatro pruebas. Los otros tres quedan entre 0,23 y 0,68.
+        <br />
+        · Y el de 15 minutos <b>se desinfla fuera de muestra</b>: en la primera mitad del
+        historico la diferencia es de 41 USD (p = 0,04) y en la segunda de 15 (p = 0,32). Un
+        efecto real no suele comportarse asi.
+        <br />
+        Ademas, en el historico los cuatro marcos solo coinciden el 8% del tiempo, asi que el
+        cajon de &quot;4 de 4&quot; va a tener pocos casos durante bastante tiempo. <b>Sirve para
+        orientar y para volver a medirlo en diciembre</b>, no para decidir hoy.
       </div>
     </>
   );

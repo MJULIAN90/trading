@@ -9,7 +9,7 @@ import {
 } from 'lightweight-charts';
 import { useEffect, useRef, useState } from 'react';
 import type { ChartPrefs, Replay } from '../api';
-import { marketOffsetAt } from '../format';
+import { displayOffsetAt } from '../format';
 
 /**
  * Grafico de una operacion: velas, donde entraste, donde saliste, y el delta de
@@ -52,7 +52,7 @@ const SESSION_NAME: Record<string, string> = {
 function toChartTime(ms: number): UTCTimestamp {
   // Por marca de tiempo y no con un desfase unico: una ventana que cruce el
   // cambio de hora quedaria con media mitad corrida respecto a la otra.
-  return Math.floor((ms + marketOffsetAt(ms) * 3600_000) / 1000) as UTCTimestamp;
+  return Math.floor((ms + displayOffsetAt(ms) * 3600_000) / 1000) as UTCTimestamp;
 }
 
 /**
@@ -383,7 +383,7 @@ export function TradeChart({
     };
 
     const hhmm = (ms: number) =>
-      new Date(ms + marketOffsetAt(ms) * 3600_000).toISOString().slice(11, 16);
+      new Date(ms + displayOffsetAt(ms) * 3600_000).toISOString().slice(11, 16);
 
     const drawSessions = () => {
       overlay.innerHTML = '';

@@ -6,6 +6,8 @@ import {
   QQQ_WEIGHTS,
 } from '../config.js';
 import { db } from '../db/index.js';
+import { getEarningsSettings, horasMedidas, momentoDe, type HoraMedida } from './earnings.js';
+import { marketOffsetAt } from './clock.js';
 import { clasificar, type Topic } from './news-topic.js';
 
 /**
@@ -41,8 +43,18 @@ export interface Quote {
   price: number;
   /** Variacion del dia en porcentaje. null si el proveedor no la da. */
   changePct: number | null;
-  /** Cuando se leyo, no cuando cotizo. */
+  /** Cuando lo LEIMOS nosotros. */
   ts: number;
+  /**
+   * Cuando COTIZO ese precio, segun el proveedor. null si no lo dice.
+   *
+   * Es otra cosa que `ts` y la diferencia importa: con el mercado cerrado,
+   * `ts` dice "hace dos minutos" y `quoteTs` dice "ayer a las 16:00". Lo
+   * segundo es lo que hay que enseñar.
+   */
+  quoteTs: number | null;
+  /** Cierre de la jornada anterior, si el proveedor lo da. */
+  prevClose: number | null;
 }
 
 /** Lo que se enseña en la tabla: la cotizacion mas lo que sabemos de ella. */
@@ -51,8 +63,18 @@ export interface Row extends Quote {
   name: string;
   /** Peso en el QQQ, en porcentaje. null si no esta en la lista. */
   weight: number | null;
-  /** Variacion a 5 jornadas, calculada de nuestro propio historico. */
+  /** Variacion a 5 jornadas en porcentaje, de nuestro propio historico. */
   changePct5d: number | null;
+  /**
+   * Variacion a 1 y 5 jornadas en las UNIDADES DE LA SERIE, no en porcentaje.
+   *
+   * Para los bonos es lo unico que se puede leer: un 10 anios de 4,98 a 5,05
+   * son +7 puntos basicos. El porcentaje de un porcentaje no dice nada.
+   */
+  change1d: number | null;
+  change5d: number | null;
+  /** Cuantas jornadas de cierre llevamos guardadas. Con menos de 6 no hay 5d. */
+  dias: number;
 }
 
 export interface Earning {
@@ -103,11 +125,12 @@ export function saveQuotes(rows: Quote[]): void {
   if (rows.length === 0) return;
 
   const stmt = db().prepare(
-    `INSERT INTO global_quotes (symbol, label, kind, price, change_pct, ts)
-     VALUES (@symbol, @label, @kind, @price, @changePct, @ts)
+    `INSERT INTO global_quotes (symbol, label, kind, price, change_pct, ts, quote_ts, prev_close)
+     VALUES (@symbol, @label, @kind, @price, @changePct, @ts, @quoteTs, @prevClose)
      ON CONFLICT (symbol) DO UPDATE SET
        label = excluded.label, kind = excluded.kind, price = excluded.price,
-       change_pct = excluded.change_pct, ts = excluded.ts`,
+       change_pct = excluded.change_pct, ts = excluded.ts,
+       quote_ts = excluded.quote_ts, prev_close = excluded.prev_close`,
   );
 
   db().transaction((xs: Quote[]) => { for (const q of xs) stmt.run(q); })(rows);
@@ -132,16 +155,44 @@ export function saveDailyClose(rows: Quote[], day: string): void {
 }
 
 /** Variacion entre el precio de ahora y el cierre de hace 5 jornadas. */
-function cambio5d(symbol: string, price: number): number | null {
+/** El cierre guardado hace `atras` jornadas, o null si no llega el historico. */
+function cierreAtras(symbol: string, atras: number): number | null {
   const row = db()
     .prepare(
       `SELECT close FROM global_daily_close
-        WHERE symbol = ? ORDER BY day DESC LIMIT 1 OFFSET 5`,
+        WHERE symbol = ? ORDER BY day DESC LIMIT 1 OFFSET ?`,
     )
-    .get(symbol) as { close: number } | undefined;
+    .get(symbol, atras) as { close: number } | undefined;
+  return row ? row.close : null;
+}
 
-  if (!row || row.close === 0) return null;
-  return Number(((price / row.close - 1) * 100).toFixed(2));
+function cambio5d(symbol: string, price: number): number | null {
+  const antes = cierreAtras(symbol, 5);
+  if (antes === null || antes === 0) return null;
+  return Number(((price / antes - 1) * 100).toFixed(2));
+}
+
+/**
+ * Variacion ABSOLUTA, en las unidades de la propia serie.
+ *
+ * Hace falta porque un bono NO se lee en porcentaje. El 10 anios pasando de
+ * 4,98 a 5,05 es "+7 puntos basicos", que es como lo dice todo el mundo; el
+ * "+1,4%" que saldria de dividir es un porcentaje DE un porcentaje y no
+ * significa nada para nadie. El petroleo si se lee en porcentaje. Por eso se
+ * calculan las dos y cada tipo de fila enseña la suya.
+ */
+function cambioAbs(symbol: string, price: number, atras: number): number | null {
+  const antes = cierreAtras(symbol, atras);
+  if (antes === null) return null;
+  return Number((price - antes).toFixed(4));
+}
+
+/** Cuantas jornadas de cierre llevamos guardadas de ese simbolo. */
+function jornadasGuardadas(symbol: string): number {
+  const row = db()
+    .prepare('SELECT COUNT(*) AS n FROM global_daily_close WHERE symbol = ?')
+    .get(symbol) as { n: number };
+  return row.n;
 }
 
 export function saveEarnings(rows: Earning[]): void {
@@ -233,7 +284,14 @@ export function alphaSpend(n: number): void {
 export interface GlobalReport {
   /** Cotizaciones ya enriquecidas: nombre, peso en el QQQ y variacion a 5 dias. */
   quotes: Row[];
-  earnings: Array<Earning & { daysTo: number }>;
+  /**
+   * `at` y `hhmm` son la hora de CONVENCION (amc/bmo pasados a reloj de Nueva
+   * York), no un dato publicado. Van aqui para que la tabla de acciones diga
+   * exactamente la misma hora que la franja de alarmas.
+   */
+  earnings: Array<
+    Earning & { daysTo: number; at: number | null; hhmm: string | null; medido: HoraMedida | null }
+  >;
   news: NewsItem[];
   /** Cuando termino bien el ultimo refresco. null si nunca. */
   updatedAt: number | null;
@@ -427,7 +485,8 @@ function daysTo(date: string): number {
 export function globalReport(newsLimit = NEWS_MAX): GlobalReport {
   const crudas = db()
     .prepare(
-      `SELECT symbol, label, kind, price, change_pct AS changePct, ts
+      `SELECT symbol, label, kind, price, change_pct AS changePct, ts,
+              quote_ts AS quoteTs, prev_close AS prevClose
          FROM global_quotes ORDER BY kind, label`,
     )
     .all() as Quote[];
@@ -440,10 +499,16 @@ export function globalReport(newsLimit = NEWS_MAX): GlobalReport {
     name: COMPANY_NAMES[q.symbol] ?? q.label,
     weight: QQQ_WEIGHTS[q.symbol] ?? null,
     changePct5d: cambio5d(q.symbol, q.price),
+    change1d: cambioAbs(q.symbol, q.price, 1),
+    change5d: cambioAbs(q.symbol, q.price, 5),
+    dias: jornadasGuardadas(q.symbol),
   }));
 
   // Los resultados de los ultimos dias siguen interesando: el movimiento de
   // ayer se explica con lo que presentaron anteanoche.
+  const ajustesHora = getEarningsSettings();
+  const horas = horasMedidas();
+
   const earnings = (
     db()
       .prepare(
@@ -458,7 +523,23 @@ export function globalReport(newsLimit = NEWS_MAX): GlobalReport {
           ORDER BY date`,
       )
       .all() as Earning[]
-  ).map((e) => ({ ...e, daysTo: daysTo(e.date) }));
+  ).map((e) => {
+    // La misma hora de CONVENCION que usa la franja de arriba, calculada en el
+    // mismo sitio. Si cada pantalla se la inventara por su cuenta, la tabla y
+    // la alarma podrian decir horas distintas del mismo informe.
+    const at = momentoDe(e.date, e.when, ajustesHora, e.symbol, horas);
+    const ny = at === null ? null : new Date(at + marketOffsetAt(at) * 3_600_000);
+    return {
+      ...e,
+      daysTo: daysTo(e.date),
+      at,
+      medido: (e.when ?? '').toLowerCase().includes('bmo') ? null : (horas[e.symbol] ?? null),
+      hhmm:
+        ny === null
+          ? null
+          : `${String(ny.getUTCHours()).padStart(2, '0')}:${String(ny.getUTCMinutes()).padStart(2, '0')}`,
+    };
+  });
 
   // VENTANA DE DIAS, no solo un tope de filas. Con cien titulares diarios, un
   // LIMIT de 300 a secas seria "los ultimos tres dias" hoy y "el ultimo dia y

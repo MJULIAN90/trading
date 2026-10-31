@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ReactNode } from 'react';
 import {
   api,
   TIMEFRAMES,
@@ -61,10 +61,22 @@ function Replayer({
   id,
   offsetHours,
   prefs,
+  debajoDelGrafico,
 }: {
   id: number;
   offsetHours: number;
   prefs: ChartPrefs;
+  /**
+   * Lo que va JUSTO debajo de las velas, por delante de todo lo demas.
+   *
+   * Existe por las notas. Pegarlas al final del bloque las dejaba despues de
+   * la franja de tendencias (165 px) y del diagnostico (226 px): para
+   * escribir habia que bajar casi trescientos pixeles y el grafico ya no se
+   * veia, o sea el mismo problema que tenia la pestana aparte. El diagnostico
+   * se lee UNA vez al abrir la operacion; la nota se escribe mirando la vela.
+   * Manda la nota.
+   */
+  debajoDelGrafico?: ReactNode;
 }) {
   // La temporalidad arranca en la de los ajustes, pero se puede cambiar sin
   // guardarla: mirar una operacion en 4h un momento no deberia cambiar como se
@@ -125,6 +137,14 @@ function Replayer({
       {error && <div className="error">No se pudo cargar el grafico: {error}</div>}
       {!error && !data && <div className="empty">cargando grafico...</div>}
       {data && <TradeChart data={data} offsetHours={offsetHours} prefs={prefs} />}
+      {/* AQUI, pegado a las velas. Sin `data &&`: la nota tiene que poder
+          escribirse mientras el grafico todavia esta cargando. */}
+      {debajoDelGrafico}
+
+      {/* La franja de tendencias y el diagnostico van DEBAJO de la nota. Si
+          van delante, empujan el cuadro de texto 270 px hacia abajo -medido,
+          no estimado- y el grafico se sale de la pantalla justo cuando estas
+          escribiendo sobre el. */}
       {data && <TrendStrip trend={data.trend} pattern={data.pattern} direction={String(data.operation.direction)} />}
       {data && <Diagnosis data={data} />}
     </div>
@@ -283,7 +303,7 @@ function Detail({
   /** Para avisar al listado de que esta fila cambio de notas o etiquetas. */
   onNotesSaved: () => void;
 }) {
-  const [tab, setTab] = useState<'grafico' | 'lectura' | 'numeros' | 'notas' | 'observaciones'>('grafico');
+  const [tab, setTab] = useState<'grafico' | 'lectura' | 'numeros' | 'observaciones'>('grafico');
   const [reading, setReading] = useState<Narrative | null>(null);
   const flags = orderFlags(op);
 
@@ -309,18 +329,23 @@ function Detail({
       </div>
 
       {/* Las pestanas en columna a la izquierda y no en una fila arriba.
-          Son cinco y ocupaban una banda entera de alto justo encima del
-          grafico, que es lo que se mira; de lado no le quitan ni un pixel de
-          altura y encima se quedan visibles al bajar por una lista larga de
-          observaciones. */}
+          Ocupaban una banda entera de alto justo encima del grafico, que es
+          lo que se mira; de lado no le quitan ni un pixel de altura y encima
+          se quedan visibles al bajar por una lista larga de observaciones.
+
+          YA NO HAY PESTANA DE NOTAS. Las notas van DEBAJO del grafico, en la
+          misma vista. Escribir lo que ves obligaba a cambiar de pestana, o
+          sea a perder de vista justo aquello sobre lo que estabas
+          escribiendo: mirabas el grafico, cambiabas, y a mitad de frase ya no
+          te acordabas de en que vela estaba la mecha. Ahora se mira y se
+          escribe sin mover nada. */}
       <div className="detail-body">
         <nav className="tabs lateral">
-          {(['grafico', 'lectura', 'numeros', 'notas', 'observaciones'] as const).map((t) => (
+          {(['grafico', 'lectura', 'numeros', 'observaciones'] as const).map((t) => (
             <button key={t} className={tab === t ? 'on' : ''} onClick={() => setTab(t)}>
-              {t === 'grafico' ? 'Grafico'
+              {t === 'grafico' ? <>Grafico</>
                 : t === 'lectura' ? 'Lectura'
                 : t === 'numeros' ? 'Numeros'
-                : t === 'notas' ? 'Notas'
                 : <>Observaciones <span className="n">{flags.length}</span></>}
             </button>
           ))}
@@ -329,12 +354,21 @@ function Detail({
         <div className="detail-pane">
           {/* La clave fuerza a React a reconstruir el grafico al cambiar de
               operacion, en vez de reutilizar el anterior con datos nuevos. */}
-          {tab === 'grafico' && <Replayer key={op.id} id={op.id} offsetHours={offsetHours} prefs={prefs} />}
+          {tab === 'grafico' && (
+            <Replayer
+              key={op.id}
+              id={op.id}
+              offsetHours={offsetHours}
+              prefs={prefs}
+              debajoDelGrafico={
+                <div className="notas-bajo-grafico">
+                  <TradeNotes key={op.id} operationId={op.id} prefs={prefs} onSaved={onNotesSaved} />
+                </div>
+              }
+            />
+          )}
           {tab === 'lectura' && (reading ? <Reading narrative={reading} /> : <div className="empty">leyendo la operacion...</div>)}
           {tab === 'numeros' && <Numbers op={op} />}
-          {tab === 'notas' && (
-            <TradeNotes key={op.id} operationId={op.id} prefs={prefs} onSaved={onNotesSaved} />
-          )}
 
           {tab === 'observaciones' && (
             <>

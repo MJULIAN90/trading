@@ -121,7 +121,7 @@ funciona igual**: solo esa pestaña se queda vacía.
 | | Dónde | Qué trae | Límite gratuito |
 |---|---|---|---|
 | **Finnhub** | <https://finnhub.io/register> | cotizaciones, titulares y calendario de resultados | 60 peticiones **por minuto**, sin tope diario |
-| **Alpha Vantage** | <https://www.alphavantage.co/support/#api-key> | petróleo (WTI y Brent) y tipos del Tesoro a 10 y 30 años | **25 peticiones al día**, y 1 por segundo |
+| **Alpha Vantage** | <https://www.alphavantage.co/support/#api-key> | petróleo (WTI y Brent) y tipos del Tesoro a 5, 10 y 30 años | **25 peticiones al día**, y 1 por segundo |
 
 ```ini
 FINNHUB_API_KEY=tu_clave
@@ -405,6 +405,33 @@ realidad.
 **Una posición abierta no aparece hasta que se cierra.** Su resultado todavía
 no existe.
 
+#### El resultado lo calculamos nosotros, no lo copiamos
+
+Quantower escribe un `gross_pnl` en cada ejecución, y durante meses el diario se
+limitó a sumarlo. **Ese dato llega incompleto.** El 28 de octubre de 2026, al
+cerrar cuarenta contratos a mercado en dos segundos, Quantower dejó el PnL a
+`NULL` en cuatro ejecuciones que sí cerraban posición. El diario decía
+**2.113,00 $** y el saldo del bróker **1.490,50 $**: los **622,50 $** de esos
+cuatro fills.
+
+Ahora el resultado sale del **flujo de caja del ciclo completo**. Como una
+operación empieza y acaba en plano, no hace falta emparejar entradas con
+salidas: cada venta ingresa `cantidad × precio`, cada compra lo paga, y lo que
+sobra es el resultado en puntos × contrato. Por el valor del punto, dólares.
+
+Es exacto donde `(salida − entrada)` falla: entradas parciales, promedios a la
+baja, salidas en veinte trozos y vueltas de largo a corto dentro del mismo
+ciclo. Y no depende de que el bróker se acuerde de rellenar una columna.
+
+Lo que decía Quantower **se guarda igual**, en `operations.broker_pnl`, para
+poder enfrentar las dos cifras. `pnpm run doctor` las compara y avisa si se
+separan; `npx tsx scripts/prueba-pnl.ts` comprueba el cálculo contra ocho casos
+preparados, incluido el del 28 de octubre.
+
+Si el contrato no está en la tabla de instrumentos no se conoce el valor del
+punto, y entonces **sí** se usa el número del bróker: calcular con un
+multiplicador inventado sería peor.
+
 ### El contexto: `context-YYYYMMDD.jsonl`
 
 El indicador `j_Flujo` escribe, al cerrar cada vela, el estado del mercado en
@@ -490,10 +517,31 @@ se parecen:
 | cotizaciones | Finnhub | 5 / 15 / 60 min según el reloj de NY | 11 peticiones |
 | titulares | Finnhub | igual | 1 petición |
 | calendario de resultados | Finnhub | cada `MARKET_SLOW_HOURS` | 10 peticiones, una por empresa |
-| petróleo y bonos | Alpha Vantage | **una vez al día** | 4 peticiones de las 25 |
+| petróleo y bonos | Alpha Vantage | **una vez al día** | 5 peticiones de las 25 |
 
 El petróleo y los bonos van una vez al día porque **son series diarias**: el
 valor de las 10:00 y el de las 16:00 son el mismo número.
+
+Son cinco series: WTI, Brent y el Tesoro a **5, 10 y 30 años**. El de 5 años
+está porque la curva sólo se lee entera: cuando el 5 sube más deprisa que el
+30, el susto del mercado es de **tipos a corto**, y eso se nota en el Nasdaq
+antes que en ningún otro sitio.
+
+En pantalla salen **en tabla**, no en fichas sueltas: serie, qué es, último,
+1d, 5d y cuántas jornadas de cierre llevamos guardadas. Dos detalles que no
+son cosméticos:
+
+- **Los bonos van en puntos básicos, no en porcentaje.** Un 10 años que pasa
+  de 4,98 a 5,05 ha subido **7 pb**. El «+1,4 %» que saldría de dividir es un
+  porcentaje *de* un porcentaje y no lo usa nadie. El petróleo sí va en %.
+- **Los bonos no se pintan de verde ni de rojo.** En un bono, subir no es
+  bueno: un 10 años al alza es viento en contra del Nasdaq. El color diría lo
+  contrario de lo que dice el texto de al lado.
+
+Las dos variaciones se calculan con **nuestros propios cierres guardados**
+(`global_daily_close`), porque Alpha manda la serie diaria sin variación. Por
+eso la columna de histórico: hasta la sexta jornada el 5d **no existe**, y
+sale rayado en lugar de inventado.
 
 El calendario de resultados se pregunta **empresa por empresa** y no pidiendo
 el calendario entero de la bolsa. La llamada global devuelve miles de empresas,
@@ -649,6 +697,231 @@ aplica las reglas reales de Estados Unidos (segundo domingo de marzo, primer
 domingo de noviembre, a las 02:00 locales). Antes era una constante fija, y
 habría empezado a clasificar mal las sesiones el 1 de noviembre sin avisar.
 
+### Scalper: «¿y si saliera siempre en el mismo número de ticks?»
+
+Coge tus entradas tal cual —las mismas, en el mismo instante— y les quita tu
+gestión: objetivo fijo, stop fijo, y mira cuál tocaba primero recorriendo las
+velas de 1 m desde la entrada. Sale el acierto que tendría esa regla sobre tus
+operaciones, por killzone, con el objetivo y el stop ajustables.
+
+Tres cosas sostienen que el número signifique algo:
+
+- **El acierto solo no dice nada.** Objetivo 5 / stop 60 acierta el 71,6 % y
+  pierde 13,5 ticks por operación. Por eso el porcentaje nunca sale solo:
+  siempre con la expectativa al lado y del mismo tamaño.
+- **La vela de 1 m no siempre puede desempatar.** Si en el mismo minuto el
+  precio toca objetivo y stop, no hay forma de saber cuál fue primero. Se
+  cuentan como pérdida —la hipótesis conservadora— y **aparte**: con objetivo
+  10 y stop 10 son el 38 % de los casos, y ahí el resultado lo decide la regla
+  de desempate, no el mercado. Por encima del 15 % la pantalla lo dice.
+- **No hay mirada al futuro.** Solo velas posteriores a cada entrada, y la
+  entrada es la tuya con su hora real.
+
+`npx tsx scripts/prueba-scalper.ts` comprueba las tres con velas puestas a
+mano, incluida la de media hora antes que no debe contar.
+
+### El drawdown por killzone: «¿cuándo debo parar?»
+
+En la pestaña **Cuándo**, justo debajo del P&L por sesión, porque es la misma
+pregunta un nivel más abajo: una dice qué franja deja dinero y la otra cuánto
+hay que aguantar para cobrarlo. Tres bloques, ordenados de lo que se puede usar
+a lo que no.
+
+**1. El drawdown de cada franja.** Aritmética, nada que demostrar. El *drawdown*
+es cuánto bajaste desde tu mejor momento dentro de esa franja y ese día, con la
+cuenta empezando **plana**: si arranca en la primera operación, una franja que
+empieza perdiendo 300 sale con drawdown cero, que es justo la que más duele. Al
+lado va el **drawdown acumulado**, que es otra cosa: la curva de la franja
+encadenando todas sus jornadas. Una franja puede no haber tenido nunca un día
+horrible y llevar mil de drawdown a base de días malos pequeños.
+
+**2. Lo que esconde «Fuera».** Esto salió midiendo, y vale más que lo que se
+fue a buscar. Un tercio de las operaciones de octubre —193 de 573— cae en
+`OUTSIDE`, y **«Fuera» no es un sitio**: son cinco huecos entre killzones que
+se portan de forma opuesta.
+
+| Hora (NY) | Qué es | Ops | $/op |
+|---|---|---|---|
+| 00:00–02:00 | tras cerrar Asia | 37 | **+13,57** |
+| 05:00–09:30 | entre Londres y NY AM | 27 | +5,22 |
+| **11:00–12:00** | **entre NY AM y el almuerzo** | **50** | **−10,02** |
+| 13:00–13:30 | entre el almuerzo y NY PM | 30 | +2,58 |
+| 16:00–20:00 | entre NY PM y Asia | 49 | +8,44 |
+
+La hora que sigue al cierre de NY AM cuesta **−501 dólares** en 50 operaciones:
+la peor del mes con diferencia, y estaba escondida dentro de un cajón llamado
+«fuera» cuyo total es **+633**. Los huecos se deducen de las ventanas del
+indicador KillZones, así que si alguna vez las mueves ahí, se mueven solos.
+
+Relacionado y vale la pena saberlo: **la ventana de Asia del indicador acaba a
+medianoche**, no cruza. A las 00:01 ya estás en hueco. El comentario de
+`sessions.ts` dice lo contrario y la condición que lo implementaría (`h < 0`)
+no se cumple nunca, porque `marketHour` devuelve de 0 a 24. No se toca —las
+ventanas son las del indicador y el indicador está congelado— pero explica
+dónde acaban esas 37 operaciones de después de medianoche.
+
+**3. ¿Existe un nivel al que parar?** Inferencia, y la única que hay que
+demostrar. Mirar «cuando estuve 200 abajo, la franja acabó mal» no demuestra
+nada: acabó mal *por estar 200 abajo*, que es la misma frase dos veces. Lo
+único usable es lo que pasó **después** de cruzar el umbral, comparado con la
+media normal de esa misma franja. Y aun así falta la prueba: cada celda se
+contrasta **barajando 2.000 veces el orden** de las operaciones dentro de cada
+jornada, conservando exactamente las mismas operaciones. Barajar destruye
+cualquier «estar abajo predice lo siguiente» y deja intacto todo lo demás.
+
+Medido el 31 de octubre de 2026: **30 celdas probadas, cero supervivientes** a
+Benjamini-Hochberg al 10 %. La mejor es p = 0,013 y el listón del primer puesto
+es 0,0033. Tampoco hay dosis-respuesta —en «Fuera», el umbral de 50 sale −7,43
+y el de 100 sale +2,18—, y una regla que cambia de signo al mover el mando es
+un número suelto, no una regla. **Hipótesis número once, muerta como las ocho
+anteriores.**
+
+En esa tabla, **el color dice el signo, no si la celda significa algo**: verde
+es que seguir fue mejor que la media de la franja, rojo que fue peor. Es la
+única pantalla del diario donde las dos cosas no coinciden —hay celdas muy
+verdes con p = 0,9— así que lo que separa un hallazgo de un número bonito es el
+**p-valor** de debajo y el **✓**, que hoy no lleva ninguna.
+
+La regla de parada que **sí** vale no necesita estadística: el **límite de
+pérdida diaria** de Ajustes → Costes. Si lo pones, la primera tabla añade una
+columna con las veces que el drawdown de cada franja habría llegado a él. Eso no es
+inferir, es contar.
+
+`npx tsx scripts/prueba-drawdown.ts` comprueba las cuatro formas de que este
+panel mienta: el pico que no arranca en cero, el cruce en la última operación
+—ahí no seguiste, así que no puede contar como «seguir dio esto»—, la
+comparación sin línea base, y el p-valor con semilla aleatoria que cambiaría de
+color en cada recarga.
+
+### De cuándo es cada precio
+
+Finnhub manda, junto al precio, **la hora a la que se operó** (`t`). Antes se
+tiraba y se guardaba la hora de *nuestra* petición, así que a las siete de la
+mañana la tabla decía «actualizado hace dos minutos» enseñando el cierre de
+ayer. Ahora se guarda en `global_quotes.quote_ts` y debajo de cada precio sale
+en qué tramo cayó:
+
+| tramo | hora de Nueva York |
+|---|---|
+| sesión regular | 09:30 – 16:00 |
+| pre-mercado | 04:00 – 09:30 |
+| after | 16:00 – 20:00 |
+| fuera de horario | el resto |
+| cierre diario | la serie no trae hora (petróleo y bonos) |
+
+**Esto contesta solo si el plan gratuito trae pre-mercado y after**: si a las
+07:30 el precio sigue marcando el cierre de la sesión anterior, no los trae.
+No hace falta creerse la documentación de nadie — se ve en la tabla.
+
+El tramo se calcula **siempre con el reloj de Nueva York**, lo defina el
+mercado; lo que cambia con el ajuste de reloj es la hora que se escribe al
+lado, no el tramo.
+
+### La franja de resultados, y por qué la hora es una convención
+
+Pegada a la barra de filtros, visible desde **cualquier** pestaña, con dos
+avisos que dicen cosas distintas:
+
+- **Ámbar** — quién presenta en **3 días o menos**, con la hora y una cuenta
+  atrás que corre sola. Lo que queda más lejos vive en la pestaña News, en la
+  columna «Próx. resultados»: ahí es contexto, no un aviso.
+- **Rojo** — un resultado que salió **por debajo de lo esperado**, con el
+  desvío en porcentaje. Es lo que explica un desplome.
+
+**Ni Alpha Vantage ni Finnhub dan la hora**: dan el día y, como mucho, `bmo`
+(antes de abrir) o `amc` (después del cierre). Durante un tiempo la franja usó
+una **convención** única de 16:30 de Nueva York para todas. Esa convención
+**estaba mal para nueve de cada diez empresas**.
+
+La hora real sale de la **API pública de la SEC**, gratis y sin clave: cada 8-K
+con el ítem 2.02 («Results of Operations and Financial Condition») lleva un
+`acceptanceDateTime` con el segundo exacto en que entró en EDGAR. Medianas de
+los seis últimos informes, medidas el 31 de octubre de 2026:
+
+| | hora NY | rango |
+|---|---|---|
+| GOOGL / GOOG | **16:01** | 16:01–16:01 |
+| MU | 16:02 | 16:02–16:03 |
+| MSFT | 16:04 | 16:03–16:08 |
+| META | 16:05 | 16:03–16:13 |
+| AMZN | 16:13 | 16:05–16:25 |
+| TSLA | 16:13 | 16:06–16:41 |
+| AMD | 16:16 | 16:16–16:16 |
+| NVDA | 16:21 | 16:20–16:31 |
+| AAPL | **16:30** | 16:30–16:30 |
+
+**Lo que arregla, y no era un detalle.** Con 16:30 para todas, la alarma de
+«faltan 15 minutos» sonaba a las 16:15 — o sea **después** de que Google,
+Micron, Microsoft y Meta hubieran publicado ya. El aviso llegaba tarde justo en
+las que van más pegadas al cierre, y nada en pantalla lo decía.
+
+Ahora cada hora sale etiquetada: **«medida · 6»** cuando viene de EDGAR, con el
+rango en el aviso del ratón, y **«convención»** cuando no hay medición de esa
+empresa. Un rango ancho es información: GOOGL es puntual al minuto diez de diez
+veces; TSLA se mueve entre las 16:06 y las 16:41.
+
+Se vuelve a medir con:
+
+```
+node scripts/medir-horas-resultados.mjs        # mide y guarda
+node scripts/medir-horas-resultados.mjs --ver  # solo enseña
+```
+
+Una vez por trimestre basta. Guarda en `meta.earnings_hours`, que manda sobre
+la tabla del código. La SEC **exige identificarse** en el `User-Agent` o
+devuelve 403: ponlo en `SEC_CONTACT` del `.env`.
+
+> Tesla usa el mismo ítem 2.02 para las cifras de producción y entregas, que
+> publica sobre las 09:00. El script descarta las de la mañana: mezclarlas daba
+> una mediana de las 16:11 que no describía ninguna de las dos cosas.
+
+Para `bmo` sigue mandando la convención de **Ajustes → Avisos**: ninguna de las
+diez publica antes de abrir, así que no hay nada medido.
+
+La misma franja lleva una **tercera barra azul con el calendario económico**:
+los eventos T1 de la mesa y lo importado de Investing, dentro de **7 días**. Es
+una ventana más ancha que la de resultados a propósito: los T1 son mensuales
+—nóminas, IPC, FOMC—, así que con tres días la barra estaría vacía cuatro
+semanas de cada cinco y parecería rota. Lo que cae a más de tres días sale
+apagado; dentro de tres, encendido.
+
+Aquí **la hora es un dato, no una convención**: el calendario trae la hora
+exacta de publicación. Por eso esa barra no lleva la palabra «convención» y el
+aviso del ratón dice la ventana de silencio en vez de explicar de dónde sale la
+hora.
+
+Las dos agendas comparten cola de alarmas, recuerdo y modal, ordenadas por
+cercanía: si un informe y unas nóminas caen el mismo día, suena primero el que
+antes llega y el otro al cerrar ese modal. El color los separa — **ámbar** una
+cita de resultados, **azul** una del calendario, **rojo** un resultado que ya
+salió por debajo.
+
+Sobre esa hora se cuentan **cuatro alarmas**: a 1 día, 6 horas, 1 hora y 15
+minutos. Suenan con un pitido generado por el navegador —no hay ningún fichero
+de sonido que distribuir— y abren un modal que **no se quita solo**. Tres
+detalles que costaron sus pruebas:
+
+- Si abres el diario con el informe ya encima, suena **solo el aviso más
+  cercano** de los que te hayas perdido, no los cuatro seguidos.
+- Si dos empresas presentan a la vez, el segundo modal sale **al cerrar el
+  primero**. Marcar las dos como avisadas de golpe dejaba la segunda muda para
+  siempre.
+- La cuenta atrás corrige la diferencia entre el reloj del servidor y el del
+  navegador. Con el PC dos minutos adelantado, la alarma de los 15 sonaría a
+  los 17.
+
+`npx tsx scripts/prueba-resultados.ts` comprueba el cálculo con 25 casos,
+incluido el cambio de hora del 1 de noviembre y el `eps_actual = 0` que el
+proveedor pone en lo que todavía no ha presentado (leído como resultado,
+convierte a cualquier empresa pendiente en un desplome del 100 %).
+
+Para ver la franja y las alarmas sin esperar:
+
+```
+npx vite build -c vite.preview.ts
+# y abrir preview-out/index.html?min=20   (?min=10, ?min=2880, ?min=20&dos=1)
+```
+
 ---
 
 ## Cómo está hecho
@@ -656,7 +929,9 @@ habría empezado a clasificar mal las sesiones el 1 de noviembre sin avisar.
 ### Tablas
 
 - `fills` — ejecuciones crudas tal como vinieron del bróker
-- `operations` — operaciones reconstruidas, clasificadas por sesión killzone
+- `operations` — operaciones reconstruidas, clasificadas por sesión killzone.
+  `gross_pnl` lo calculamos desde los precios; `broker_pnl` es lo que sumaba
+  Quantower, guardado aparte para poder contrastar
 - `context_snapshots` — estado del mercado según los indicadores (JSON crudo)
 - `bars` — el contexto pasado a columnas tipadas; de aquí salen los gráficos
 - `economic_events` — calendario importado
@@ -754,6 +1029,7 @@ pantalla.
 - `review.ts` — las banderas objetivas (reentrada, racha, fuera de killzone…)
 - `narrative.ts` — las frases de la pestaña Lectura, armadas desde esos números
 - `scratch.ts` — salidas en plano y qué habría pasado aguantando
+- `sessionDrawdown.ts` — el drawdown dentro de cada killzone, y si existe un nivel al que parar
 - `notes.ts` — tus notas y etiquetas
 
 **Sobre el mercado, no sobre ti**

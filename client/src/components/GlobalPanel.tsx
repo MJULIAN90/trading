@@ -1,5 +1,5 @@
 import { Fragment, useEffect, useRef, useState } from 'react';
-import { num, signClass } from '../format';
+import { dateTime, faseDeCotizacion, hora as horaDelReloj, num, signClass, zonaCorta, type FaseCotizacion } from '../format';
 import { useSort } from '../sortable';
 
 /**
@@ -22,12 +22,26 @@ type QuoteKind = 'materia' | 'bono' | 'indice' | 'accion';
 interface Row {
   symbol: string; label: string; kind: QuoteKind;
   price: number; changePct: number | null; ts: number;
+  /** Variacion a 1 y 5 jornadas en las unidades de la serie, no en %. */
+  change1d: number | null;
+  change5d: number | null;
+  /** Jornadas de cierre guardadas. Con menos de 6 no hay 5d. */
+  dias: number;
+  /** Cuando COTIZO, segun el proveedor. null = no lo dice. */
+  quoteTs: number | null;
+  prevClose: number | null;
   name: string; weight: number | null; changePct5d: number | null;
 }
 interface Earning {
   symbol: string; name: string; date: string; when: string | null;
   epsEstimate: number | null; epsActual: number | null;
   revenueEstimate: number | null; revenueActual: number | null; daysTo: number;
+  /** Instante de CONVENCION del informe, epoch ms. null si no se pudo calcular. */
+  at: number | null;
+  /** "16:01", hora de Nueva York. */
+  hhmm: string | null;
+  /** null = convencion. Si no, de cuantos informes sale y con que rango. */
+  medido: { hhmm: string; n: number; rango: string } | null;
 }
 interface NewsItem {
   id: string; ts: number; headline: string; source: string | null;
@@ -77,9 +91,56 @@ const KIND_LABEL: Record<QuoteKind, string> = {
   materia: 'Materias primas', bono: 'Bonos EE.UU.', indice: 'Indices', accion: 'Acciones',
 };
 
-const hora = (ms: number) => new Date(ms).toLocaleString('es', { day: '2-digit', month: '2-digit', hour: '2-digit', minute: '2-digit' });
+// Pasa por `dateTime` y no por `toLocaleString` para que siga el reloj
+// elegido en Ajustes: con `toLocaleString` esta linea se quedaba en hora del
+// navegador aunque el resto de la aplicacion estuviera en hora de Nueva York.
+const hora = (ms: number) => dateTime(ms).slice(0, 11);
 
 /** Porcentaje con signo. null se pinta como raya, no como cero. */
+/**
+ * "hoy", "maniana", "en 3 dias", "ayer", "hace 2 dias".
+ *
+ * Antes salia el numero crudo, y los que ya habian presentado ponian cosas
+ * como "-1 dias", que hay que traducir mentalmente cada vez. Un signo menos no
+ * es una forma de decir "ya paso".
+ */
+function cuandoPresenta(dias: number): string {
+  if (dias === 0) return 'hoy';
+  if (dias === 1) return 'maniana';
+  if (dias === -1) return 'ayer';
+  return dias > 0 ? `en ${dias} dias` : `hace ${-dias} dias`;
+}
+
+/**
+ * Como se llama cada tramo en pantalla, y que significa.
+ *
+ * `desconocida` no es un fallo: las series de petroleo y bonos son DIARIAS y
+ * Alpha Vantage no da hora. Decir "cierre diario" es exacto; decir "en vivo"
+ * seria mentir sobre un dato que puede ser de ayer.
+ */
+const FASE_LABEL: Record<FaseCotizacion, string> = {
+  regular: 'sesion regular',
+  pre: 'pre-mercado',
+  post: 'after',
+  nocturno: 'fuera de horario',
+  finde: 'cierre del viernes',
+  desconocida: 'cierre diario',
+};
+
+const FASE_AYUDA: Record<FaseCotizacion, string> = {
+  regular: 'Precio operado durante la sesion de 09:30 a 16:00 de Nueva York.',
+  pre: 'Precio operado en el pre-mercado, entre las 04:00 y las 09:30 de Nueva York.',
+  post: 'Precio operado en el after, entre las 16:00 y las 20:00 de Nueva York.',
+  nocturno: 'Precio de fuera de horario: la ultima operacion antes de las 04:00 o despues de las 20:00 de Nueva York.',
+  finde: 'El mercado de contado lleva cerrado desde el viernes. Este es el ultimo precio de esa sesion.',
+  desconocida: 'Serie diaria: el proveedor da el valor del dia, no una hora. Puede ser el de ayer.',
+};
+
+/** "despues del cierre" / "antes de abrir", que es lo unico que da el proveedor. */
+function franja(when: string | null): string {
+  return (when ?? '').toLowerCase().includes('bmo') ? 'antes de abrir' : 'despues del cierre';
+}
+
 function pct(v: number | null) {
   if (v === null) return <span className="note">—</span>;
   return <span className={signClass(v)}>{v > 0 ? '+' : ''}{v.toFixed(2)}%</span>;
@@ -265,6 +326,14 @@ export function GlobalPanel() {
 
   const acciones = data?.quotes.filter((q) => q.kind === 'accion') ?? [];
 
+  // El telon de fondo, en el orden en que se lee: primero el crudo, luego la
+  // curva de tipos de menor a mayor plazo. Alfabeticamente saldria US10Y antes
+  // que US5Y y la curva no se entenderia.
+  const ORDEN_FONDO = ['WTI', 'BRENT', 'US5Y', 'US10Y', 'US30Y'];
+  const fondo = (data?.quotes ?? [])
+    .filter((q) => q.kind === 'materia' || q.kind === 'bono')
+    .sort((a, b) => ORDEN_FONDO.indexOf(a.symbol) - ORDEN_FONDO.indexOf(b.symbol));
+
   const tabla = useSort(
     acciones,
     {
@@ -316,6 +385,53 @@ export function GlobalPanel() {
   /** Cambiar de filtro vuelve al principio: la pagina 7 de otra busqueda no
    *  significa nada en esta. */
   const filtrar = (fn: () => void) => { fn(); setPagina(1); };
+
+  /**
+   * Las tarjetas de precios de un grupo.
+   *
+   * Es una funcion y no un bloque suelto porque ahora se pinta DOS VECES: el
+   * indice arriba, pegado a la tabla de acciones a la que acompaña, y el
+   * petroleo y los bonos ABAJO. No es orden alfabetico: el QQQ es el mismo
+   * mercado que operas y las diez empresas que lo mueven; el petroleo y los
+   * bonos son telon de fondo, se miran una vez al dia y no tienen por que
+   * empujar la tabla hacia abajo cada vez que abres la pestaña.
+   */
+  const tarjetas = (kinds: readonly QuoteKind[]) =>
+    kinds.map((k) => {
+      const filas = data.quotes.filter((q) => q.kind === k);
+      if (filas.length === 0) return null;
+      return (
+        <div key={k} style={{ marginBottom: 10 }}>
+          <div className="tag-grupo-titulo">{KIND_LABEL[k]}</div>
+          <div className="tiles compact">
+            {filas.map((q) => {
+              const f = faseDeCotizacion(q.quoteTs);
+              return (
+                // El tramo va en el `title` y no escrito en la baldosa: son
+                // fichas pequeñas y una tercera linea las rompe. En la tabla
+                // de acciones, que tiene sitio, si va escrito.
+                <div
+                  className="tile"
+                  key={q.symbol}
+                  title={
+                    FASE_AYUDA[f] +
+                    (q.quoteTs === null ? '' : ` Cotizo a las ${horaDelReloj(q.quoteTs)} ${zonaCorta()}.`)
+                  }
+                >
+                  <div className="k">{q.label}</div>
+                  <div className="v">{num(q.price, 2)}</div>
+                  <div className="n">
+                    {q.changePct === null
+                      ? <span className="note">{FASE_LABEL[f]}</span>
+                      : pct(q.changePct)}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      );
+    });
 
   return (
     <>
@@ -419,37 +535,17 @@ export function GlobalPanel() {
 
       {sub === 'metricas' && (
         <>
-          {/* Precios: materias primas, bonos e indices como tarjetas. Son pocos
-              y se consultan de un vistazo, no se comparan en tabla. */}
-          {(['materia', 'bono', 'indice'] as const).map((k) => {
-            const filas = data.quotes.filter((q) => q.kind === k);
-            if (filas.length === 0) return null;
-            return (
-              <div key={k} style={{ marginBottom: 10 }}>
-                <div className="tag-grupo-titulo">{KIND_LABEL[k]}</div>
-                <div className="tiles compact">
-                  {filas.map((q) => (
-                    <div className="tile" key={q.symbol}>
-                      <div className="k">{q.label}</div>
-                      <div className="v">{num(q.price, 2)}</div>
-                      <div className="n">
-                        {q.changePct === null
-                          ? <span className="note">cierre diario</span>
-                          : pct(q.changePct)}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            );
-          })}
+          {tarjetas(['indice'])}
 
+          {/* El aviso de "presentan en los proximos dias" se fue a la barra de
+              arriba, donde se ve desde cualquier pestaña y donde puede sonar
+              la alarma. Aqui se quedan los proximos mas lejanos, en su columna
+              de la tabla: ahi son contexto, no un aviso. */}
           {proximos.length > 0 && (
-            <div className="news-alert" style={{ marginBottom: 10 }}>
-              <b>Presentan resultados en los proximos 14 dias</b>
-              <span>
-                {proximos.map((e) => `${e.symbol} (${e.date.slice(8)}/${e.date.slice(5, 7)})`).join(' · ')}
-              </span>
+            <div className="note" style={{ marginBottom: 10 }}>
+              Presentan en los proximos 14 dias:{' '}
+              {proximos.map((e) => `${e.symbol} (${e.date.slice(8)}/${e.date.slice(5, 7)})`).join(' · ')}
+              . Los de tres dias o menos salen arriba, en la barra, con hora y alarma.
             </div>
           )}
 
@@ -462,11 +558,28 @@ export function GlobalPanel() {
                   <tabla.Th k="ticker">Ticker</tabla.Th>
                   <tabla.Th k="empresa" className="izq">Empresa</tabla.Th>
                   <tabla.Th k="peso">Peso QQQ %</tabla.Th>
-                  <tabla.Th k="precio">Precio</tabla.Th>
-                  <tabla.Th k="dia">1d %</tabla.Th>
-                  <tabla.Th k="cinco">5d %</tabla.Th>
-                  <th>Prox. resultados</th>
-                  <th>Resultados en</th>
+                  <tabla.Th
+                    k="precio"
+                    title="El ultimo precio que dio el proveedor, con la hora a la que se opero y en que tramo de la sesion cayo. No es necesariamente de ahora mismo."
+                  >
+                    Precio
+                  </tabla.Th>
+                  <tabla.Th
+                    k="dia"
+                    title="Cuanto se ha movido HOY respecto al cierre de ayer. Es la reaccion del dia."
+                  >
+                    1d %
+                  </tabla.Th>
+                  <tabla.Th
+                    k="cinco"
+                    title="Cuanto se ha movido en las ultimas CINCO jornadas. Es la tendencia de la semana, calculada con nuestros propios cierres guardados."
+                  >
+                    5d %
+                  </tabla.Th>
+                  <th title="Fecha y hora de convencion del proximo informe de resultados">
+                    Prox. resultados
+                  </th>
+                  <th>Cuando</th>
                 </tr>
               </thead>
               <tbody>
@@ -478,17 +591,89 @@ export function GlobalPanel() {
                       <td><b>{q.symbol}</b></td>
                       <td className="izq">{q.name}</td>
                       <td className="note">{q.weight === null ? '—' : q.weight.toFixed(1)}</td>
-                      <td>{num(q.price, 2)}</td>
+                      {/* El precio, y DEBAJO de donde sale. Un numero suelto
+                          no distingue "operado hace un minuto" de "el cierre
+                          de ayer", y a las siete de la mañana eso es
+                          exactamente lo que estas mirando. */}
+                      <td className="precio-celda">
+                        {num(q.price, 2)}
+                        {(() => {
+                          const f = faseDeCotizacion(q.quoteTs);
+                          return (
+                            <span className={`cotiz ${f}`} title={FASE_AYUDA[f]}>
+                              {FASE_LABEL[f]}
+                              {q.quoteTs !== null && ` · ${horaDelReloj(q.quoteTs)} ${zonaCorta()}`}
+                            </span>
+                          );
+                        })()}
+                      </td>
                       <td>{pct(q.changePct)}</td>
                       <td>{pct(q.changePct5d)}</td>
-                      <td className="note">{e ? e.date : '—'}</td>
-                      <td className={inminente ? 'neg' : 'note'}>{e ? `${e.daysTo} dias` : '—'}</td>
+                      <td className="note">
+                        {e ? (
+                          <>
+                            {e.date}
+                            {e.at !== null && (
+                              // Subrayado de puntos, como todo lo que lleva
+                              // explicacion detras: la hora no la publica la
+                              // empresa, la ponemos nosotros.
+                              <u
+                                className="hora-convencion"
+                                title={
+                                  e.medido
+                                    ? `${franja(e.when)} · ${e.hhmm} en Nueva York · mediana de ${e.medido.n} informes reales (rango ${e.medido.rango}), medida sobre los 8-K de la SEC`
+                                    : `${franja(e.when)} · ${e.hhmm} en Nueva York · hora de convencion: no hay medicion de esta empresa. Se cambia en Ajustes → Avisos.`
+                                }
+                              >
+                                {horaDelReloj(e.at)} {zonaCorta()}
+                              </u>
+                            )}
+                          </>
+                        ) : (
+                          '—'
+                        )}
+                      </td>
+                      <td className={inminente ? 'neg' : 'note'}>
+                        {e ? cuandoPresenta(e.daysTo) : '—'}
+                      </td>
                     </tr>
                   );
                 })}
               </tbody>
             </table>
           )}
+
+          <div className="note" style={{ marginTop: 10 }}>
+            <b>Debajo de cada precio sale de cuando es.</b> No es lo mismo un precio operado
+            hace un minuto que el cierre de ayer, y a las siete de la mañana es justo lo que
+            estas mirando. La hora la da el proveedor con el propio precio, no la ponemos
+            nosotros.
+            <br />
+            <b>Si a esa hora nunca ves &quot;pre-mercado&quot; ni &quot;after&quot;</b>, es que
+            tu plan de Finnhub no los trae: el precio se queda clavado en el cierre hasta que
+            abre la sesion regular. No hace falta creerse la documentacion de nadie, se ve en
+            la tabla. El petroleo y los bonos ponen siempre <b>cierre diario</b> porque esas
+            series son diarias y Alpha Vantage no da hora.
+            <br />
+            <b>Cada cuanto se pide</b>: 5 minutos con el mercado abierto, 15 en pre-mercado y
+            after (04:00–09:30 y 16:00–20:00 de Nueva York) y 60 de noche y en fin de semana.
+            Se ajusta solo; los tres intervalos estan en el <code>.env</code>. El boton
+            &quot;refrescar ahora&quot; de arriba pide todo sin esperar al ciclo.
+          </div>
+
+          <div className="note" style={{ marginTop: 10 }}>
+            <b>1d %</b> es lo que se ha movido hoy respecto al cierre de ayer: la reaccion
+            del dia. <b>5d %</b> es lo mismo pero contra el cierre de hace cinco jornadas:
+            la tendencia de la semana.{' '}
+            <b>Juntas dicen si hoy continua o corrige.</b> Un -1 % con el 5d en -12 % es la
+            quinta sesion seguida cayendo; el mismo -1 % con el 5d en +7 % es una pausa.
+            <br />
+            Sirven por el <b>peso en el QQQ</b> de la columna de al lado: operas el Nasdaq
+            100, no acciones sueltas. Que NVDA pese 8,3 % y caiga un 4 % empuja el indice
+            casi tres veces mas que la misma caida en TSLA, que pesa 2,8 %. Y un 5d muy
+            negativo justo antes de que esa empresa presente resultados es posicionamiento,
+            no noticia: el mercado ya ha apostado.
+          </div>
 
           {acciones.length > 0 && acciones.every((q) => q.changePct5d === null) && (
             <div className="note" style={{ marginTop: 8 }}>
@@ -504,6 +689,95 @@ export function GlobalPanel() {
             QQQ ronda los 700. Lo que si coincide es la <b>variacion del dia</b>, que es
             lo que miras aqui. El valor del indice no lo da gratis ningun proveedor, y
             estimarlo multiplicando seria inventarselo.
+          </div>
+
+          {/* El telon de fondo, al final. Ni el petroleo ni los bonos se
+              operan aqui: explican el dia, no lo deciden, asi que no tienen
+              por que ser lo primero que ves al abrir la pestaña. */}
+          <h3 style={{ marginTop: 18 }}>Telon de fondo</h3>
+          <div className="note" style={{ marginBottom: 8 }}>
+            Ni el petroleo ni los bonos se operan aqui. Estan porque mueven al Nasdaq por
+            detras: <b>un 10 anios subiendo le quita aire a las tecnologicas</b> —descuenta mas
+            los beneficios futuros, que es de lo que viven— y el crudo marca por donde va la
+            inflacion que luego decide los tipos. La curva entera (5, 10 y 30 anios) dice ademas
+            si el mercado espera recorte o subida: cuando el 5 sube mas rapido que el 30, el
+            susto es de tipos a corto.
+          </div>
+
+          <table>
+            <thead>
+              <tr>
+                <th>Serie</th>
+                <th className="izq">Que es</th>
+                <th title="El ultimo valor publicado de la serie. Son series DIARIAS: puede ser el de ayer.">
+                  Ultimo
+                </th>
+                <th title="Variacion contra el cierre anterior que tenemos guardado.">1d</th>
+                <th title="Variacion contra el cierre de hace cinco jornadas.">5d</th>
+                <th title="Jornadas de cierre guardadas. Con menos de 6 la columna 5d no se puede calcular.">
+                  Historico
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              {fondo.map((q) => {
+                // UN BONO NO SE LEE EN PORCENTAJE. El 10 anios de 4,98 a 5,05
+                // son "+7 puntos basicos", que es como lo dice todo el mundo;
+                // el +1,4% que saldria de dividir es un porcentaje DE un
+                // porcentaje y no significa nada. El petroleo si va en %.
+                const esBono = q.kind === 'bono';
+                const var1 = esBono
+                  ? q.change1d === null ? null : `${q.change1d > 0 ? '+' : ''}${Math.round(q.change1d * 100)} pb`
+                  : q.change1d === null || q.price === q.change1d ? null
+                    : `${q.change1d > 0 ? '+' : ''}${num((q.change1d / (q.price - q.change1d)) * 100, 2)}%`;
+                const var5 = esBono
+                  ? q.change5d === null ? null : `${q.change5d > 0 ? '+' : ''}${Math.round(q.change5d * 100)} pb`
+                  : q.changePct5d === null ? null : `${q.changePct5d > 0 ? '+' : ''}${num(q.changePct5d, 2)}%`;
+
+                return (
+                  <tr key={q.symbol}>
+                    <td><b>{q.symbol}</b></td>
+                    <td className="izq">{q.label}</td>
+                    <td>
+                      {num(q.price, 2)}
+                      {esBono && <span className="note"> %</span>}
+                    </td>
+                    {/* EN LOS BONOS NO SE PINTA EL SIGNO. Verde y rojo aqui
+                        quieren decir "bueno" y "malo", y en un bono es al
+                        reves de lo que parece: un 10 anios SUBIENDO es un
+                        problema para el Nasdaq, justo lo que dice el parrafo
+                        de arriba. Pintarlo verde seria contradecirlo en la
+                        misma pantalla. El petroleo si lleva color, que ahi
+                        subir es subir. */}
+                    <td className={esBono ? '' : signClass(q.change1d ?? 0)}>
+                      {var1 ?? <span className="note">—</span>}
+                    </td>
+                    <td className={esBono ? '' : signClass(q.changePct5d ?? 0)}>
+                      {var5 ?? <span className="note">—</span>}
+                    </td>
+                    <td className="note">
+                      {q.dias} jornada{q.dias === 1 ? '' : 's'}
+                      {q.dias < 6 && <span className="note"> · faltan {6 - q.dias} para el 5d</span>}
+                    </td>
+                  </tr>
+                );
+              })}
+            </tbody>
+          </table>
+
+          <div className="note" style={{ marginTop: 8 }}>
+            <b>Los bonos van en puntos basicos, no en porcentaje.</b> Un 10 anios que pasa de
+            4,98 a 5,05 ha subido <b>7 pb</b>; decir &quot;+1,4 %&quot; seria un porcentaje de un
+            porcentaje y no lo usa nadie. El petroleo si va en porcentaje, que es como se mira.
+            <br />
+            Los bonos van <b>sin color</b> a proposito: en un bono subir no es bueno. Un 10 anios
+            al alza es viento en contra del Nasdaq, asi que el verde diria lo contrario de lo que
+            dice el parrafo de arriba. El petroleo si lleva color.
+            <br />
+            Las dos variaciones se calculan con <b>nuestros propios cierres guardados</b>, no las
+            da el proveedor: Alpha Vantage manda la serie diaria sin variacion. Por eso la
+            columna de historico — hasta la sexta jornada el 5d no existe, y sale rayado en vez
+            de inventado.
           </div>
 
           {/* ESTADO DE LAS FUENTES.

@@ -261,6 +261,45 @@ if (existsSync(journal)) {
       .map((t) => `${t}: ${rows(t) ?? 'no existe'}`)
       .join('\n');
     say(OK, 'Tablas', counts);
+
+    // NUESTRO PNL CONTRA EL DEL BROKER.
+    //
+    // `gross_pnl` lo calculamos desde los precios de los fills; `broker_pnl` es
+    // lo que suma Quantower. Deberian coincidir, y cuando no coinciden el que
+    // falla es el broker: el 28 oct 2026 dejo cuatro ejecuciones de cierre con
+    // el PnL a NULL y se perdieron 622,50 $ que la cuenta si cobraba.
+    //
+    // Por eso esto es un AVISO y no un FALLO: no hay nada que arreglar en la
+    // instalacion. Es el numero que explica por que el saldo del broker y el
+    // total del diario pueden no cuadrar, y conviene tenerlo a mano.
+    try {
+      const t = d
+        .prepare(
+          `SELECT COUNT(*) n,
+                  SUM(gross_pnl) nuestro,
+                  SUM(COALESCE(broker_pnl, gross_pnl)) broker,
+                  SUM(CASE WHEN broker_pnl IS NOT NULL
+                            AND ABS(gross_pnl - broker_pnl) > 0.005 THEN 1 ELSE 0 END) discrepan
+             FROM operations`,
+        )
+        .get();
+
+      if (t.n > 0) {
+        const dif = (t.nuestro ?? 0) - (t.broker ?? 0);
+        const linea =
+          `nuestro (desde los precios): ${(t.nuestro ?? 0).toFixed(2)} USD\n` +
+          `Quantower (gross_pnl):       ${(t.broker ?? 0).toFixed(2)} USD\n` +
+          `diferencia:                  ${dif.toFixed(2)} USD en ${t.discrepan} operacion(es)`;
+        if (t.discrepan > 0) {
+          say(WARN, 'El PnL del broker no cuadra con el calculado', linea);
+        } else {
+          say(OK, 'PnL calculado y PnL del broker coinciden', linea);
+        }
+      }
+    } catch {
+      say(WARN, 'Sin columna broker_pnl todavia', 'Se anade sola en la proxima ingesta.');
+    }
+
     d.close();
   } catch {
     /* ya se informo del binario nativo mas arriba */

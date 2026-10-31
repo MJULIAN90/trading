@@ -67,6 +67,23 @@ function migrate(target: Database.Database): void {
      WHERE account_id IS NULL
   `);
 
+  // --- El PnL del broker, guardado aparte del nuestro ------------------------
+  //
+  // `operations.gross_pnl` paso a calcularse con los PRECIOS de los fills, y ya
+  // no es la suma de lo que escribe Quantower. Esta columna guarda esa suma
+  // igualmente, intacta, por el mismo motivo por el que la polaridad de una
+  // etiqueta vive separada de su impacto medido: son dos fuentes y hay que
+  // poder enfrentarlas.
+  //
+  // No es teorico. El 28 oct 2026, cerrando 40 contratos a mercado en dos
+  // segundos, Quantower dejo `gross_pnl` a NULL en cuatro ejecuciones que SI
+  // cerraban posicion. El diario sumaba 2.113,00 y la cuenta decia 1.490,50:
+  // exactamente los -622,50 de esos cuatro fills. Sumar lo que da el broker no
+  // es mas seguro que calcularlo; es solo mas facil de creer.
+  if (!columns.has('broker_pnl')) {
+    target.exec('ALTER TABLE operations ADD COLUMN broker_pnl REAL');
+  }
+
   // --- Calendario: lo que trae Investing y un ICS no ------------------------
   //
   // Un ICS solo da hora y titulo. El JSON de Investing trae ademas la
@@ -136,7 +153,9 @@ function migrate(target: Database.Database): void {
       kind       TEXT NOT NULL,
       price      REAL NOT NULL,
       change_pct REAL,
-      ts         INTEGER NOT NULL
+      ts         INTEGER NOT NULL,
+      quote_ts   INTEGER,
+      prev_close REAL
     )
   `);
 
@@ -213,6 +232,21 @@ function migrate(target: Database.Database): void {
       error   TEXT
     )
   `);
+
+  // CUANDO COTIZO el precio, y el cierre anterior.
+  //
+  // `ts` dice cuando lo pedimos nosotros; `quote_ts` cuando se opero a ese
+  // precio. Con el mercado cerrado eso es la diferencia entre "hace dos
+  // minutos" y "ayer a las 16:00", y solo lo segundo es verdad.
+  {
+    const cols = new Set(
+      (target.prepare('PRAGMA table_info("global_quotes")').all() as Array<{ name: string }>).map(
+        (c) => c.name,
+      ),
+    );
+    if (!cols.has('quote_ts')) target.exec('ALTER TABLE global_quotes ADD COLUMN quote_ts INTEGER');
+    if (!cols.has('prev_close')) target.exec('ALTER TABLE global_quotes ADD COLUMN prev_close REAL');
+  }
 
   // Cierre de cada simbolo por jornada, que es lo que permite calcular la
   // variacion a 5 dias SIN pedirsela a nadie.

@@ -18,11 +18,14 @@ import { Operations } from './components/Operations';
 import { PatternPanel } from './components/PatternPanel';
 import { ScratchPanel } from './components/ScratchPanel';
 import { SettingsPanel } from './components/SettingsPanel';
-import { date, dateTime, num, pct, sessionLabel, setMarketOffset, signClass, signedUsd, ticks, usd } from './format';
+import { date, dateTime, num, pct, sessionLabel, setClock, setMarketOffset, signClass, signedUsd, ticks, usd, zonaLarga } from './format';
 import { TodayBand } from './components/TodayBand';
 import { useSort } from './sortable';
 import { AlignmentPanel } from './components/AlignmentPanel';
 import { Boundary } from './components/Boundary';
+import { EarningsStrip } from './components/EarningsStrip';
+import { ScalperPanel } from './components/ScalperPanel';
+import { SessionDrawdownPanel } from './components/SessionDrawdownPanel';
 import { GlobalPanel } from './components/GlobalPanel';
 
 function Tiles({ s, costs }: { s: Dashboard['summary']; costs: Dashboard['costs'] }) {
@@ -39,8 +42,8 @@ function Tiles({ s, costs }: { s: Dashboard['summary']; costs: Dashboard['costs'
     ['Expectancy (USD)', <span className={signClass(s.expectancy)}>{signedUsd(s.expectancy)}</span>, 'por operacion'],
     ['Loss streak', String(s.maxLossStreak), `mejor racha: ${s.maxWinStreak}`],
 
-    // El hoyo no sale de ninguna otra tarjeta: se puede tener esperanza
-    // positiva y aun asi quebrar por el camino si el hoyo es mas hondo que lo
+    // El drawdown no sale de ninguna otra tarjeta: se puede tener esperanza
+    // positiva y aun asi quebrar por el camino si el drawdown es mas hondo que lo
     // que tienes depositado.
     [
       'Max drawdown (USD)',
@@ -132,6 +135,7 @@ type Tab =
   | 'cuando'
   | 'conducta'
   | 'operaciones'
+  | 'scalper'
   | 'mercado'
   | 'costes'
   | 'calendario'
@@ -171,10 +175,13 @@ function FlagTable({ rows }: { rows: Array<{ code: string; title: string; count:
 }
 
 export default function App() {
-  // Mismo corte y misma base que ensena Quantower en la cuenta: dia natural
-  // (medianoche de Nueva York) y bruto. El selector de Base sigue ahi para
-  // mirar el neto cuando haga falta; el limite diario, en cambio, va siempre
-  // contra la jornada de mercado (18:00).
+  // Misma BASE que ensena Quantower en la cuenta: bruto. El selector de Base
+  // sigue ahi para mirar el neto cuando haga falta.
+  //
+  // El CORTE, en cambio, es el de mercado -18:00 de Nueva York- en todas
+  // partes, calendario incluido. Con el corte a medianoche aparecian domingos
+  // sueltos en el calendario, y ninguna mesa de fondeo cuenta asi: lo que abre
+  // el domingo por la tarde y cierra el lunes es la sesion del lunes.
   const [filters, setFilters] = useState<Filters>({ basis: 'gross' });
   const [tab, setTab] = useState<Tab>('resumen');
   const [data, setData] = useState<Dashboard | null>(null);
@@ -198,7 +205,15 @@ export default function App() {
   const load = useCallback(() => {
     api
       .dashboard(filters)
-      .then((d) => { setMarketOffset(d.marketOffsetHours); setData(d); setError(null); })
+      .then((d) => {
+        // El reloj ANTES de guardar los datos: si se hiciera despues, el
+        // primer pintado usaria el reloj anterior y las horas darian un salto
+        // visible al llegar el siguiente render.
+        setMarketOffset(d.marketOffsetHours);
+        setClock(d.chartPrefs.clock);
+        setData(d);
+        setError(null);
+      })
       .catch((e: Error) => setError(e.message));
 
     api
@@ -261,7 +276,7 @@ export default function App() {
       <div className="sub">
         {data
           ? `${data.count} operaciones${data.count && data.equity.length ? ` · hasta ${date(data.equity[data.equity.length - 1]!.ts)}` : ''} · ` +
-            `cifras en ${data.basis === 'net' ? 'NETO, con comisiones' : 'BRUTO'} · dia natural (medianoche NY) · hora de mercado`
+            `cifras en ${data.basis === 'net' ? 'NETO, con comisiones' : 'BRUTO'} · jornada de mercado (corte 18:00 NY) · ${zonaLarga()}`
           : 'cargando...'}
       </div>
 
@@ -305,6 +320,15 @@ export default function App() {
         <span className="live"><b>en vivo</b> · {live}</span>
       </div>
 
+      {/* Pegada a la barra y FUERA de las pestanas: un informe que sale dentro
+          de catorce minutos tiene que verse estes donde estes, y las alarmas
+          con sonido no pueden depender de que tengas abierta la pestana News.
+          Con su propio limite de errores, porque es lo ultimo que puede
+          permitirse tumbar la pantalla entera. */}
+      <Boundary nombre="resultados">
+        <EarningsStrip />
+      </Boundary>
+
       {error && <div className="error">No se pudo cargar: {error}</div>}
 
       {/* Elegir una cuenta y ver cero operaciones solo puede pasar ya por el
@@ -327,7 +351,7 @@ export default function App() {
           <div className="tabs main">
             {/* News va la SEGUNDA a proposito: es lo que se mira antes de
                 abrir, no un apendice al final de la fila. */}
-            {(['resumen', 'global', 'cuando', 'conducta', 'operaciones', 'mercado', 'costes', 'calendario', 'ajustes'] as const).map((t) => (
+            {(['resumen', 'global', 'cuando', 'conducta', 'operaciones', 'scalper', 'mercado', 'costes', 'calendario', 'ajustes'] as const).map((t) => (
               <button key={t} className={tab === t ? 'on' : ''} onClick={() => setTab(t)}>
                 {/* Los nombres dicen QUE HAY DENTRO, no como se llama por
                     dentro la variable. Dos que no lo hacian:
@@ -346,6 +370,7 @@ export default function App() {
                   : t === 'cuando' ? 'Horarios'
                   : t === 'conducta' ? 'Disciplina'
                   : t === 'operaciones' ? `Operaciones (${data.count})`
+                  : t === 'scalper' ? 'Scalper'
                   : t === 'mercado' ? 'Mercado'
                   : t === 'costes' ? 'Costes y recorrido'
                   : t === 'global' ? 'News'
@@ -448,6 +473,12 @@ export default function App() {
                 </div>
               </div>
 
+              {/* El drawdown va justo detras del P&L por sesion porque es la misma
+                  pregunta un nivel mas abajo: una dice que franja deja dinero y
+                  la otra cuanto hay que aguantar para cobrarlo. Separadas, la
+                  primera parece una recomendacion de donde operar. */}
+              <SessionDrawdownPanel data={data.sessionDrawdown} />
+
               <div className="panel">
                 <h2>P&amp;L por dia de la semana</h2>
                 <BarsChart rows={data.byWeekday} label={(k) => WEEKDAYS[Number(k)] ?? String(k)} />
@@ -502,6 +533,8 @@ export default function App() {
               refreshKey={refresco}
             />
           )}
+
+          {tab === 'scalper' && <ScalperPanel filters={filters} />}
 
           {tab === 'costes' && (
             <>

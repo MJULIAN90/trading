@@ -95,7 +95,8 @@ function ticksOf(op: Operation): { ticks: number | null; points: number | null; 
 
   // Los ticks salen del PnL y no de (salida - entrada), porque con entradas
   // parciales los precios guardados son medias ponderadas y la resta no cuadra.
-  // El PnL del broker si es exacto, asi que se invierte desde ahi.
+  // El PnL si es exacto -se calcula con el flujo de caja de TODOS los fills del
+  // ciclo, no con esas dos medias-, asi que se invierte desde ahi.
   const perContract = op.max_quantity > 0 ? op.gross_pnl / (tickValue * op.max_quantity) : null;
 
   return {

@@ -34,7 +34,8 @@ CREATE TABLE IF NOT EXISTS operations (
   exit_price     REAL NOT NULL,
   max_quantity   REAL NOT NULL,
   fills_count    INTEGER NOT NULL,
-  gross_pnl      REAL NOT NULL,
+  gross_pnl      REAL NOT NULL,            -- calculado por NOSOTROS desde los precios
+  broker_pnl     REAL,                     -- lo que suma Quantower, para poder contrastar
   duration_sec   INTEGER NOT NULL,
   session        TEXT NOT NULL,            -- ASIA | LONDON | NY_AM | ... | OUTSIDE
   market_hour    REAL NOT NULL,            -- hora de mercado en decimal, para agrupar

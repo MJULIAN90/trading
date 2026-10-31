@@ -177,10 +177,31 @@ export function TradeNotes({
         {tags.length === 0 && <span className="note">sin etiquetas todavia</span>}
       </div>
 
-      <div className="note" style={{ marginTop: 2, marginBottom: 8 }}>
-        La <b>×</b> quita la etiqueta de esta operacion; la categoria sigue en la lista. Las
-        categorias solo se borran o se renombran desde Ajustes, y ahi tambien se marca cual es
-        buena y cual es mala.
+      {/* EL CUADRO DE TEXTO VA AQUI ARRIBA, NO AL FINAL.
+          Es lo que se escribe mirando la vela, asi que tiene que caber en la
+          misma pantalla que el grafico. Debajo de treinta botones de etiqueta
+          quedaba a un scroll de distancia, y para cuando llegabas ya no te
+          acordabas de en que vela estaba la mecha. El catalogo, en cambio, se
+          busca con la vista: da igual que haya que bajar a por el. */}
+      <textarea
+        value={note}
+        rows={4}
+        placeholder="Que viste, por que entraste, que harias distinto."
+        onChange={(e) => {
+          setNote(e.target.value);
+          scheduleSave(e.target.value, tags);
+        }}
+      />
+
+      <div className="op-meta">
+        {saved ? 'guardado' : 'se guarda solo'}
+        {data.updatedAt ? ` · ultima vez ${new Date(data.updatedAt).toLocaleString('es')}` : ''}
+      </div>
+
+      <div className="note" style={{ marginTop: 14, marginBottom: 8 }}>
+        La <b>×</b> de arriba quita la etiqueta de esta operacion; la categoria sigue en la
+        lista de abajo. Las categorias solo se borran o se renombran desde Ajustes, y ahi
+        tambien se marca cual es buena y cual es mala.
       </div>
 
       {/* El catalogo, en tres bloques. Buenas arriba y malas abajo porque al
@@ -270,20 +291,6 @@ export function TradeNotes({
         />
       </div>
 
-      <textarea
-        value={note}
-        rows={4}
-        placeholder="Que viste, por que entraste, que harias distinto."
-        onChange={(e) => {
-          setNote(e.target.value);
-          scheduleSave(e.target.value, tags);
-        }}
-      />
-
-      <div className="op-meta">
-        {saved ? 'guardado' : 'se guarda solo'}
-        {data.updatedAt ? ` · ultima vez ${new Date(data.updatedAt).toLocaleString('es')}` : ''}
-      </div>
     </div>
   );
 }

@@ -1,6 +1,7 @@
 import type { Database } from 'better-sqlite3';
 import { REAL_TRADING_SINCE } from '../config.js';
 import { db, openReadOnly } from '../db/index.js';
+import { instrumentOf } from '../domain/instruments.js';
 import { marketDate, marketHour, sessionOf } from '../domain/sessions.js';
 
 /**
@@ -34,6 +35,32 @@ export interface IngestResult {
   operationsNew: number;
   /** Operaciones que cambiaron de lado del corte de "operativa real". */
   restamped: number;
+  /** Operaciones cuyo PnL se recalculo desde los precios. */
+  repriced: number;
+}
+
+/**
+ * Resultado de una operacion a partir UNICAMENTE de los precios de sus fills.
+ *
+ * Una operacion es un ciclo de posicion completo: empieza en plano y acaba en
+ * plano. Eso hace que no haga falta emparejar entradas con salidas ni llevar
+ * FIFO: basta el flujo de caja. Cada venta ingresa `cantidad x precio` y cada
+ * compra lo paga; como al final no queda posicion abierta, lo que sobra ES el
+ * resultado, en puntos x contrato. Multiplicado por el valor del punto, dolares.
+ *
+ * Y es exacto incluso con entradas parciales, promedios a la baja y salidas en
+ * veinte trozos a precios distintos, que es justo donde `(salida - entrada)`
+ * deja de valer porque los precios guardados son medias ponderadas.
+ */
+function pnlDePrecios(cashflow: number, symbol: string): number | null {
+  const spec = instrumentOf(symbol);
+  if (!spec) return null;
+  return Number((cashflow * spec.pointValue).toFixed(2));
+}
+
+/** Flujo de caja de un fill, en puntos x contrato. Vender ingresa, comprar paga. */
+function flujo(side: number, quantity: number, price: number): number {
+  return (side === 0 ? -quantity : quantity) * price;
 }
 
 /**
@@ -70,10 +97,10 @@ export function ingestQuantower(tradesDbPath: string): IngestResult {
   const insertOp = target.prepare(
     `INSERT OR IGNORE INTO operations
        (symbol, opened_at, closed_at, direction, entry_price, exit_price, max_quantity,
-        fills_count, gross_pnl, duration_sec, session, market_hour, is_real,
+        fills_count, gross_pnl, broker_pnl, duration_sec, session, market_hour, is_real,
         account_id, first_fill_id, last_fill_id)
      VALUES (@symbol, @opened_at, @closed_at, @direction, @entry_price, @exit_price, @max_quantity,
-             @fills_count, @gross_pnl, @duration_sec, @session, @market_hour, @is_real,
+             @fills_count, @gross_pnl, @broker_pnl, @duration_sec, @session, @market_hour, @is_real,
              @account_id, @first_fill_id, @last_fill_id)`,
   );
 
@@ -106,7 +133,10 @@ export function ingestQuantower(tradesDbPath: string): IngestResult {
       openedAt: number;
       direction: 'LONG' | 'SHORT';
       entryPrice: number;
-      pnl: number;
+      /** Lo que suma Quantower. Se guarda, pero ya no es lo que manda. */
+      brokerPnl: number;
+      /** Flujo de caja acumulado del ciclo, en puntos x contrato. */
+      cash: number;
       fills: number;
       maxQuantity: number;
       accountId: string | null;
@@ -125,7 +155,8 @@ export function ingestQuantower(tradesDbPath: string): IngestResult {
           openedAt: ts,
           direction: side === 0 ? 'LONG' : 'SHORT',
           entryPrice: Number(r.price),
-          pnl: 0,
+          brokerPnl: 0,
+          cash: 0,
           fills: 0,
           maxQuantity: 0,
           // La cuenta se toma del fill que ABRE. Una operacion no cambia de
@@ -140,10 +171,15 @@ export function ingestQuantower(tradesDbPath: string): IngestResult {
       position += signed;
       current.fills++;
       current.maxQuantity = Math.max(current.maxQuantity, Math.abs(position));
-      if (r.gross_pnl_value !== null) current.pnl += Number(r.gross_pnl_value);
+      current.cash += flujo(side, qty, Number(r.price));
+      if (r.gross_pnl_value !== null) current.brokerPnl += Number(r.gross_pnl_value);
 
       if (position === 0) {
         operations++;
+        // Los precios mandan. El broker solo es el respaldo para un contrato
+        // que no este en la tabla de instrumentos, donde no sabemos el valor
+        // del punto y calcular seria inventar.
+        const propio = pnlDePrecios(current.cash, current.symbol);
         const info = insertOp.run({
           symbol: current.symbol,
           opened_at: current.openedAt,
@@ -153,7 +189,8 @@ export function ingestQuantower(tradesDbPath: string): IngestResult {
           exit_price: Number(r.price),
           max_quantity: current.maxQuantity,
           fills_count: current.fills,
-          gross_pnl: current.pnl,
+          gross_pnl: propio ?? current.brokerPnl,
+          broker_pnl: current.brokerPnl,
           duration_sec: Math.round((ts - current.openedAt) / 1000),
           session: sessionOf(current.openedAt),
           market_hour: marketHour(current.openedAt),
@@ -178,8 +215,100 @@ export function ingestQuantower(tradesDbPath: string): IngestResult {
   run();
 
   const resellado = restampReal();
+  const recalculadas = recomputarPnl();
 
-  return { fillsRead: rows.length, fillsNew, operations, operationsNew, restamped: resellado };
+  return {
+    fillsRead: rows.length,
+    fillsNew,
+    operations,
+    operationsNew,
+    restamped: resellado,
+    repriced: recalculadas,
+  };
+}
+
+/**
+ * Recalcula el PnL de TODAS las operaciones desde los precios, y devuelve
+ * cuantas cambiaron.
+ *
+ * Hace falta por lo mismo que `restampReal`: las operaciones entran con
+ * `INSERT OR IGNORE`, asi que una fila ya guardada no se vuelve a tocar nunca.
+ * Sin esto, el calculo nuevo solo valdria para lo que se opere a partir de
+ * ahora y las 573 operaciones de octubre se quedarian con la suma vieja.
+ *
+ * Reconstruye los MISMOS ciclos de posicion que la ingesta -mismo orden, misma
+ * regla de plano a plano- y cruza por `first_fill_id`, que es unico. Si un
+ * ciclo no encuentra su operacion no inventa ninguna: eso significaria que los
+ * ciclos ya no salen igual, y es mejor que se note al comparar los totales que
+ * arreglarlo a ciegas aqui.
+ */
+export function recomputarPnl(): number {
+  const target = db();
+
+  // El mismo orden que trae `USER_TRADES`: por hora, y a igualdad de hora por
+  // orden de insercion, que es el de llegada. Con cuarenta ejecuciones en el
+  // mismo segundo, cualquier otro desempate moveria las fronteras de los ciclos.
+  const fills = target
+    .prepare(
+      `SELECT trade_id, symbol, ts, price, quantity, side, gross_pnl
+         FROM fills ORDER BY ts ASC, rowid ASC`,
+    )
+    .all() as Array<{
+    trade_id: string;
+    symbol: string;
+    ts: number;
+    price: number;
+    quantity: number;
+    side: number;
+    gross_pnl: number | null;
+  }>;
+
+  const update = target.prepare(
+    'UPDATE operations SET gross_pnl = ?, broker_pnl = ? WHERE first_fill_id = ?',
+  );
+
+  let position = 0;
+  let cash = 0;
+  let broker = 0;
+  let primero: string | null = null;
+  let symbol = '';
+  let cambiadas = 0;
+
+  target.transaction(() => {
+    for (const f of fills) {
+      if (position === 0) {
+        primero = f.trade_id;
+        symbol = f.symbol;
+        cash = 0;
+        broker = 0;
+      }
+
+      position += f.side === 0 ? f.quantity : -f.quantity;
+      cash += flujo(f.side, f.quantity, f.price);
+      if (f.gross_pnl !== null) broker += f.gross_pnl;
+
+      if (position === 0 && primero !== null) {
+        const propio = pnlDePrecios(cash, symbol);
+        const anterior = target
+          .prepare('SELECT gross_pnl, broker_pnl FROM operations WHERE first_fill_id = ?')
+          .get(primero) as { gross_pnl: number; broker_pnl: number | null } | undefined;
+
+        if (anterior) {
+          const nuevo = propio ?? broker;
+          // Solo se escribe si de verdad cambia algo. Esto corre en cada pasada
+          // de la ingesta, cada quince segundos: 573 UPDATE que no cambian nada
+          // ensucian el WAL sin motivo.
+          if (anterior.gross_pnl !== nuevo || anterior.broker_pnl !== broker) {
+            update.run(nuevo, broker, primero);
+            cambiadas++;
+          }
+        }
+        primero = null;
+      }
+    }
+  })();
+
+  return cambiadas;
 }
 
 /**

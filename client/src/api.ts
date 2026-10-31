@@ -219,6 +219,69 @@ export interface FlagImpact {
   pnl: number;
 }
 
+/**
+ * El drawdown dentro de cada killzone, y si existe un nivel al que parar.
+ *
+ * La forma la dicta `src/domain/sessionDrawdown.ts`; ahi esta explicado por
+ * que la segunda pregunta necesita una prueba de permutacion y la primera no.
+ */
+export interface SessionDrawdownRow {
+  session: string;
+  days: number;
+  trades: number;
+  total: number;
+  perTrade: number;
+  drawdownMedian: number;
+  drawdownP75: number;
+  drawdownWorst: number;
+  drawdownWorstDay: string | null;
+  chainedDrawdown: number;
+  greenDays: number;
+  worstStreak: number;
+  overLimit: number | null;
+}
+
+/** Un hueco entre killzones: lo que el cajon de "Fuera" esconde dentro. */
+export interface GapRow {
+  from: number;
+  to: number;
+  label: string;
+  days: number;
+  trades: number;
+  total: number;
+  perTrade: number;
+  drawdownWorst: number;
+  greenDays: number;
+}
+
+export interface RecoveryCell {
+  session: string;
+  threshold: number;
+  days: number;
+  daysWithRest: number;
+  tradesAfter: number;
+  perTradeAfter: number | null;
+  baseline: number;
+  diff: number | null;
+  medianAfter: number | null;
+  p: number | null;
+  survives: boolean;
+  enough: boolean;
+}
+
+export interface SessionDrawdownReport {
+  rows: SessionDrawdownRow[];
+  gaps: GapRow[];
+  thresholds: number[];
+  cells: RecoveryCell[];
+  permutations: number;
+  minTradesAfter: number;
+  tested: number;
+  survivors: number;
+  fdr: number;
+  dailyLossLimit: number;
+}
+
 export interface Dashboard {
   marketOffsetHours: number;
   basis: 'net' | 'gross';
@@ -230,6 +293,7 @@ export interface Dashboard {
   news: NewsImpact;
   summary: Summary;
   bySession: Group[];
+  sessionDrawdown: SessionDrawdownReport;
   byDay: Group[];
   byWeekday: Group[];
   byHour: Group[];
@@ -314,6 +378,8 @@ export interface ChartPrefs {
   tagKind: Record<string, 'estrategia' | 'contexto'>;
   emas: EmaSetting[];
   showSessions: boolean;
+  /** Con que reloj se pintan las horas. Solo presentacion. */
+  clock: 'local' | 'mercado';
 }
 
 export const TIMEFRAMES = [1, 5, 15, 60, 240] as const;
@@ -609,4 +675,104 @@ export const api = {
     if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
     return (await res.json()) as TodayReport;
   },
+
+  earnings: (dias = 3) => get<EarningsReport>(`/api/earnings?days=${dias}`),
+
+  agendaEconomica: (dias = 7) =>
+    get<{ now: number; agenda: CitaEconomica[] }>(`/api/calendar/agenda?days=${dias}`),
+
+  scalper: (f: Filters, target: number, stop: number, horizon: number) =>
+    get<ScalperReport>(`/api/scalper?${qs(f, { target, stop, horizon })}`),
+
+  saveEarningsSettings: async (next: EarningsSettings) => {
+    const res = await fetch('/api/earnings/settings', {
+      method: 'PUT',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(next),
+    });
+    if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+    return (await res.json()) as EarningsSettings;
+  },
 };
+
+export interface ScalperFila {
+  session: string;
+  n: number;
+  aciertos: number;
+  hitPct: number | null;
+  ticksPorOp: number | null;
+  usdPorOp: number | null;
+  ambiguas: number;
+  ambiguasPct: number | null;
+  sinResolver: number;
+  sinVelas: number;
+  realTicksPorOp: number | null;
+  realMediana: number | null;
+}
+
+export interface ScalperReport {
+  config: { target: number; stop: number; horizonMin: number };
+  total: ScalperFila;
+  porSesion: ScalperFila[];
+  barrido: Array<{
+    target: number;
+    hitPct: number | null;
+    ticksPorOp: number | null;
+    ambiguasPct: number | null;
+  }>;
+}
+
+export interface EarningsSettings {
+  amcHour: string;
+  bmoHour: string;
+}
+
+export interface HoraMedida {
+  hhmm: string;
+  n: number;
+  rango: string;
+}
+
+export interface Cita {
+  symbol: string;
+  name: string;
+  date: string;
+  when: string | null;
+  at: number;
+  hhmm: string;
+  /** null = la hora es la convencion de Ajustes, no una medicion. */
+  medido: HoraMedida | null;
+  faltaMs: number;
+  epsEstimate: number | null;
+}
+
+export interface Sorpresa {
+  symbol: string;
+  name: string;
+  date: string;
+  epsEstimate: number;
+  epsActual: number;
+  desvioPct: number;
+  fallo: boolean;
+}
+
+export interface CitaEconomica {
+  id: string;
+  titulo: string;
+  at: number;
+  faltaMs: number;
+  impact: string | null;
+  currency: string | null;
+  forecast: number | null;
+  previous: number | null;
+  source: string | null;
+  silencioAntes: number;
+  silencioDespues: number;
+}
+
+export interface EarningsReport {
+  now: number;
+  agenda: Cita[];
+  sorpresas: Sorpresa[];
+  settings: EarningsSettings;
+}

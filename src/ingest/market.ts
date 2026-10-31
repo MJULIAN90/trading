@@ -194,7 +194,25 @@ function puedoGastarAlpha(n: number): boolean {
 
 // ----------------------------------------------------- FINNHUB: cotizaciones
 
-interface FhQuote { c?: number; dp?: number }
+/**
+ * Lo que contesta `/quote` de Finnhub.
+ *
+ *   c   precio de la ultima operacion
+ *   dp  variacion del dia en porcentaje
+ *   pc  cierre de la jornada anterior
+ *   t   CUANDO cotizo ese precio, en segundos epoch
+ *
+ * `t` es el campo que faltaba y el que decide si esto sirve de algo. Hasta
+ * ahora se guardaba la hora de NUESTRA peticion, asi que a las siete de la
+ * mañana la tabla decia "actualizado hace dos minutos" enseñando el cierre de
+ * ayer. Con `t` se puede decir la verdad: de cuando es el precio, y si cayo
+ * en sesion regular, en pre-mercado, en el after o de madrugada.
+ *
+ * Y de paso contesta solo a la pregunta de si el plan gratuito trae
+ * pre-mercado: si a las 07:30 el `t` sigue clavado en el cierre de ayer, no
+ * lo trae. No hay que creerse la documentacion de nadie.
+ */
+interface FhQuote { c?: number; dp?: number; pc?: number; t?: number }
 
 /**
  * Finnhub pide UN simbolo por peticion, asi que son once llamadas por ciclo
@@ -231,6 +249,10 @@ async function traerCotizaciones(): Promise<Quote[]> {
         price,
         changePct: num(q.dp),
         ts: now,
+        // Segundos a milisegundos. Si el proveedor no lo manda se queda en
+        // null, que NO es lo mismo que "ahora": significa "no se sabe".
+        quoteTs: q.t && q.t > 0 ? q.t * 1000 : null,
+        prevClose: num(q.pc),
       });
     }
   }
@@ -466,7 +488,12 @@ async function ultimoValor(url: string): Promise<number | null> {
 }
 
 /** Cuantas series pide este bloque. Es lo que se descuenta de la cuota. */
-export const SERIES_LENTAS = 4;
+/**
+  * Cuantas peticiones de Alpha Vantage gasta el bloque lento: WTI, Brent y los
+  * tres plazos del Tesoro. Es UNA VEZ AL DIA, asi que de las 20 del
+  * presupuesto quedan 15 para lo que de verdad cambia.
+  */
+export const SERIES_LENTAS = 5;
 
 interface Lento {
   quotes: Quote[];
@@ -483,6 +510,7 @@ async function traerLento(): Promise<Lento> {
   const piezas: Array<{ symbol: string; label: string; kind: Quote['kind']; url: string }> = [
     { symbol: 'WTI', label: 'WTI', kind: 'materia', url: `${ALPHA}?function=WTI&interval=daily&apikey=${ALPHA_API_KEY}` },
     { symbol: 'BRENT', label: 'Brent', kind: 'materia', url: `${ALPHA}?function=BRENT&interval=daily&apikey=${ALPHA_API_KEY}` },
+    { symbol: 'US5Y', label: 'EE.UU. 5 anios', kind: 'bono', url: `${ALPHA}?function=TREASURY_YIELD&interval=daily&maturity=5year&apikey=${ALPHA_API_KEY}` },
     { symbol: 'US10Y', label: 'EE.UU. 10 anios', kind: 'bono', url: `${ALPHA}?function=TREASURY_YIELD&interval=daily&maturity=10year&apikey=${ALPHA_API_KEY}` },
     { symbol: 'US30Y', label: 'EE.UU. 30 anios', kind: 'bono', url: `${ALPHA}?function=TREASURY_YIELD&interval=daily&maturity=30year&apikey=${ALPHA_API_KEY}` },
   ];
@@ -498,7 +526,14 @@ async function traerLento(): Promise<Lento> {
 
       // Sin variacion del dia a proposito: estas series son DIARIAS, el ultimo
       // valor puede ser el de ayer, e inventarle un porcentaje seria mentir.
-      out.push({ symbol: p.symbol, label: p.label, kind: p.kind, price: v, changePct: null, ts: now });
+      //
+      // `quoteTs` tambien a null: Alpha da la fecha de la serie pero no una
+      // hora, y poner una inventada haria que la tabla dijera "en vivo" sobre
+      // el cierre de ayer. Null se lee como "cierre diario", que es la verdad.
+      out.push({
+        symbol: p.symbol, label: p.label, kind: p.kind, price: v,
+        changePct: null, ts: now, quoteTs: null, prevClose: null,
+      });
     } catch (e) {
       errors.push(`${p.label}: ${(e as Error).message}`);
     }

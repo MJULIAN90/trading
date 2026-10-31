@@ -90,6 +90,62 @@ export function eventsBetween(from: number, to: number, onlyHigh = false): Econo
     .all(...params) as EconomicEvent[];
 }
 
+/**
+ * Lo que viene en el calendario economico, con la misma forma que la agenda de
+ * resultados, para que la franja de arriba pueda pintar las dos igual y
+ * compartir las alarmas.
+ *
+ * LA VENTANA ES DE SIETE DIAS Y NO DE TRES, al reves que los resultados, y es
+ * a proposito. Los resultados de diez empresas caen casi cada semana; los
+ * eventos T1 son mensuales -nominas, IPC, FOMC-, asi que con tres dias la
+ * franja estaria vacia cuatro semanas de cada cinco y pareceria rota. Con
+ * siete se ve venir el que te va a dejar sin operar, que es justo para lo que
+ * sirve.
+ *
+ * Aqui la hora SI es un dato: el calendario trae la hora exacta de cada
+ * publicacion. No hay convencion que explicar, al contrario que con los
+ * resultados.
+ */
+export interface CitaEconomica {
+  /** Clave estable para recordar que ya se aviso. */
+  id: string;
+  titulo: string;
+  /** Instante de la publicacion, epoch ms. Dato, no convencion. */
+  at: number;
+  faltaMs: number;
+  impact: string | null;
+  currency: string | null;
+  forecast: number | null;
+  previous: number | null;
+  /** De donde salio: la lista T1 de la mesa o el calendario importado. */
+  source: string | null;
+  /** Minutos de silencio antes y despues, segun la configuracion. */
+  silencioAntes: number;
+  silencioDespues: number;
+}
+
+export function agendaEconomica(dias = 7, ahora: number = Date.now()): CitaEconomica[] {
+  // Se siguen enseñando las de las ultimas horas: a las 10:15, que las
+  // nominas hayan salido hace cuarenta y cinco minutos explica la vela que
+  // tienes delante mejor que cualquier otra cosa.
+  const desde = ahora - 4 * 3_600_000;
+  const hasta = ahora + dias * 86_400_000;
+
+  return eventsBetween(desde, hasta).map((e) => ({
+    id: e.id,
+    titulo: e.title,
+    at: e.ts,
+    faltaMs: e.ts - ahora,
+    impact: e.impact,
+    currency: e.currency,
+    forecast: e.forecast,
+    previous: e.previous,
+    source: e.source,
+    silencioAntes: NEWS_BLACKOUT_BEFORE_MIN,
+    silencioDespues: NEWS_BLACKOUT_AFTER_MIN,
+  }));
+}
+
 /** Los proximos eventos a partir de ahora. */
 export function upcoming(limit = 10, from: number = Date.now()): EconomicEvent[] {
   return db()

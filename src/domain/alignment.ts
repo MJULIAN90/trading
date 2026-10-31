@@ -207,6 +207,27 @@ export interface AlignmentBucket {
   /** Cuantos marcos iban a favor: 0, 1, 2, 3 o 4. */
   favor: number;
   operations: number;
+  /**
+   * De esas operaciones, cuantas tenian AL MENOS UN marco explicitamente en
+   * contra.
+   *
+   * El cajon "0 a favor" mezclaba dos situaciones que no se parecen en nada:
+   * la pila claramente en tu contra, y la pila ENREDADA -las medias cruzadas,
+   * sin orden-, que no esta ni a favor ni en contra. De sus 287 operaciones
+   * con 0 a favor, 133 no tenian ni un solo marco en contra: era mercado sin
+   * estructura, no mercado en contra. Sumarlas en la misma fila convertia
+   * "entraste contra todo" en una frase que la mitad de las veces era falsa.
+   */
+  conPila: number;
+  /**
+   * CUALES de los cuatro marcos iban a favor, en cuantas operaciones cada uno.
+   *
+   * La primera tabla cuenta CUANTOS marcos estaban a favor, no cual. "2 de 4"
+   * no dice si eran el de 1m y el de 15m o el de 1h y el de 4h, y esa es la
+   * primera pregunta que se hace cualquiera al mirarla. Con esto, cada fila
+   * puede enseñar de que marcos habla de verdad.
+   */
+  porMarco: Record<FrameName, number>;
   wins: number;
   hitRate: number;
   netPnl: number;
@@ -226,11 +247,19 @@ export interface AlignmentReport {
 }
 
 function vacio(favor: number): AlignmentBucket {
-  return { favor, operations: 0, wins: 0, hitRate: 0, netPnl: 0, avgNet: 0, ticks: 0 };
+  return {
+    favor, operations: 0, conPila: 0,
+    porMarco: { m1: 0, m15: 0, h1: 0, h4: 0 },
+    wins: 0, hitRate: 0, netPnl: 0, avgNet: 0, ticks: 0,
+  };
 }
 
-function suma(b: AlignmentBucket, op: EnrichedOperation): void {
+function suma(b: AlignmentBucket, op: EnrichedOperation, read?: AlignmentRead): void {
   b.operations++;
+  if (read) {
+    if (read.contra > 0) b.conPila++;
+    for (const f of FRAMES) if (read[f.name] === 'favor') b.porMarco[f.name]++;
+  }
   if (op.netPnl > 0) b.wins++;
   b.netPnl += op.netPnl;
   b.ticks += op.ticks ?? 0;
@@ -268,7 +297,10 @@ export function alignmentBreakdown(ops: EnrichedOperation[]): AlignmentReport {
 
     analyzed++;
     symbol = op.symbol;
-    suma(buckets[read.favor]!, op);
+    // La lectura entera viaja con la operacion: sin ella, el cajon no puede
+    // decir ni CUALES marcos iban a favor ni si el resto estaban en contra o
+    // simplemente enredados.
+    suma(buckets[read.favor]!, op, read);
 
     for (const m of porMarco) {
       const estado = read[m.frame];

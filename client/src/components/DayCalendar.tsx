@@ -15,7 +15,7 @@ import { num, signedUsd } from '../format';
  */
 
 export interface DayStat {
-  date: string; // YYYY-MM-DD, dia natural (medianoche de Nueva York)
+  date: string; // YYYY-MM-DD, jornada de MERCADO (corte a las 18:00 de NY)
   count: number;
   pnl: number;
 }
@@ -29,7 +29,22 @@ const MONTHS = [
   'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre',
 ];
 
-const WEEKDAYS = ['L', 'M', 'X', 'J', 'V', 'S', 'D'];
+/**
+ * SOLO DE LUNES A VIERNES. Cinco columnas, no siete.
+ *
+ * Las fechas que entran aqui son jornadas de MERCADO -corte a las 18:00 de
+ * Nueva York-, y con ese corte no existe ni el sabado ni el domingo: lo
+ * operado el domingo por la tarde, cuando el mercado acaba de abrir, pertenece
+ * al lunes, igual que lo cuenta una mesa de fondeo. Pintar dos columnas que
+ * nunca se llenan gasta ancho en un panel de 300 px y, peor, invita a pensar
+ * que se opera el fin de semana.
+ *
+ * Si aun asi llegara una jornada en fin de semana, NO se esconde: sale un
+ * aviso debajo del calendario con la fecha y la cifra. Un dia con dinero que
+ * desaparece de la vista es el unico fallo que no se puede permitir aqui.
+ */
+const WEEKDAYS = ['L', 'M', 'X', 'J', 'V'];
+const COLUMNAS = WEEKDAYS.length;
 
 /**
  * Las fechas vienen como texto YYYY-MM-DD y son dias naturales, no instantes.
@@ -100,8 +115,20 @@ export function DayCalendar({
 
   const cells: Array<{ day: number | null; stat: DayStat | undefined }> = [];
   for (let i = 0; i < leading; i++) cells.push({ day: null, stat: undefined });
-  for (let d = 1; d <= daysInMonth; d++) cells.push({ day: d, stat: index.get(key(y, m, d)) });
-  while (cells.length % 7 !== 0) cells.push({ day: null, stat: undefined });
+  for (let d = 1; d <= daysInMonth; d++) {
+    // El fin de semana no ocupa casilla: se salta, y las semanas siguen
+    // cuadrando porque el hueco inicial ya lo pone `leading`.
+    if (weekdayMondayFirst(y, m, d) >= COLUMNAS) continue;
+    cells.push({ day: d, stat: index.get(key(y, m, d)) });
+  }
+  while (cells.length % COLUMNAS !== 0) cells.push({ day: null, stat: undefined });
+
+  // Lo que caiga en sabado o domingo con el corte de mercado no deberia
+  // existir. Si existe, es que pasa algo con el corte y hay que verlo.
+  const finDeSemana = days.filter((d) => {
+    const p = parts(d.date);
+    return p.y === y && p.m === m && weekdayMondayFirst(p.y, p.m, p.d) >= COLUMNAS;
+  });
 
   const monthTotal = days
     .filter((d) => d.date.startsWith(current))
@@ -164,6 +191,14 @@ export function DayCalendar({
           );
         })}
       </div>
+
+      {finDeSemana.length > 0 && (
+        <div className="cal-aviso">
+          Hay {finDeSemana.length} jornada{finDeSemana.length === 1 ? '' : 's'} en fin de semana, que
+          con el corte de las 18:00 no deberia existir:{' '}
+          {finDeSemana.map((d) => `${d.date} (${signedUsd(d.pnl, 0)})`).join(' · ')}
+        </div>
+      )}
 
       {selected.length > 0 && (
         <button className="cal-clear" onClick={onClear}>
