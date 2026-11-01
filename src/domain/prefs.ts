@@ -75,6 +75,30 @@ export interface ChartPrefs {
    * para anadir una. Las etiquetas ya puestas en operaciones no dependen de
    * esta lista: quitar una de aqui solo deja de sugerirla, no borra nada.
    */
+  /**
+   * Cuentas que cuentan para las metricas. Lista vacia = todas.
+   *
+   * Existe porque hay cuentas que solo fueron de pruebas: la 17011971 esta
+   * parada desde el 9 de octubre con -1.333 $, y si entra en las metricas por
+   * defecto, todas las cifras del tablero arrastran un periodo que ya no
+   * describe como opera. Filtrarla a mano cada vez que se abre la pagina es
+   * justo la clase de paso que se olvida.
+   *
+   * Es una LISTA y no una sola: al abrir una demo nueva se quiere medir junto
+   * con la de antes, no en lugar de ella. Marcar varias las suma; no marcar
+   * ninguna son todas.
+   *
+   * Solo cambia lo que viene SELECCIONADO: el desplegable de arriba sigue
+   * teniendo todas, y no se borra ni se esconde nada. Una cuenta que
+   * desaparece de la vista es como se pierde dinero de vista.
+   *
+   * No se valida contra las cuentas que existen, a proposito: el fichero de
+   * ajustes viaja entre ordenadores -es un proyecto compartido- y una cuenta
+   * que aqui no esta puede estar en la base del otro. Si no existe, el
+   * desplegable cae en "todas" solo.
+   */
+  metricAccounts: string[];
+
   noteTags: string[];
 
   /**
@@ -154,6 +178,9 @@ export const DEFAULT_CHART: ChartPrefs = {
   rightOffset: 6,
   entryShare: 0.70,
   clock: 'local',
+  // Vacia = todas. Arrancar filtrando sin que nadie lo haya pedido escondería
+  // operaciones sin avisar.
+  metricAccounts: [],
   noteTags: [
     'entre tarde',
     'entre pronto',
@@ -309,6 +336,11 @@ export function getChartPrefs(): ChartPrefs {
       tagPolarity: polarityOr(raw.tagPolarity),
       tagKind: kindOr(raw.tagKind),
       clock: raw.clock === 'mercado' ? 'mercado' : 'local',
+      // Se recortan y se acota la longitud, pero no se comprueba que existan:
+      // ver el comentario del campo.
+      metricAccounts: Array.isArray(raw.metricAccounts)
+        ? [...new Set(raw.metricAccounts.filter((x): x is string => typeof x === 'string').map((x) => x.trim()).filter(Boolean).map((x) => x.slice(0, 64)))].slice(0, 32)
+        : [],
     };
   } catch {
     return structuredClone(DEFAULT_CHART);
@@ -328,4 +360,37 @@ export function setChartPrefs(patch: Partial<ChartPrefs>): ChartPrefs {
   // escribir: asi la pantalla ve exactamente lo mismo que vera al recargar, y
   // un valor que el validador recorta se nota al momento y no manana.
   return getChartPrefs();
+}
+
+/**
+ * Que cuentas se filtran, dado lo que trae la peticion.
+ *
+ * Hay TRES estados y confundir dos de ellos rompe el desplegable:
+ *
+ *   - el parametro NO VIENE  -> las cuentas marcadas en Ajustes. Es el primer
+ *     dibujo, antes de que nadie toque nada.
+ *   - viene VACIO            -> todas. Es haber elegido "todas" a mano, y
+ *     tiene que ganarle al ajuste.
+ *   - viene con valores      -> esas, separadas por coma.
+ *
+ * Sin el caso del medio, la cadena vacia y la ausencia serian lo mismo: elegir
+ * "todas" en el desplegable volveria a filtrar por el ajuste y pareceria que
+ * el control no hace nada.
+ *
+ * Devuelve `undefined` para "todas", que es lo que `listOperations` entiende
+ * como "sin filtro". Una lista vacia seria un `IN ()` que no devuelve nada.
+ *
+ * Vive aqui y no en la capa HTTP para que se pueda probar sin levantar el
+ * servidor, y para que todas las rutas -informe, alineacion, scalper- usen la
+ * misma regla sin repetirla.
+ */
+export function resolverCuentas(query: Record<string, unknown>): string[] | undefined {
+  if (!('accounts' in query)) {
+    const guardadas = getChartPrefs().metricAccounts;
+    return guardadas.length > 0 ? guardadas : undefined;
+  }
+
+  const crudo = typeof query.accounts === 'string' ? query.accounts : '';
+  const lista = crudo.split(',').map((x) => x.trim()).filter(Boolean);
+  return lista.length > 0 ? lista : undefined;
 }

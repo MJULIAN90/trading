@@ -1,4 +1,4 @@
-import { barsWindow, normalizeSymbol } from './bars.js';
+import { barsWindow, normalizeSymbol, type Bar } from './bars.js';
 import { instrumentOf } from './instruments.js';
 import type { Operation } from './metrics.js';
 
@@ -53,13 +53,18 @@ export const DEFAULT_SCALPER: ScalperConfig = { target: 20, stop: 60, horizonMin
  * entrada a las 10:11:23 no tiene ninguna vela con marca entre 10:11:23 y
  * 10:12:00. Sin el margen, las operaciones cortas se quedaban sin velas.
  */
-export function simular(op: Operation, cfg: ScalperConfig): Resultado {
+export function simular(op: Operation, cfg: ScalperConfig, cargadas?: Bar[]): Resultado {
   const spec = instrumentOf(op.symbol);
   if (!spec) return 'sin_velas';
 
   const desde = op.opened_at - 60_000;
   const hasta = op.opened_at + cfg.horizonMin * 60_000;
-  const velas = barsWindow(normalizeSymbol(op.symbol), desde, hasta, 20_000);
+  // `cargadas` son las velas de ESTA operacion con ESTE horizonte, ya traidas
+  // por quien llama. Existe por el barrido: recorre catorce objetivos sobre
+  // las mismas 573 operaciones, y sin esto volvia a pedir y a construir las
+  // mismas 350 velas catorce veces. Tres millones de objetos para contestar
+  // una pregunta que solo cambia el precio del objetivo.
+  const velas = cargadas ?? barsWindow(normalizeSymbol(op.symbol), desde, hasta, 20_000);
   if (velas.length === 0) return 'sin_velas';
 
   const signo = op.direction === 'LONG' ? 1 : -1;
@@ -120,7 +125,13 @@ function mediana(xs: number[]): number | null {
   return s.length % 2 ? s[m]! : (s[m - 1]! + s[m]!) / 2;
 }
 
-function fila(session: string, ops: Operation[], cfg: ScalperConfig, previos?: Resultado[]): ScalperFila {
+function fila(
+  session: string,
+  ops: Operation[],
+  cfg: ScalperConfig,
+  previos?: Resultado[],
+  velasDe?: Map<number, Bar[]>,
+): ScalperFila {
   let aciertos = 0;
   let fallos = 0;
   let ambiguas = 0;
@@ -128,7 +139,7 @@ function fila(session: string, ops: Operation[], cfg: ScalperConfig, previos?: R
   let sinVelas = 0;
 
   ops.forEach((op, i) => {
-    const r = previos?.[i] ?? simular(op, cfg);
+    const r = previos?.[i] ?? simular(op, cfg, velasDe?.get(op.id));
     if (r === 'ganada') aciertos += 1;
     else if (r === 'perdida') fallos += 1;
     else if (r === 'ambigua') { ambiguas += 1; fallos += 1; }
@@ -182,7 +193,29 @@ export interface ScalperReport {
 const OBJETIVOS = [5, 10, 15, 20, 25, 30, 35, 40, 45, 50, 55, 60, 80, 100];
 
 export function scalperReport(ops: Operation[], cfg: ScalperConfig = DEFAULT_SCALPER): ScalperReport {
-  const resultados = ops.map((op) => simular(op, cfg));
+  // Las velas de cada operacion, UNA vez. El barrido de abajo recorre catorce
+  // objetivos sobre las mismas operaciones y solo cambia el precio del
+  // objetivo: la ventana de velas es identica en los catorce, porque depende
+  // de `horizonMin` y ese no se toca. Traerlas una vez y repartirlas quita
+  // trece de cada catorce consultas.
+  //
+  // Se reparte por `op.id` y no por posicion para que no dependa del orden en
+  // que `fila` recorra su lista, que no es la misma que la de aqui cuando se
+  // agrupa por killzone.
+  const velasDe = new Map<number, Bar[]>();
+  for (const op of ops) {
+    velasDe.set(
+      op.id,
+      barsWindow(
+        normalizeSymbol(op.symbol),
+        op.opened_at - 60_000,
+        op.opened_at + cfg.horizonMin * 60_000,
+        20_000,
+      ),
+    );
+  }
+
+  const resultados = ops.map((op) => simular(op, cfg, velasDe.get(op.id)));
 
   const porSesion = new Map<string, Operation[]>();
   const porSesionRes = new Map<string, Resultado[]>();
@@ -196,7 +229,7 @@ export function scalperReport(ops: Operation[], cfg: ScalperConfig = DEFAULT_SCA
   });
 
   const barrido: ScalperBarrido[] = OBJETIVOS.map((target) => {
-    const f = fila('TOTAL', ops, { ...cfg, target });
+    const f = fila('TOTAL', ops, { ...cfg, target }, undefined, velasDe);
     return { target, hitPct: f.hitPct, ticksPorOp: f.ticksPorOp, ambiguasPct: f.ambiguasPct };
   });
 
@@ -207,7 +240,7 @@ export function scalperReport(ops: Operation[], cfg: ScalperConfig = DEFAULT_SCA
     // Londres y ciento noventa fuera de horario, el orden alfabetico pone
     // arriba justo la fila de la que no se puede decir nada.
     porSesion: [...porSesion.entries()]
-      .map(([ses, lista]) => fila(ses, lista, cfg, porSesionRes.get(ses)))
+      .map(([ses, lista]) => fila(ses, lista, cfg, porSesionRes.get(ses), velasDe))
       .sort((a, b) => b.n - a.n),
     barrido,
   };

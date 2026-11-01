@@ -47,6 +47,47 @@ function setMeta(key: string, value: string): void {
 
 const CURSOR_KEY = 'bars_cursor_id';
 
+/** Contador que sube cada vez que se escriben velas. Ver `barsVersion`. */
+const VERSION_KEY = 'bars_version';
+
+/**
+ * La marca que invalida los caches que derivan de las velas.
+ *
+ * POR QUE EXISTE, que es la parte que importa. Seis modulos -patron, medias,
+ * rejilla, estadistica por franja, estudio y tendencia- construyen una serie
+ * cara a partir de TODAS las velas y la cachean. Para saber si la copia sirve
+ * preguntaban:
+ *
+ *   SELECT COUNT(*), MAX(ts) FROM bars WHERE symbol = ?
+ *
+ * Eso es un hash del contenido, y cuesta O(todas las velas): recorre las
+ * 139.316 entradas del indice del MNQ. Medido el 1 de noviembre: **6,72 ms por
+ * llamada**. Y la comprobacion se hacia UNA VEZ POR OPERACION, asi que el
+ * panel de patrones gastaba 4,1 s en preguntar si podia usar un caché que ya
+ * tenia construido. Comprobar la validez costaba diez veces mas que todo lo
+ * demas junto.
+ *
+ * La cifra que lo deja claro: leer una fila de `meta` son **0,01 ms**. Dos mil
+ * veces menos. Lo que hacia falta no era un hash del contenido sino un numero
+ * de version, que es O(1) y no crece con el historico.
+ *
+ * Se compone con `MAX(ts)` -que si es barato, 0,003 ms, porque es la cola del
+ * indice- por si la base se cambia por debajo: una copia restaurada puede
+ * traer el mismo contador con otras velas.
+ *
+ * EL LIMITE, dicho claro: esto vale porque `refreshBars` es el UNICO sitio que
+ * escribe en `bars`. Si alguna vez se insertan velas por otro camino, hay que
+ * subir el contador ahi tambien, o los caches se quedaran viejos sin avisar.
+ * Tocar `bars` a mano con SQL y no reiniciar es el unico caso que se cuela.
+ */
+export function barsVersion(symbol: string): string {
+  const v = getMeta(VERSION_KEY) ?? '0';
+  const m = db()
+    .prepare('SELECT MAX(ts) AS m FROM bars WHERE symbol = ?')
+    .get(normalizeSymbol(symbol)) as { m: number | null };
+  return `${v}:${m.m ?? 0}`;
+}
+
 /**
  * Pasa los snapshots nuevos a la tabla `bars`.
  *
@@ -64,6 +105,10 @@ export function refreshBars(force = false): { scanned: number; written: number }
   if (force) {
     target.exec('DELETE FROM bars');
     setMeta(CURSOR_KEY, '0');
+    // Sube aqui tambien: un `force` que no reimporte nada deja la tabla vacia
+    // y `written` a cero, y sin esto los caches seguirian sirviendo la serie
+    // de unas velas que ya no existen.
+    setMeta(VERSION_KEY, String(Number(getMeta(VERSION_KEY) ?? '0') + 1));
   }
 
   const cursor = Number(getMeta(CURSOR_KEY) ?? '0');
@@ -148,6 +193,12 @@ export function refreshBars(force = false): { scanned: number; written: number }
     }
 
     setMeta(CURSOR_KEY, String(lastId));
+
+    // Dentro de la transaccion: si la escritura se deshace, la version
+    // tampoco sube, y un caché construido con las velas de antes sigue siendo
+    // correcto. Fuera, un fallo a medias dejaria la version adelantada y se
+    // tiraria trabajo bueno — molesto pero no incorrecto— o peor, al reves.
+    if (written > 0) setMeta(VERSION_KEY, String(Number(getMeta(VERSION_KEY) ?? '0') + 1));
   });
 
   run();

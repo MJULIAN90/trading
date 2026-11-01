@@ -1,6 +1,6 @@
 import { db } from '../db/index.js';
 import type { EnrichedOperation } from './costs.js';
-import { normalizeSymbol } from './bars.js';
+import { normalizeSymbol, barsVersion } from './bars.js';
 
 /**
  * Alineacion con la pila de medias en VARIOS marcos a la vez.
@@ -112,11 +112,8 @@ function buildFrame(rows: Array<{ ts: number; c: number }>, minutes: number): Fr
 function seriesFor(symbol: string): Series {
   const sym = normalizeSymbol(symbol);
 
-  const s = db()
-    .prepare('SELECT COUNT(*) AS n, MAX(ts) AS m FROM bars WHERE symbol = ?')
-    .get(sym) as { n: number; m: number | null };
-
-  const stamp = `${s.n}:${s.m ?? 0}`;
+  // Ver `barsVersion` en `bars.ts`: la marca vieja recorria el indice entero.
+  const stamp = barsVersion(sym);
   const hit = cache.get(sym);
   if (hit && hit.stamp === stamp) return hit;
 

@@ -108,11 +108,14 @@ function EmaRow({
 
 export function SettingsPanel({
   prefs,
+  accounts,
   commission,
   dailyLimit,
   onSaved,
 }: {
   prefs: ChartPrefs;
+  /** Las cuentas que hay en la base, para elegir cual manda por defecto. */
+  accounts: Array<{ id: string; operations: number; from: number; to: number }>;
   commission: number;
   dailyLimit: number;
   onSaved: () => void;
@@ -408,6 +411,76 @@ export function SettingsPanel({
               <option value="mercado">Nueva York</option>
             </select>
           </label>
+
+          {/* CASILLAS Y NO UN DESPLEGABLE: son varias. Al abrir una demo nueva
+              se quiere medir JUNTO con la de antes, no en lugar de ella. */}
+          <div className="cuentas-metricas">
+            <div className="k">Cuentas que cuentan para las metricas</div>
+
+            <label className="cuenta-todas">
+              <input
+                type="checkbox"
+                checked={draft.metricAccounts.length === 0}
+                onChange={() => setDraft({ ...draft, metricAccounts: [] })}
+              />
+              <b>Todas</b>
+              <span className="note">sin marcar ninguna, entran todas</span>
+            </label>
+
+            {accounts.map((a) => {
+              const puesta = draft.metricAccounts.includes(a.id);
+              return (
+                <label key={a.id}>
+                  <input
+                    type="checkbox"
+                    checked={puesta}
+                    onChange={() =>
+                      setDraft({
+                        ...draft,
+                        metricAccounts: puesta
+                          ? draft.metricAccounts.filter((x) => x !== a.id)
+                          : [...draft.metricAccounts, a.id],
+                      })
+                    }
+                  />
+                  <b>{a.id}</b>
+                  <span className="note">
+                    {a.operations} ops · desde {new Date(a.from).toISOString().slice(0, 10)}
+                  </span>
+                </label>
+              );
+            })}
+
+            {/* Lo guardado que no esta en ESTA base se ensenia igual -los
+                ajustes viajan entre ordenadores- en vez de desaparecer y
+                perderse en cuanto se guarde. */}
+            {draft.metricAccounts
+              .filter((id) => !accounts.some((a) => a.id === id))
+              .map((id) => (
+                <label key={id}>
+                  <input
+                    type="checkbox"
+                    checked
+                    onChange={() =>
+                      setDraft({ ...draft, metricAccounts: draft.metricAccounts.filter((x) => x !== id) })
+                    }
+                  />
+                  <b>{id}</b>
+                  <span className="note">no esta en esta base</span>
+                </label>
+              ))}
+          </div>
+        </div>
+
+        <div className="note">
+          <b>Esto no esconde nada.</b> Marca que cuentas entran en las metricas al abrir;
+          el desplegable de arriba sigue teniendo todas y elegir &quot;todas&quot; ahi le
+          gana a lo marcado aqui. Marcar varias las <b>suma</b>: al abrir una cuenta demo
+          nueva se mide junto con la de antes, que es lo que hace comparable el historial.
+          <br />
+          Existe porque una cuenta que solo fue de pruebas arrastra un periodo que ya no
+          describe como operas, y dejarla dentro ensucia todas las cifras del tablero sin
+          que se note.
         </div>
 
         <div className="note">

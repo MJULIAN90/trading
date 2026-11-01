@@ -1,4 +1,7 @@
-# Diario de trading
+# Greenspot
+
+*(antes «Diario de trading»; el nombre viejo todavía aparece en el lanzador de
+Windows y en la descripción de `package.json`.)*
 
 Ingiere las operaciones de Quantower y el contexto de order flow de los
 indicadores propios, los normaliza en una base de datos propia y los expone por
@@ -637,6 +640,57 @@ Orden en la máquina nueva:
 Si el paso 3 falla porque los indicadores están en otra carpeta, pásale la
 ruta: `compilar-indicadores.cmd "D:\codigo"`.
 
+### Antes del primer push a GitHub
+
+Comprobado el 1 de noviembre de 2026 leyendo el índice de git: **hay seis ficheros en
+disco que git todavía no rastrea, y cuatro de ellos son imprescindibles.** Un clon
+limpio no compilaría.
+
+```bash
+git status --short          # los untracked salen con ??
+```
+
+| Fichero | Sin él |
+|---|---|
+| `client/src/globo.ts` | **no compila**: lo importan `Charts`, `OpTooltip` y `DayCalendar` |
+| `client/src/components/ReportPanel.tsx` | **no compila**: lo importa `App.tsx` |
+| `src/domain/report.ts` | **no compila**: lo importa el servidor |
+| `client/public/greenspot.png` + `icono.png` | compila, pero sale el texto «Greenspot» en vez del logo y la pestaña sin icono |
+| `scripts/prueba-ajustes.ts`, `prueba-informe.ts` | 86 de los 185 casos de prueba no existen |
+| `scripts/copiar-para-commit.py` | la rutina de finales de línea |
+
+```bash
+git add client/src/globo.ts client/src/components/ReportPanel.tsx \
+        src/domain/report.ts client/public/greenspot.png client/public/icono.png \
+        scripts/prueba-ajustes.ts scripts/prueba-informe.ts scripts/copiar-para-commit.py
+```
+
+**Y dos que hay que quitar:**
+
+```bash
+git rm --cached velas-compartidas.db     # 17 MB de binario dentro del repo
+git rm client/src/api-1.ts               # copia muerta de api.ts
+```
+
+`velas-compartidas.db` está **rastreado desde antes** de que `*.db` entrara en el
+`.gitignore`, y eso es la trampa: **el `.gitignore` no deja de rastrear lo que ya
+estaba dentro**, solo evita que entren ficheros nuevos. Son 17 MB que se suben en cada
+push y que además se regeneran con `node scripts/velas-compartidas.mjs`.
+
+**Lo que NO conviene subir si el repositorio es público:**
+`client/preview/dashboard.json` y `client/preview/informes.json` son los datos de
+prueba de la vista en frío, y son **tus operaciones de verdad**: números de cuenta,
+P&L día a día y las notas. Ahora mismo están sin rastrear, que es justo donde deben
+quedarse. Si el repositorio es privado, da igual. Para dejarlo explícito:
+
+```
+# .gitignore
+client/preview/*.json
+```
+
+El coste de dejarlos fuera es que `vite build --config vite.preview.ts` no funciona en
+un clon limpio hasta que se genera un fixture. El `build` normal no los toca.
+
 ---
 
 ## Configuración
@@ -719,6 +773,171 @@ Tres cosas sostienen que el número signifique algo:
 
 `npx tsx scripts/prueba-scalper.ts` comprueba las tres con velas puestas a
 mano, incluida la de media hora antes que no debe contar.
+
+### La marca: logo y favicon
+
+| Fichero | Qué es | Dónde sale |
+|---|---|---|
+| `client/public/greenspot.png` | 285 × 72, fondo transparente | la cabecera del lateral |
+| `client/public/icono.png` | 64 × 64 | la pestaña del navegador (`<link rel="icon">` en `client/index.html`) |
+
+Están en `client/public/`, que Vite copia tal cual a `web/` al compilar: se piden
+como `/greenspot.png` e `/icono.png`, sin importarlos desde ningún `.tsx`. Por eso
+**no dan error de compilación si faltan** — simplemente sale el texto alternativo
+«Greenspot» donde debería ir el logo. Si al clonar el proyecto ves eso, lo que falta
+son los dos PNG.
+
+El logo sustituyó al `<h1>` «Diario de trading» y manda el ancho del lateral, no al
+revés: se escala al hueco que queda tras el padding.
+
+### La navegacion: el lateral
+
+Las once secciones viven en un lateral agrupadas por **la pregunta que
+contestan**. Esa agrupación ya existía —la fila de pestañas estaba ordenada
+así— pero vivía en el orden de los botones y no se veía.
+
+```
+  Resumen
+  MERCADO        News · Calendario · Estudio
+  MI OPERATIVA   Informe · Operaciones
+  ANÁLISIS       Horarios · Disciplina · Scalper · Costes y recorrido
+  Ajustes
+```
+
+El corte que importa es el de los dos últimos grupos: **Mi operativa es lo que
+pasó; Análisis es qué habría pasado si**. Scalper y Costes son simulaciones
+sobre las mismas entradas, no resultados. Mezclarlas con el informe invita a
+leer una simulación como si fuera lo que ocurrió.
+
+«Mercado» pasó a llamarse **Estudio** y se fue con News y Calendario: ese panel
+no mira tus operaciones, es estudio de mercado puro. Estaba entre Scalper y
+Costes, donde nadie podía adivinarlo.
+
+Dos cosas que el lateral hizo posibles y antes no lo eran:
+
+- **La barra de filtros solo sale donde sirve.** News, Calendario, Estudio y
+  Ajustes no miran tus operaciones; la barra estaba ahí igualmente, invitando a
+  poner un filtro que no hacía nada.
+- **La sección va en la URL** (`#informe`): recargar devuelve donde estabas y se
+  puede guardar un marcador.
+
+En pantalla estrecha el lateral se pone arriba y en horizontal: 212 px de los
+400 de un móvil serían media pantalla para un menú.
+
+### Las cuentas que cuentan para las métricas
+
+Hay **dos mandos, y hacen cosas distintas a propósito**:
+
+| dónde | qué es | cuánto dura |
+|---|---|---|
+| Ajustes → Gráfico → **casillas de cuentas** | la marca permanente: las que entran en las métricas cada vez que abres la app | se guarda en la base |
+| barra de arriba → **Cuenta** | el filtro de ahora mismo, para probar combinaciones | solo esta sesión |
+
+El de arriba **también es de casillas** desde el 1 de noviembre. Era un desplegable
+nativo: con dos cuentas bastaba —o una, o la otra, o todas— pero con tres ya no, porque
+«las dos de verdad y la de pruebas no» no se puede pedir con un desplegable. El dominio
+ya lo admitía (`Filter.accounts` es una lista y la consulta usa `account_id IN (...)`);
+lo que faltaba era el mando. Se dibuja a mano porque el `multiple` de HTML es una caja
+con scroll que hay que usar con Ctrl y nadie la usa bien.
+
+Desmarcarlas todas vuelve a «todas», no a «ninguna»: un filtro vacío devolvería cero
+operaciones y el tablero saldría en blanco.
+
+Existe porque una cuenta que solo fue de pruebas arrastra un periodo que ya no describe
+cómo operas, y dejarla dentro ensucia todas las cifras sin que se note.
+
+**Son casillas y no un desplegable porque son varias.** Al abrir una cuenta demo nueva se
+quiere medir **junto** con la de antes, no en lugar de ella: marcarlas las suma. Sin
+marcar ninguna, entran todas.
+
+Se resuelve en el **servidor** (`resolverCuentas()` en `src/domain/prefs.ts`), no en la
+pantalla, por dos motivos: así vale para todas las rutas sin repetirlo, y el primer dibujo
+ya viene filtrado en vez de llegar entero y filtrarse después.
+
+Tiene **tres estados** y confundir dos de ellos rompe el mando:
+
+| lo que llega | qué se filtra |
+|---|---|
+| el parámetro **no viene** | las cuentas marcadas en Ajustes |
+| viene **vacío** | todas — es haber elegido «todas» a mano |
+| viene con valores | esas, separadas por coma |
+
+Sin el caso del medio, la cadena vacía y la ausencia serían lo mismo: elegir «todas»
+volvería a filtrar por el ajuste y parecería que el control no hace nada.
+
+Y hay una segunda trampa, del SQL: **una lista vacía significa «todas», pero traducida a
+ciegas sería `account_id IN ()`, que no devuelve nada** — el tablero saldría en blanco y
+parecería que no hay operaciones. `npx tsx scripts/prueba-ajustes.ts` comprueba las dos.
+
+El ajuste **no se valida** contra las cuentas que existen, a propósito: el fichero viaja
+entre ordenadores y una cuenta que aquí no está puede estar en la base del otro. Si no
+existe, el mando cae en «todas» solo y el selector de Ajustes la sigue mostrando
+marcada como «no está en esta base».
+
+### El informe: diario y semanal
+
+Pestaña **Informe**, con selector de periodo. Contesta las quince preguntas del bloque
+diario y semanal de `claude/preguntas-del-informe.md`. **No hace falta ningún modelo**:
+son consultas a la base y funciones que ya existían, así que la misma semana da la misma
+respuesta hoy y dentro de un año.
+
+**El reparto entre diario y semanal no es comodidad, es cuánta muestra hace falta.**
+
+- **Diario → solo aritmética.** Una jornada son cuarenta operaciones y una sola mala mueve
+  la media veinte dólares. Aquí no hay ni un porcentaje comparado contra nada ni un
+  p-valor.
+- **Semanal → ya se puede comparar** contra la semana anterior, pero sigue sin poder
+  concluirse nada.
+- **Mensual → a mano.** Decidir qué se prueba y con qué control no es algo que deba hacer
+  un panel que se refresca cada treinta segundos.
+
+**La cifra que manda es `ticks por contrato`**, y por eso es la segunda baldosa y no un
+detalle al final. Es la única que mide *cómo* opera sin mezclarlo con *cuánto* arriesga.
+En octubre el resultado en dólares fue **+$157,50** y el resultado por contrato fue
+**−$1.144**: la diferencia entera era el lotaje de una sola operación. Un informe que solo
+enseñe dólares esconde justo eso. La semana del 26 al 30 lo repite en pequeño: **+$450
+netos con −1,7 ticks por contrato**.
+
+**Hay histórico, y no hace falta guardarlo.** La barra de arriba lleva flechas para ir a la
+jornada o la semana anterior, un botón de **Calendario** con todas las jornadas operadas
+—de lunes a viernes, con su neto pintado— y un **Lo último** para volver. Cualquier día
+pasado se **recalcula** desde las operaciones y las velas, que siguen ahí: no se guarda
+ninguna copia del informe. Eso tiene una consecuencia que conviene tener clara — si el P&L
+se recalcula, como pasó el 31 de octubre con las cuatro ejecuciones a NULL, **el histórico
+se corrige solo** en vez de conservar la cifra equivocada.
+
+El fin de semana el panel abre en **Semanal**: el sábado y el domingo no hay jornada que
+mirar y lo que se quiere ver es la semana que acaba de cerrar. Es solo el valor inicial;
+el selector manda en cuanto se toca.
+
+Bloques, en orden de lo que se puede usar mañana a lo que solo se puede mirar:
+
+1. **La jornada / la semana** — neto, ticks por contrato, operaciones, lote máximo, lo que
+   queda del límite diario y el periodo anterior al lado.
+2. **El tamaño** — por encima y por debajo del lote mediano, y el reparto completo por
+   lotaje. Las filas con menos de 10 operaciones salen en gris.
+3. **Dónde operaste** — por killzone y por hueco entre killzones.
+4. **Las que movieron el periodo** — las cinco mejores y las cinco peores, con
+   `tk/contrato` (¿respetó el stop?) al lado de `Factor` (¿cuánto multiplicó el tamaño?) y
+   lo que habría costado con un contrato.
+5. **Lo que hubo que aguantar** — el drawdown por franja.
+6. **Solo en el semanal** — payoff contra el acierto de equilibrio, las entradas sin
+   ninguna media a favor (el veto medido, p = 0,0098) y las reentradas en caliente.
+
+Dos avisos que el panel lleva escritos: **el picado no sale** porque lo calcula el
+indicador en Quantower y el diario no lo guarda con cada operación; y el drawdown de esta
+pestaña va sobre el **neto**, mientras que el de Horarios va sobre el bruto, así que las
+dos cifras no tienen por qué coincidir.
+
+`npx tsx scripts/prueba-informe.ts` comprueba, entre otras cosas, las cuatro formas de que
+este panel mienta:
+los ticks multiplicados por los contratos —que convertirían la única cifra limpia en otra
+sucia—, el bruto contado con la comisión ya quitada (`applyCosts` **sobrescribe**
+`gross_pnl` con el neto), la semana rellenada con días de la anterior, y el límite diario
+calculado con el acumulado del periodo en vez de con la última jornada. Y la navegación:
+`prev` y `next` **no devuelven el mismo día** —hacia atrás sale el último del periodo
+anterior y hacia delante el primero del siguiente—, así que hay un caso que comprueba que
+ir y volver te deja donde estabas.
 
 ### El drawdown por killzone: «¿cuándo debo parar?»
 
@@ -1030,6 +1249,7 @@ pantalla.
 - `narrative.ts` — las frases de la pestaña Lectura, armadas desde esos números
 - `scratch.ts` — salidas en plano y qué habría pasado aguantando
 - `sessionDrawdown.ts` — el drawdown dentro de cada killzone, y si existe un nivel al que parar
+- `report.ts` — el informe diario y semanal: las preguntas que se contestan solas
 - `notes.ts` — tus notas y etiquetas
 
 **Sobre el mercado, no sobre ti**
@@ -1046,6 +1266,41 @@ Esta es la parte nueva y la más fiable, porque no depende de que acertaras:
 - `replay.ts` — arma el gráfico de una operación: velas, ejecuciones, killzones, tendencia, patrón y estadística de la franja
 - `prefs.ts` — las preferencias de presentación
 - `storage.ts` — tamaño de la base y purga del crudo
+
+### Cómo se mantiene rápido
+
+Lo que deriva de las velas —patrón de la vela de 15m, pila de medias, rejilla,
+estadística por killzone, estudio y tendencia— se construye una vez y se cachea.
+La parte delicada es **cuándo tirar ese caché**, y ahí había un error que costaba
+casi cinco segundos en cada carga del tablero.
+
+La marca de validez era `SELECT COUNT(*), MAX(ts) FROM bars WHERE symbol = ?`.
+Suena barato y no lo es: recorre el índice entero del símbolo. Medido con
+139.316 velas, **6,72 ms por llamada** — y la comprobación se hacía una vez por
+operación, así que el panel de patrones gastaba 4,1 s en preguntar si podía usar
+un caché que ya tenía. Construirlo eran 414 ms.
+
+Ahora la marca es `barsVersion()`: un contador en `meta` que sube `refreshBars`,
+compuesto con `MAX(ts)` por si la base se sustituye por debajo. Leerlo son
+**0,01 ms**, y no crece con el histórico.
+
+| | antes | después |
+|---|---|---|
+| `/api/dashboard` entero | 4.843 ms | **669 ms** |
+| patrón de la vela | 4.434 ms | 425 ms (24 ms cacheado) |
+| alineación con las medias | 4.132 ms | 232 ms |
+| scalper | 5.533 ms | 435 ms |
+
+El scalper era otra cosa: el barrido recorre catorce objetivos sobre las mismas
+operaciones y volvía a pedir las mismas velas catorce veces. Se cargan una vez.
+
+**Lo que no está resuelto**, y conviene saberlo: la reconstrucción en frío sigue
+recorriendo todo el histórico. Con 2,3 M de velas son 9,5 s. El siguiente paso es
+añadir por el final en vez de reconstruir.
+
+**Regla para cualquier cambio de rendimiento:** se vuelcan a JSON todas las
+salidas que dependen de las velas con el árbol viejo y con el nuevo y se comparan
+byte a byte. Si mueve una cifra, no es una optimización.
 
 ### 3. API y pantalla
 
@@ -1089,11 +1344,19 @@ apagado y la purga no se ejecuta sola.
 | `GET /api/behaviour` | reentradas rápidas tras pérdida y rachas |
 | `GET /api/alignment` | cómo te fue según con cuántos marcos estabas alineado |
 | `GET /api/today` | la jornada en curso contra el límite de pérdida |
+| `GET /api/report` | el informe diario o semanal (`periodo`, `ancla`) |
+| `GET /api/scalper` | el barrido de salidas fijas sobre las mismas entradas |
 | `GET /api/global` | contexto de mercado: lee de la base, **nunca** pide al proveedor |
 | `POST /api/global/refresh` | fuerza un ciclo y dice qué bloque falló |
 
 Filtros comunes por query string: `from`, `to` (YYYY-MM-DD, fecha de mercado),
-`session`, `includeTests=true`.
+`session`, `includeTests=true`, `accounts` (separadas por coma; **no mandarlo** y
+mandarlo **vacío** significan cosas distintas, ver «Las cuentas que cuentan para las
+métricas»).
+
+No está toda la lista: hay treinta y ocho rutas. Las que faltan son las de
+mantenimiento (`/api/bars/rebuild`, `/api/storage/prune`, `/api/calendar/import`) y las
+de escritura de notas, etiquetas y ajustes. `src/api/server.ts` es la lista de verdad.
 
 ---
 

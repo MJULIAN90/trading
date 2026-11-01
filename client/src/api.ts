@@ -380,6 +380,8 @@ export interface ChartPrefs {
   showSessions: boolean;
   /** Con que reloj se pintan las horas. Solo presentacion. */
   clock: 'local' | 'mercado';
+  /** Cuentas que cuentan para las metricas. Vacia = todas. */
+  metricAccounts: string[];
 }
 
 export const TIMEFRAMES = [1, 5, 15, 60, 240] as const;
@@ -532,7 +534,8 @@ export interface Filters {
   basis?: 'net' | 'gross';
   direction?: 'LONG' | 'SHORT';
   /** Cuenta del broker. Vacio = todas. */
-  account?: string;
+  /** Cuentas que entran. `undefined` = lo que diga Ajustes; vacia = todas. */
+  accounts?: string[];
   /** Solo ganadoras o solo perdedoras, sobre el neto. */
   result?: 'win' | 'loss';
   /** Varias sesiones a la vez. Vacio o ausente = todas. */
@@ -552,7 +555,10 @@ export function qs(filters: Filters, extra: Record<string, string | number> = {}
   if (filters.onlyFlagged) p.set('onlyFlagged', 'true');
   if (filters.basis) p.set('basis', filters.basis);
   if (filters.direction) p.set('direction', filters.direction);
-  if (filters.account) p.set('account', filters.account);
+  // `undefined` es "todavia no he elegido", y entonces NO se manda: el
+  // servidor aplica las cuentas marcadas en Ajustes. La lista vacia si se
+  // manda, porque es haber elegido "todas" y tiene que ganarle al ajuste.
+  if (filters.accounts !== undefined) p.set('accounts', filters.accounts.join(','));
   if (filters.result) p.set('result', filters.result);
   if (filters.sessions?.length) p.set('sessions', filters.sessions.join(','));
   if (filters.days?.length) p.set('days', filters.days.join(','));

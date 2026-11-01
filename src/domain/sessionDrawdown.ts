@@ -34,12 +34,11 @@ import { boundedCache } from './boundedCache.js';
  * hace falta.
  *
  * MEDIDO EL 31 DE OCTUBRE DE 2026, con 573 operaciones de 5 a 30 de octubre:
- * de 35 celdas, dos bajaron de p = 0,05 (NY_PM con umbral 200 y OUTSIDE con
- * umbral 50) y NINGUNA sobrevive a Benjamini-Hochberg. Con 35 pruebas, dos
- * aciertos al 5% es exactamente lo que da el azar. Ademas no hay dosis-
- * respuesta: en OUTSIDE el umbral de 50 sale -7,43 y el de 100 sale +2,18.
- * Una regla de parada que cambia de signo al mover el mando es un numero
- * suelto, no una regla.
+ * de 30 celdas con muestra suficiente, UNA baja de p = 0,05 (OUTSIDE con umbral
+ * 50, p = 0,013) y NINGUNA sobrevive a Benjamini-Hochberg: el liston del primer
+ * puesto con 30 pruebas es 0,0033. Ademas no hay dosis-respuesta: en OUTSIDE el
+ * umbral de 50 sale -7,43 y el de 100 sale +2,18. Una regla de parada que cambia
+ * de signo al mover el mando es un numero suelto, no una regla.
  *
  * O sea: hipotesis numero once, muerta como las ocho anteriores. El panel
  * existe igual, porque lo descriptivo si sirve y porque en noviembre -con
@@ -220,9 +219,9 @@ function gapWindows(): Array<{ from: number; to: number; label: string }> {
   return huecos;
 }
 
-const GAPS = gapWindows();
+export const GAPS = gapWindows();
 
-function gapOf(tsMs: number): { from: number; to: number; label: string } | null {
+export function gapOf(tsMs: number): { from: number; to: number; label: string } | null {
   const h = marketHour(tsMs);
   return GAPS.find((g) => h >= g.from && h < g.to) ?? null;
 }

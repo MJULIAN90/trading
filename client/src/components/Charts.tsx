@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import type { Dashboard, Group } from '../api';
 import { dateTime, pct, signClass, signedUsd, usd } from '../format';
+import { anclaDePunto, usePosicionGlobo } from '../globo';
 
 interface Tip {
   x: number;
@@ -8,14 +9,30 @@ interface Tip {
   html: string;
 }
 
+/**
+ * El globo de los graficos.
+ *
+ * La posicion la decide `usePosicionGlobo`, que es la misma regla que usa el
+ * globo de la lista de operaciones. Antes esto se pintaba en `cursor + 14px`
+ * sin mirar el borde de la ventana, y en el grafico de P&L por fecha -el
+ * ultimo de Resumen- el globo salia por debajo y no se podia leer.
+ *
+ * El hook se llama SIEMPRE, tambien cuando no hay globo: las reglas de los
+ * hooks no permiten salir antes con un `return`, asi que lo que se hace es
+ * pasarle `null` y no pintar nada.
+ */
 function Tooltip({ tip }: { tip: Tip | null }) {
+  const { ref, estilo } = usePosicionGlobo<HTMLDivElement>(
+    tip ? anclaDePunto(tip.x, tip.y) : null,
+  );
+
   if (!tip) return null;
+
   return (
     <div
+      ref={ref}
       style={{
-        position: 'fixed',
-        left: tip.x + 14,
-        top: tip.y + 14,
+        ...estilo,
         background: '#080a0e',
         border: '1px solid var(--line)',
         borderRadius: 6,

@@ -1,395 +1,404 @@
-import { db } from '../db/index.js';
-import { calendarDate, marketHour } from './sessions.js';
-
-export interface Operation {
-  id: number;
-  symbol: string;
-  opened_at: number;
-  closed_at: number;
-  direction: 'LONG' | 'SHORT';
-  entry_price: number;
-  exit_price: number;
-  max_quantity: number;
-  fills_count: number;
-  gross_pnl: number;
-  duration_sec: number;
-  session: string;
-  market_hour: number;
-  is_real: number;
-  account_id: string | null;
-}
-
-export interface Filter {
-  /**
-   * Dejar fuera las operaciones marcadas como prueba por la fecha de corte.
-   * Por defecto entran TODAS: quien separa ahora el material es el selector de
-   * cuenta, que dice lo que dijo el broker en vez de una fecha elegida a mano.
-   */
-  excludeTests?: boolean;
-  from?: string;
-  to?: string;
-  session?: string;
-  /** Cuenta del broker. Vacio = todas. */
-  account?: string;
-}
-
-export function listOperations(f: Filter = {}): Operation[] {
-  const where: string[] = [];
-  const params: unknown[] = [];
-
-  if (f.excludeTests) where.push('is_real = 1');
-  if (f.session) {
-    where.push('session = ?');
-    params.push(f.session);
-  }
-  if (f.account) {
-    where.push('account_id = ?');
-    params.push(f.account);
-  }
-
-
-  const rows = db()
-    .prepare(
-      `SELECT * FROM operations
-        ${where.length ? 'WHERE ' + where.join(' AND ') : ''}
-        ORDER BY opened_at ASC`,
-    )
-    .all(...params) as Operation[];
-
-  // El filtro por fecha va sobre el dia natural (medianoche de Nueva York),
-  // que es el mismo corte con el que el broker cierra el saldo. Si se usara el
-  // calendario UTC, una operacion de las 21:00 de Nueva York caeria al dia
-  // siguiente.
-  return rows.filter((o) => {
-    const d = calendarDate(o.opened_at);
-    if (f.from && d < f.from) return false;
-    if (f.to && d > f.to) return false;
-    return true;
-  });
-}
-
-export interface Summary {
-  operations: number;
-  wins: number;
-  losses: number;
-
-  /** Operaciones en COMPRA (LONG) y en VENTA (SHORT). */
-  longs: number;
-  shorts: number;
-
-  /** De esas, cuantas acabaron en ganancia. Sirve para ver si falla un lado. */
-  longWins: number;
-  shortWins: number;
-
-  winRate: number;
-  grossPnl: number;
-  avgWin: number;
-  avgLoss: number;
-  payoff: number;
-  /** Payoff minimo que haria rentable este win rate. Si payoff < este, se pierde. */
-  breakevenPayoff: number;
-  /**
-   * Ganancias brutas entre perdidas brutas. null si no hay ninguna perdida.
-   *
-   * No dice nada que el payoff y el acierto no digan ya -es el producto de los
-   * dos- pero es el idioma que habla todo el mundo, la mesa de fondeo
-   * incluida. Por encima de 1 se gana, por debajo se pierde, y a 1,0 exacto se
-   * esta pagando comisiones para quedarse igual.
-   */
-  profitFactor: number | null;
-  expectancy: number;
-  best: number;
-  worst: number;
-  avgWinMinutes: number;
-  avgLossMinutes: number;
-}
-
-export function summarize(ops: Operation[]): Summary {
-  const wins = ops.filter((o) => o.gross_pnl > 0);
-  const losses = ops.filter((o) => o.gross_pnl <= 0);
-  const n = ops.length || 1;
-
-  const avgWin = wins.length ? wins.reduce((a, o) => a + o.gross_pnl, 0) / wins.length : 0;
-  const avgLoss = losses.length ? losses.reduce((a, o) => a + o.gross_pnl, 0) / losses.length : 0;
-  const winRate = wins.length / n;
-
-  const mean = (xs: Operation[]) => (xs.length ? xs.reduce((a, o) => a + o.duration_sec, 0) / xs.length / 60 : 0);
-
-  const longs = ops.filter((o) => o.direction === 'LONG');
-  const shorts = ops.filter((o) => o.direction === 'SHORT');
-
-  return {
-    operations: ops.length,
-    wins: wins.length,
-    losses: losses.length,
-    longs: longs.length,
-    shorts: shorts.length,
-    longWins: longs.filter((o) => o.gross_pnl > 0).length,
-    shortWins: shorts.filter((o) => o.gross_pnl > 0).length,
-    winRate,
-    grossPnl: ops.reduce((a, o) => a + o.gross_pnl, 0),
-    avgWin,
-    avgLoss,
-    payoff: avgLoss !== 0 ? Math.abs(avgWin / avgLoss) : 0,
-    breakevenPayoff: winRate > 0 && winRate < 1 ? (1 - winRate) / winRate : 0,
-    profitFactor: (() => {
-      const g = wins.reduce((a, o) => a + o.gross_pnl, 0);
-      const p = Math.abs(losses.reduce((a, o) => a + o.gross_pnl, 0));
-      // Sin perdidas no hay factor que calcular; devolver Infinity pintaria un
-      // simbolo raro en la tarjeta y mentiria sobre una muestra de dos dias.
-      return p > 0 ? Number((g / p).toFixed(2)) : null;
-    })(),
-    expectancy: ops.length ? ops.reduce((a, o) => a + o.gross_pnl, 0) / ops.length : 0,
-    best: ops.length ? Math.max(...ops.map((o) => o.gross_pnl)) : 0,
-    worst: ops.length ? Math.min(...ops.map((o) => o.gross_pnl)) : 0,
-    avgWinMinutes: mean(wins),
-    avgLossMinutes: mean(losses),
-  };
-}
-
-export function groupBy<K extends string | number>(
-  ops: Operation[],
-  key: (o: Operation) => K,
-): Array<{ key: K; summary: Summary }> {
-  const map = new Map<K, Operation[]>();
-  for (const o of ops) {
-    const k = key(o);
-    const list = map.get(k);
-    if (list) list.push(o);
-    else map.set(k, [o]);
-  }
-  return [...map.entries()].map(([k, list]) => ({ key: k, summary: summarize(list) }));
-}
-
-export function bySession(ops: Operation[]) {
-  return groupBy(ops, (o) => o.session).sort((a, b) => a.summary.grossPnl - b.summary.grossPnl);
-}
-
-export function byDay(ops: Operation[]) {
-  return groupBy(ops, (o) => calendarDate(o.opened_at)).sort((a, b) => String(a.key).localeCompare(String(b.key)));
-}
-
-/**
- * Por dia de la SEMANA, no por fecha.
- *
- * `byDay` ya agrupa por fecha, que sirve para repasar una jornada concreta
- * pero no para ver un habito: con 128 operaciones repartidas en 7 fechas no
- * hay nada que comparar. Agrupando por lunes, martes... se ve si hay un dia
- * que sistematicamente va peor, igual que `byHour` enseña la hora mala.
- *
- * El dia se saca en HORA DE MERCADO, no en la del navegador: una operacion de
- * las once de la noche de un lunes en Colombia es martes en el grafico, y
- * contarla en el dia equivocado es justo el error que esta tabla buscaria.
- */
-export function byWeekday(ops: Operation[]) {
-  return groupBy(ops, (o) => {
-    const d = calendarDate(o.opened_at);
-    // calendarDate devuelve YYYY-MM-DD ya desplazado; se interpreta a mediodia
-    // UTC para que ningun desfase lo mueva de dia al construir la fecha.
-    const [y, m, day] = d.split('-').map(Number);
-    return new Date(Date.UTC(y!, m! - 1, day!, 12)).getUTCDay();
-  }).sort((a, b) => Number(a.key) - Number(b.key));
-}
-
-export function byHour(ops: Operation[]) {
-  return groupBy(ops, (o) => Math.floor(marketHour(o.opened_at))).sort((a, b) => Number(a.key) - Number(b.key));
-}
-
-export function byDirection(ops: Operation[]) {
-  return groupBy(ops, (o) => o.direction);
-}
-
-/** Curva de capital acumulada, en orden cronologico. */
-/**
- * Cuanto llegaste a estar por debajo de tu mejor momento.
- *
- * Es el numero que decide si tu cuenta aguanta tu operativa, y no sale de
- * ninguna otra metrica: puedes tener esperanza positiva y aun asi quebrar por
- * el camino si el drawdown es mas hondo que lo que tienes depositado.
- *
- * Se recorre por FECHA DE CIERRE y no de apertura, que es cuando el dinero
- * entra o sale de verdad. Con operaciones de minutos la diferencia es minima,
- * pero con una que se queda abierta una hora el orden cambia y el drawdown
- * tambien.
- */
-export interface DrawdownInfo {
-  /** Caida maxima desde un pico, en positivo. 0 si nunca bajo. */
-  maxDrawdown: number;
-  /** Cuanto valia la curva en el pico del que arranco esa caida. */
-  drawdownPeak: number;
-  /** Jornada del pico y jornada del fondo, para poder ir a mirarlas. */
-  drawdownFrom: string | null;
-  drawdownTo: string | null;
-}
-
-export function drawdownOf(ops: Operation[]): DrawdownInfo {
-  const orden = [...ops].sort((a, b) => a.closed_at - b.closed_at);
-
-  let acc = 0;
-  let pico = 0;
-  let picoDia: string | null = null;
-
-  let peor = 0;
-  let peorPico = 0;
-  let desde: string | null = null;
-  let hasta: string | null = null;
-
-  for (const o of orden) {
-    acc += o.gross_pnl;
-
-    if (acc > pico) {
-      pico = acc;
-      picoDia = calendarDate(o.closed_at);
-    }
-
-    const caida = pico - acc;
-    if (caida > peor) {
-      peor = caida;
-      peorPico = pico;
-      desde = picoDia;
-      hasta = calendarDate(o.closed_at);
-    }
-  }
-
-  return {
-    maxDrawdown: Number(peor.toFixed(2)),
-    drawdownPeak: Number(peorPico.toFixed(2)),
-    drawdownFrom: desde,
-    drawdownTo: hasta,
-  };
-}
-
-/**
- * La jornada como unidad, no la operacion.
- *
- * Un acierto del 31% por operacion y un 57% de jornadas en verde pueden
- * convivir: basta con que las ganadoras caigan juntas. Es la cifra que el
- * limite diario intenta mover, asi que conviene tenerla delante.
- */
-export interface DayStats {
-  tradedDays: number;
-  greenDays: number;
-  redDays: number;
-  dayWinRate: number;
-  bestDayPnl: number;
-  worstDayPnl: number;
-}
-
-export function dayStats(ops: Operation[]): DayStats {
-  const porDia = new Map<string, number>();
-  for (const o of ops) {
-    const d = calendarDate(o.opened_at);
-    porDia.set(d, (porDia.get(d) ?? 0) + o.gross_pnl);
-  }
-
-  const dias = [...porDia.values()];
-  // Una jornada que acaba exactamente en cero no es verde: no ganaste nada y
-  // pagaste comisiones por el camino.
-  const verdes = dias.filter((v) => v > 0).length;
-
-  return {
-    tradedDays: dias.length,
-    greenDays: verdes,
-    redDays: dias.length - verdes,
-    dayWinRate: dias.length > 0 ? Number((verdes / dias.length).toFixed(4)) : 0,
-    bestDayPnl: dias.length > 0 ? Number(Math.max(...dias).toFixed(2)) : 0,
-    worstDayPnl: dias.length > 0 ? Number(Math.min(...dias).toFixed(2)) : 0,
-  };
-}
-
-export function equityCurve(ops: Operation[]) {
-  let acc = 0;
-  return ops.map((o) => {
-    acc += o.gross_pnl;
-    return { ts: o.closed_at, pnl: o.gross_pnl, equity: Number(acc.toFixed(2)) };
-  });
-}
-
-export interface ReentryAnalysis {
-  /** Minutos que se dejaron pasar desde el cierre de la operacion anterior. */
-  gapMinutes: number | null;
-  operation: Operation;
-  afterLoss: boolean;
-}
-
-/**
- * Cuanto se espera entre una operacion y la siguiente, y si la anterior fue
- * perdedora. Reentrar a los pocos segundos de perder es una reaccion, no una
- * decision, y suele venir en rachas: por eso se mide aparte.
- */
-export function reentries(ops: Operation[]): ReentryAnalysis[] {
-  return ops.map((o, i) => {
-    const prev = i > 0 ? ops[i - 1] : undefined;
-    return {
-      operation: o,
-      gapMinutes: prev ? (o.opened_at - prev.closed_at) / 60_000 : null,
-      afterLoss: prev ? prev.gross_pnl <= 0 : false,
-    };
-  });
-}
-
-/**
- * Compara las entradas rapidas tras una perdida contra todas las demas. Es la
- * pregunta concreta que dejaron los datos del 13 de octubre: ocho perdidas
- * seguidas en veintidos minutos, varias reentrando en menos de un minuto.
- */
-export function revengeSplit(ops: Operation[], maxGapMinutes = 2) {
-  const list = reentries(ops);
-  const revenge = list.filter((r) => r.afterLoss && r.gapMinutes !== null && r.gapMinutes <= maxGapMinutes);
-  const rest = list.filter((r) => !(r.afterLoss && r.gapMinutes !== null && r.gapMinutes <= maxGapMinutes));
-  return {
-    maxGapMinutes,
-    revenge: summarize(revenge.map((r) => r.operation)),
-    rest: summarize(rest.map((r) => r.operation)),
-  };
-}
-
-/** Racha mas larga de perdidas y de ganancias consecutivas. */
-export function streaks(ops: Operation[]) {
-  let maxLoss = 0;
-  let maxWin = 0;
-  let curLoss = 0;
-  let curWin = 0;
-
-  for (const o of ops) {
-    if (o.gross_pnl > 0) {
-      curWin++;
-      curLoss = 0;
-    } else {
-      curLoss++;
-      curWin = 0;
-    }
-    maxWin = Math.max(maxWin, curWin);
-    maxLoss = Math.max(maxLoss, curLoss);
-  }
-
-  return { maxWinStreak: maxWin, maxLossStreak: maxLoss };
-}
-
-export interface AccountInfo {
-  id: string;
-  operations: number;
-  /** Primera y ultima operacion de la cuenta, en epoch ms. */
-  from: number;
-  to: number;
-}
-
-/**
- * Cuentas presentes en la base, para poder elegir una en el panel.
- *
- * Se listan SIEMPRE todas, tambien las que solo tienen operaciones marcadas
- * como prueba: si el selector escondiera una cuenta entera porque su fecha cae
- * antes del corte, no habria forma de llegar a ella para mirarla.
- */
-export function accounts(): AccountInfo[] {
-  return db()
-    .prepare(
-      `SELECT account_id AS id, COUNT(*) AS operations,
-              MIN(opened_at) AS "from", MAX(opened_at) AS "to"
-         FROM operations
-        WHERE account_id IS NOT NULL
-        GROUP BY account_id
-        ORDER BY MAX(opened_at) DESC`,
-    )
-    .all() as AccountInfo[];
-}
+import { db } from '../db/index.js';
+import { calendarDate, marketHour } from './sessions.js';
+
+export interface Operation {
+  id: number;
+  symbol: string;
+  opened_at: number;
+  closed_at: number;
+  direction: 'LONG' | 'SHORT';
+  entry_price: number;
+  exit_price: number;
+  max_quantity: number;
+  fills_count: number;
+  gross_pnl: number;
+  duration_sec: number;
+  session: string;
+  market_hour: number;
+  is_real: number;
+  account_id: string | null;
+}
+
+export interface Filter {
+  /**
+   * Dejar fuera las operaciones marcadas como prueba por la fecha de corte.
+   * Por defecto entran TODAS: quien separa ahora el material es el selector de
+   * cuenta, que dice lo que dijo el broker en vez de una fecha elegida a mano.
+   */
+  excludeTests?: boolean;
+  from?: string;
+  to?: string;
+  session?: string;
+  /**
+   * Cuentas del broker que entran. Ausente o vacia = todas.
+   *
+   * Es una lista y no una cuenta porque hay dos situaciones distintas:
+   * filtrar para mirar una sola, y DECIDIR CUALES CUENTAN para las metricas.
+   * Lo segundo necesita varias: al abrir una demo nueva se quiere medir junto
+   * con la de antes, dejando fuera las que solo fueron pruebas.
+   */
+  accounts?: string[];
+}
+
+export function listOperations(f: Filter = {}): Operation[] {
+  const where: string[] = [];
+  const params: unknown[] = [];
+
+  if (f.excludeTests) where.push('is_real = 1');
+  if (f.session) {
+    where.push('session = ?');
+    params.push(f.session);
+  }
+  // Un `IN` con la lista vacia no devolveria NADA, asi que el caso de "todas"
+  // se comprueba antes en vez de construir el SQL a ciegas.
+  if (f.accounts && f.accounts.length > 0) {
+    where.push(`account_id IN (${f.accounts.map(() => '?').join(', ')})`);
+    params.push(...f.accounts);
+  }
+
+
+  const rows = db()
+    .prepare(
+      `SELECT * FROM operations
+        ${where.length ? 'WHERE ' + where.join(' AND ') : ''}
+        ORDER BY opened_at ASC`,
+    )
+    .all(...params) as Operation[];
+
+  // El filtro por fecha va sobre el dia natural (medianoche de Nueva York),
+  // que es el mismo corte con el que el broker cierra el saldo. Si se usara el
+  // calendario UTC, una operacion de las 21:00 de Nueva York caeria al dia
+  // siguiente.
+  return rows.filter((o) => {
+    const d = calendarDate(o.opened_at);
+    if (f.from && d < f.from) return false;
+    if (f.to && d > f.to) return false;
+    return true;
+  });
+}
+
+export interface Summary {
+  operations: number;
+  wins: number;
+  losses: number;
+
+  /** Operaciones en COMPRA (LONG) y en VENTA (SHORT). */
+  longs: number;
+  shorts: number;
+
+  /** De esas, cuantas acabaron en ganancia. Sirve para ver si falla un lado. */
+  longWins: number;
+  shortWins: number;
+
+  winRate: number;
+  grossPnl: number;
+  avgWin: number;
+  avgLoss: number;
+  payoff: number;
+  /** Payoff minimo que haria rentable este win rate. Si payoff < este, se pierde. */
+  breakevenPayoff: number;
+  /**
+   * Ganancias brutas entre perdidas brutas. null si no hay ninguna perdida.
+   *
+   * No dice nada que el payoff y el acierto no digan ya -es el producto de los
+   * dos- pero es el idioma que habla todo el mundo, la mesa de fondeo
+   * incluida. Por encima de 1 se gana, por debajo se pierde, y a 1,0 exacto se
+   * esta pagando comisiones para quedarse igual.
+   */
+  profitFactor: number | null;
+  expectancy: number;
+  best: number;
+  worst: number;
+  avgWinMinutes: number;
+  avgLossMinutes: number;
+}
+
+export function summarize(ops: Operation[]): Summary {
+  const wins = ops.filter((o) => o.gross_pnl > 0);
+  const losses = ops.filter((o) => o.gross_pnl <= 0);
+  const n = ops.length || 1;
+
+  const avgWin = wins.length ? wins.reduce((a, o) => a + o.gross_pnl, 0) / wins.length : 0;
+  const avgLoss = losses.length ? losses.reduce((a, o) => a + o.gross_pnl, 0) / losses.length : 0;
+  const winRate = wins.length / n;
+
+  const mean = (xs: Operation[]) => (xs.length ? xs.reduce((a, o) => a + o.duration_sec, 0) / xs.length / 60 : 0);
+
+  const longs = ops.filter((o) => o.direction === 'LONG');
+  const shorts = ops.filter((o) => o.direction === 'SHORT');
+
+  return {
+    operations: ops.length,
+    wins: wins.length,
+    losses: losses.length,
+    longs: longs.length,
+    shorts: shorts.length,
+    longWins: longs.filter((o) => o.gross_pnl > 0).length,
+    shortWins: shorts.filter((o) => o.gross_pnl > 0).length,
+    winRate,
+    grossPnl: ops.reduce((a, o) => a + o.gross_pnl, 0),
+    avgWin,
+    avgLoss,
+    payoff: avgLoss !== 0 ? Math.abs(avgWin / avgLoss) : 0,
+    breakevenPayoff: winRate > 0 && winRate < 1 ? (1 - winRate) / winRate : 0,
+    profitFactor: (() => {
+      const g = wins.reduce((a, o) => a + o.gross_pnl, 0);
+      const p = Math.abs(losses.reduce((a, o) => a + o.gross_pnl, 0));
+      // Sin perdidas no hay factor que calcular; devolver Infinity pintaria un
+      // simbolo raro en la tarjeta y mentiria sobre una muestra de dos dias.
+      return p > 0 ? Number((g / p).toFixed(2)) : null;
+    })(),
+    expectancy: ops.length ? ops.reduce((a, o) => a + o.gross_pnl, 0) / ops.length : 0,
+    best: ops.length ? Math.max(...ops.map((o) => o.gross_pnl)) : 0,
+    worst: ops.length ? Math.min(...ops.map((o) => o.gross_pnl)) : 0,
+    avgWinMinutes: mean(wins),
+    avgLossMinutes: mean(losses),
+  };
+}
+
+export function groupBy<K extends string | number>(
+  ops: Operation[],
+  key: (o: Operation) => K,
+): Array<{ key: K; summary: Summary }> {
+  const map = new Map<K, Operation[]>();
+  for (const o of ops) {
+    const k = key(o);
+    const list = map.get(k);
+    if (list) list.push(o);
+    else map.set(k, [o]);
+  }
+  return [...map.entries()].map(([k, list]) => ({ key: k, summary: summarize(list) }));
+}
+
+export function bySession(ops: Operation[]) {
+  return groupBy(ops, (o) => o.session).sort((a, b) => a.summary.grossPnl - b.summary.grossPnl);
+}
+
+export function byDay(ops: Operation[]) {
+  return groupBy(ops, (o) => calendarDate(o.opened_at)).sort((a, b) => String(a.key).localeCompare(String(b.key)));
+}
+
+/**
+ * Por dia de la SEMANA, no por fecha.
+ *
+ * `byDay` ya agrupa por fecha, que sirve para repasar una jornada concreta
+ * pero no para ver un habito: con 128 operaciones repartidas en 7 fechas no
+ * hay nada que comparar. Agrupando por lunes, martes... se ve si hay un dia
+ * que sistematicamente va peor, igual que `byHour` enseña la hora mala.
+ *
+ * El dia se saca en HORA DE MERCADO, no en la del navegador: una operacion de
+ * las once de la noche de un lunes en Colombia es martes en el grafico, y
+ * contarla en el dia equivocado es justo el error que esta tabla buscaria.
+ */
+export function byWeekday(ops: Operation[]) {
+  return groupBy(ops, (o) => {
+    const d = calendarDate(o.opened_at);
+    // calendarDate devuelve YYYY-MM-DD ya desplazado; se interpreta a mediodia
+    // UTC para que ningun desfase lo mueva de dia al construir la fecha.
+    const [y, m, day] = d.split('-').map(Number);
+    return new Date(Date.UTC(y!, m! - 1, day!, 12)).getUTCDay();
+  }).sort((a, b) => Number(a.key) - Number(b.key));
+}
+
+export function byHour(ops: Operation[]) {
+  return groupBy(ops, (o) => Math.floor(marketHour(o.opened_at))).sort((a, b) => Number(a.key) - Number(b.key));
+}
+
+export function byDirection(ops: Operation[]) {
+  return groupBy(ops, (o) => o.direction);
+}
+
+/** Curva de capital acumulada, en orden cronologico. */
+/**
+ * Cuanto llegaste a estar por debajo de tu mejor momento.
+ *
+ * Es el numero que decide si tu cuenta aguanta tu operativa, y no sale de
+ * ninguna otra metrica: puedes tener esperanza positiva y aun asi quebrar por
+ * el camino si el drawdown es mas hondo que lo que tienes depositado.
+ *
+ * Se recorre por FECHA DE CIERRE y no de apertura, que es cuando el dinero
+ * entra o sale de verdad. Con operaciones de minutos la diferencia es minima,
+ * pero con una que se queda abierta una hora el orden cambia y el drawdown
+ * tambien.
+ */
+export interface DrawdownInfo {
+  /** Caida maxima desde un pico, en positivo. 0 si nunca bajo. */
+  maxDrawdown: number;
+  /** Cuanto valia la curva en el pico del que arranco esa caida. */
+  drawdownPeak: number;
+  /** Jornada del pico y jornada del fondo, para poder ir a mirarlas. */
+  drawdownFrom: string | null;
+  drawdownTo: string | null;
+}
+
+export function drawdownOf(ops: Operation[]): DrawdownInfo {
+  const orden = [...ops].sort((a, b) => a.closed_at - b.closed_at);
+
+  let acc = 0;
+  let pico = 0;
+  let picoDia: string | null = null;
+
+  let peor = 0;
+  let peorPico = 0;
+  let desde: string | null = null;
+  let hasta: string | null = null;
+
+  for (const o of orden) {
+    acc += o.gross_pnl;
+
+    if (acc > pico) {
+      pico = acc;
+      picoDia = calendarDate(o.closed_at);
+    }
+
+    const caida = pico - acc;
+    if (caida > peor) {
+      peor = caida;
+      peorPico = pico;
+      desde = picoDia;
+      hasta = calendarDate(o.closed_at);
+    }
+  }
+
+  return {
+    maxDrawdown: Number(peor.toFixed(2)),
+    drawdownPeak: Number(peorPico.toFixed(2)),
+    drawdownFrom: desde,
+    drawdownTo: hasta,
+  };
+}
+
+/**
+ * La jornada como unidad, no la operacion.
+ *
+ * Un acierto del 31% por operacion y un 57% de jornadas en verde pueden
+ * convivir: basta con que las ganadoras caigan juntas. Es la cifra que el
+ * limite diario intenta mover, asi que conviene tenerla delante.
+ */
+export interface DayStats {
+  tradedDays: number;
+  greenDays: number;
+  redDays: number;
+  dayWinRate: number;
+  bestDayPnl: number;
+  worstDayPnl: number;
+}
+
+export function dayStats(ops: Operation[]): DayStats {
+  const porDia = new Map<string, number>();
+  for (const o of ops) {
+    const d = calendarDate(o.opened_at);
+    porDia.set(d, (porDia.get(d) ?? 0) + o.gross_pnl);
+  }
+
+  const dias = [...porDia.values()];
+  // Una jornada que acaba exactamente en cero no es verde: no ganaste nada y
+  // pagaste comisiones por el camino.
+  const verdes = dias.filter((v) => v > 0).length;
+
+  return {
+    tradedDays: dias.length,
+    greenDays: verdes,
+    redDays: dias.length - verdes,
+    dayWinRate: dias.length > 0 ? Number((verdes / dias.length).toFixed(4)) : 0,
+    bestDayPnl: dias.length > 0 ? Number(Math.max(...dias).toFixed(2)) : 0,
+    worstDayPnl: dias.length > 0 ? Number(Math.min(...dias).toFixed(2)) : 0,
+  };
+}
+
+export function equityCurve(ops: Operation[]) {
+  let acc = 0;
+  return ops.map((o) => {
+    acc += o.gross_pnl;
+    return { ts: o.closed_at, pnl: o.gross_pnl, equity: Number(acc.toFixed(2)) };
+  });
+}
+
+export interface ReentryAnalysis {
+  /** Minutos que se dejaron pasar desde el cierre de la operacion anterior. */
+  gapMinutes: number | null;
+  operation: Operation;
+  afterLoss: boolean;
+}
+
+/**
+ * Cuanto se espera entre una operacion y la siguiente, y si la anterior fue
+ * perdedora. Reentrar a los pocos segundos de perder es una reaccion, no una
+ * decision, y suele venir en rachas: por eso se mide aparte.
+ */
+export function reentries(ops: Operation[]): ReentryAnalysis[] {
+  return ops.map((o, i) => {
+    const prev = i > 0 ? ops[i - 1] : undefined;
+    return {
+      operation: o,
+      gapMinutes: prev ? (o.opened_at - prev.closed_at) / 60_000 : null,
+      afterLoss: prev ? prev.gross_pnl <= 0 : false,
+    };
+  });
+}
+
+/**
+ * Compara las entradas rapidas tras una perdida contra todas las demas. Es la
+ * pregunta concreta que dejaron los datos del 13 de octubre: ocho perdidas
+ * seguidas en veintidos minutos, varias reentrando en menos de un minuto.
+ */
+export function revengeSplit(ops: Operation[], maxGapMinutes = 2) {
+  const list = reentries(ops);
+  const revenge = list.filter((r) => r.afterLoss && r.gapMinutes !== null && r.gapMinutes <= maxGapMinutes);
+  const rest = list.filter((r) => !(r.afterLoss && r.gapMinutes !== null && r.gapMinutes <= maxGapMinutes));
+  return {
+    maxGapMinutes,
+    revenge: summarize(revenge.map((r) => r.operation)),
+    rest: summarize(rest.map((r) => r.operation)),
+  };
+}
+
+/** Racha mas larga de perdidas y de ganancias consecutivas. */
+export function streaks(ops: Operation[]) {
+  let maxLoss = 0;
+  let maxWin = 0;
+  let curLoss = 0;
+  let curWin = 0;
+
+  for (const o of ops) {
+    if (o.gross_pnl > 0) {
+      curWin++;
+      curLoss = 0;
+    } else {
+      curLoss++;
+      curWin = 0;
+    }
+    maxWin = Math.max(maxWin, curWin);
+    maxLoss = Math.max(maxLoss, curLoss);
+  }
+
+  return { maxWinStreak: maxWin, maxLossStreak: maxLoss };
+}
+
+export interface AccountInfo {
+  id: string;
+  operations: number;
+  /** Primera y ultima operacion de la cuenta, en epoch ms. */
+  from: number;
+  to: number;
+}
+
+/**
+ * Cuentas presentes en la base, para poder elegir una en el panel.
+ *
+ * Se listan SIEMPRE todas, tambien las que solo tienen operaciones marcadas
+ * como prueba: si el selector escondiera una cuenta entera porque su fecha cae
+ * antes del corte, no habria forma de llegar a ella para mirarla.
+ */
+export function accounts(): AccountInfo[] {
+  return db()
+    .prepare(
+      `SELECT account_id AS id, COUNT(*) AS operations,
+              MIN(opened_at) AS "from", MAX(opened_at) AS "to"
+         FROM operations
+        WHERE account_id IS NOT NULL
+        GROUP BY account_id
+        ORDER BY MAX(opened_at) DESC`,
+    )
+    .all() as AccountInfo[];
+}

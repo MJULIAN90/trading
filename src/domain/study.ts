@@ -1,5 +1,5 @@
 import { db } from '../db/index.js';
-import { normalizeSymbol } from './bars.js';
+import { normalizeSymbol, barsVersion } from './bars.js';
 import { marketOffsetAt } from './clock.js';
 import { instrumentOf } from './instruments.js';
 import { PATTERN_LABEL, type PatternCode } from './pattern.js';
@@ -330,11 +330,8 @@ export function patternStudy(
   const stopMode: StopMode = options.stopMode ?? 'fijo';
   const targetR = Math.max(0.25, Math.min(10, options.targetR ?? 2));
 
-  const s = db()
-    .prepare('SELECT COUNT(*) AS n, MAX(ts) AS m FROM bars WHERE symbol = ?')
-    .get(sym) as { n: number; m: number | null };
-
-  const key = `${sym}:${s.n}:${s.m ?? 0}:${timeframe}:${targetTicks}:${horizonMin}:${trendMinutes}:${trendLookback}:${trendMode}:${retest}:${requireStack}:${stopMode}:${targetR}`;
+  // Ver `barsVersion` en `bars.ts`: la marca vieja recorria el indice entero.
+  const key = `${sym}:${barsVersion(sym)}:${timeframe}:${targetTicks}:${horizonMin}:${trendMinutes}:${trendLookback}:${trendMode}:${retest}:${requireStack}:${stopMode}:${targetR}`;
   const hit = cache.get(key);
   if (hit) return hit;
 

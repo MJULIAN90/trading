@@ -1,5 +1,5 @@
 import { db } from '../db/index.js';
-import { normalizeSymbol } from './bars.js';
+import { normalizeSymbol, barsVersion } from './bars.js';
 import { marketOffsetAt } from './clock.js';
 import { instrumentOf } from './instruments.js';
 import { PATTERN_LABEL, type PatternCode } from './pattern.js';
@@ -211,11 +211,8 @@ export function patternGrid(
   const horizonMin = options.horizonMin ?? 60;
   const minSamples = options.minSamples ?? 120;
 
-  const meta = db()
-    .prepare('SELECT COUNT(*) AS n, MAX(ts) AS m FROM bars WHERE symbol = ?')
-    .get(sym) as { n: number; m: number | null };
-
-  const key = `${sym}:${meta.n}:${meta.m ?? 0}:${targetTicks}:${horizonMin}:${minSamples}`;
+  // Ver `barsVersion` en `bars.ts`: la marca vieja recorria el indice entero.
+  const key = `${sym}:${barsVersion(sym)}:${targetTicks}:${horizonMin}:${minSamples}`;
   const hit = cache.get(key);
   if (hit) return hit;
 

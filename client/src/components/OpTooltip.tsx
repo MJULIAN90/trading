@@ -1,5 +1,5 @@
-import { useLayoutEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
+import { usePosicionGlobo } from '../globo';
 
 /**
  * El globo de una fila del listado.
@@ -49,52 +49,16 @@ export interface GloboDatos {
   nota: string;
 }
 
-/** Aire entre el globo y la fila, y entre el globo y el borde de la ventana. */
-const MARGEN = 8;
-
 export function OpTooltip({ datos }: { datos: GloboDatos }) {
-  const ref = useRef<HTMLDivElement>(null);
-  const [pos, setPos] = useState<{ top: number; left: number } | null>(null);
-
-  // useLayoutEffect y no useEffect: hay que medir el globo ya montado para
-  // saber si cabe debajo, y con useEffect se vería un fotograma en el sitio
-  // equivocado antes de saltar al bueno.
-  useLayoutEffect(() => {
-    const el = ref.current;
-    if (el === null) return;
-
-    const caja = el.getBoundingClientRect();
-
-    // Debajo de la fila, que es lo natural al bajar por la lista. Si no cabe,
-    // se le da la vuelta y va encima; pegarlo al borde y dejar que se corte
-    // seria peor, porque lo que se corta es siempre el final.
-    let top = datos.ancla.bottom + MARGEN;
-    if (top + caja.height > window.innerHeight - MARGEN) {
-      const encima = datos.ancla.top - caja.height - MARGEN;
-      top = encima >= MARGEN ? encima : Math.max(MARGEN, window.innerHeight - caja.height - MARGEN);
-    }
-
-    let left = datos.ancla.left;
-    if (left + caja.width > window.innerWidth - MARGEN) left = window.innerWidth - caja.width - MARGEN;
-    if (left < MARGEN) left = MARGEN;
-
-    setPos({ top, left });
-  }, [datos]);
+  // La regla de colocacion vive en `globo.ts` y la comparten todos los globos
+  // de la app. Estaba aqui, bien hecha, y por estar solo aqui el grafico de
+  // P&L por fecha se salia de la ventana.
+  const { ref, estilo } = usePosicionGlobo<HTMLDivElement>(datos.ancla);
 
   const hayCuenta = datos.formula !== null || datos.bruto !== null;
 
   return createPortal(
-    <div
-      ref={ref}
-      className="op-globo"
-      // Hasta que no esta medido se pinta fuera de la vista. Sin esto aparece
-      // un parpadeo en la esquina superior izquierda en cada fila que tocas.
-      style={{
-        top: pos?.top ?? 0,
-        left: pos?.left ?? 0,
-        visibility: pos === null ? 'hidden' : 'visible',
-      }}
-    >
+    <div ref={ref} className="op-globo" style={estilo}>
       {/* Lo primero: cuando y en que killzone. Es lo que situa todo lo demas,
           y es justo lo que la fila no puede enseñar por falta de ancho. */}
       <div className="g-cuando">

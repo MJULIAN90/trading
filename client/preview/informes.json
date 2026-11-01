@@ -1,0 +1,8988 @@
+{
+ "semanal|2026-10-05": {
+  "periodo": "semanal",
+  "days": [
+   "2026-10-05",
+   "2026-10-08",
+   "2026-10-09"
+  ],
+  "from": "2026-10-05",
+  "to": "2026-10-09",
+  "expectedDays": 5,
+  "prev": null,
+  "next": "2026-10-12",
+  "isLatest": false,
+  "calendar": [
+   {
+    "date": "2026-10-05",
+    "count": 12,
+    "pnl": -316
+   },
+   {
+    "date": "2026-10-08",
+    "count": 2,
+    "pnl": 141.5
+   },
+   {
+    "date": "2026-10-09",
+    "count": 20,
+    "pnl": -1259.5
+   },
+   {
+    "date": "2026-10-12",
+    "count": 3,
+    "pnl": -148
+   },
+   {
+    "date": "2026-10-13",
+    "count": 32,
+    "pnl": -161
+   },
+   {
+    "date": "2026-10-14",
+    "count": 54,
+    "pnl": 568
+   },
+   {
+    "date": "2026-10-15",
+    "count": 56,
+    "pnl": -264.5
+   },
+   {
+    "date": "2026-10-16",
+    "count": 15,
+    "pnl": -347.5
+   },
+   {
+    "date": "2026-10-19",
+    "count": 8,
+    "pnl": -11
+   },
+   {
+    "date": "2026-10-20",
+    "count": 48,
+    "pnl": 295.5
+   },
+   {
+    "date": "2026-10-21",
+    "count": 15,
+    "pnl": 191
+   },
+   {
+    "date": "2026-10-22",
+    "count": 40,
+    "pnl": 36
+   },
+   {
+    "date": "2026-10-23",
+    "count": 54,
+    "pnl": -195
+   },
+   {
+    "date": "2026-10-26",
+    "count": 38,
+    "pnl": 206
+   },
+   {
+    "date": "2026-10-27",
+    "count": 62,
+    "pnl": 302
+   },
+   {
+    "date": "2026-10-28",
+    "count": 55,
+    "pnl": -879.5
+   },
+   {
+    "date": "2026-10-29",
+    "count": 41,
+    "pnl": 560
+   },
+   {
+    "date": "2026-10-30",
+    "count": 18,
+    "pnl": 261.5
+   }
+  ],
+  "operations": 34,
+  "contracts": 101,
+  "gross": -1333,
+  "commission": 101,
+  "net": -1434,
+  "winRate": 0.3235,
+  "dailyLossLimit": 0,
+  "remaining": null,
+  "maxLot": 10,
+  "medianLot": 1,
+  "byLot": [
+   {
+    "key": "1",
+    "label": "1 lote",
+    "operations": 18,
+    "contracts": 18,
+    "gross": 125,
+    "net": 107,
+    "perTrade": 5.94,
+    "ticksPerTrade": 13.89,
+    "wins": 8,
+    "winRate": 0.4444,
+    "median": -0.5
+   },
+   {
+    "key": "2",
+    "label": "2 lotes",
+    "operations": 9,
+    "contracts": 18,
+    "gross": -343,
+    "net": -361,
+    "perTrade": -40.11,
+    "ticksPerTrade": -38.11,
+    "wins": 2,
+    "winRate": 0.2222,
+    "median": -56
+   },
+   {
+    "key": "5",
+    "label": "5 lotes",
+    "operations": 1,
+    "contracts": 5,
+    "gross": -247.5,
+    "net": -252.5,
+    "perTrade": -252.5,
+    "ticksPerTrade": -99,
+    "wins": 0,
+    "winRate": 0,
+    "median": -252.5
+   },
+   {
+    "key": "10",
+    "label": "10 lotes",
+    "operations": 6,
+    "contracts": 60,
+    "gross": -867.5,
+    "net": -927.5,
+    "perTrade": -154.58,
+    "ticksPerTrade": -28.92,
+    "wins": 1,
+    "winRate": 0.1667,
+    "median": -155.75
+   }
+  ],
+  "bigLots": {
+   "key": "grandes",
+   "label": "mas de 1 lote",
+   "operations": 16,
+   "contracts": 83,
+   "gross": -1458,
+   "net": -1541,
+   "perTrade": -96.31,
+   "ticksPerTrade": -38.47,
+   "wins": 3,
+   "winRate": 0.1875,
+   "median": -57.5
+  },
+  "smallLots": {
+   "key": "pequenias",
+   "label": "1 lote o menos",
+   "operations": 18,
+   "contracts": 18,
+   "gross": 125,
+   "net": 107,
+   "perTrade": 5.94,
+   "ticksPerTrade": 13.89,
+   "wins": 8,
+   "winRate": 0.4444,
+   "median": -0.5
+  },
+  "ticksPerTrade": -10.75,
+  "ticksMedian": -12.5,
+  "previous": null,
+  "bySession": [
+   {
+    "key": "LONDON",
+    "label": "LONDON",
+    "operations": 3,
+    "contracts": 3,
+    "gross": 36,
+    "net": 33,
+    "perTrade": 11,
+    "ticksPerTrade": 24,
+    "wins": 2,
+    "winRate": 0.6667,
+    "median": 3
+   },
+   {
+    "key": "NY_AM",
+    "label": "NY_AM",
+    "operations": 2,
+    "contracts": 2,
+    "gross": 132,
+    "net": 130,
+    "perTrade": 65,
+    "ticksPerTrade": 132,
+    "wins": 1,
+    "winRate": 0.5,
+    "median": 65
+   },
+   {
+    "key": "NY_LUNCH",
+    "label": "NY_LUNCH",
+    "operations": 11,
+    "contracts": 50,
+    "gross": -812,
+    "net": -862,
+    "perTrade": -78.36,
+    "ticksPerTrade": -35.46,
+    "wins": 2,
+    "winRate": 0.1818,
+    "median": -37
+   },
+   {
+    "key": "NY_PM",
+    "label": "NY_PM",
+    "operations": 6,
+    "contracts": 17,
+    "gross": -204.5,
+    "net": -221.5,
+    "perTrade": -36.92,
+    "ticksPerTrade": 10.08,
+    "wins": 3,
+    "winRate": 0.5,
+    "median": -1.75
+   },
+   {
+    "key": "OUTSIDE",
+    "label": "OUTSIDE",
+    "operations": 12,
+    "contracts": 29,
+    "gross": -484.5,
+    "net": -513.5,
+    "perTrade": -42.79,
+    "ticksPerTrade": -30.99,
+    "wins": 3,
+    "winRate": 0.25,
+    "median": -31.75
+   }
+  ],
+  "byGap": [
+   {
+    "key": "11",
+    "label": "entre NY AM y el almuerzo",
+    "operations": 11,
+    "contracts": 19,
+    "gross": -497.5,
+    "net": -516.5,
+    "perTrade": -46.95,
+    "ticksPerTrade": -34.05,
+    "wins": 2,
+    "winRate": 0.1818,
+    "median": -37
+   },
+   {
+    "key": "13",
+    "label": "entre el almuerzo y NY PM",
+    "operations": 1,
+    "contracts": 10,
+    "gross": 13,
+    "net": 3,
+    "perTrade": 3,
+    "ticksPerTrade": 2.6,
+    "wins": 1,
+    "winRate": 1,
+    "median": 3
+   }
+  ],
+  "worst": [
+   {
+    "id": 24,
+    "date": "2026-10-09",
+    "session": "NY_LUNCH",
+    "lots": 10,
+    "ticks": -60,
+    "net": -310,
+    "netPerContract": -31
+   },
+   {
+    "id": 27,
+    "date": "2026-10-09",
+    "session": "NY_LUNCH",
+    "lots": 10,
+    "ticks": -58.1,
+    "net": -300.5,
+    "netPerContract": -30.05
+   },
+   {
+    "id": 34,
+    "date": "2026-10-09",
+    "session": "NY_PM",
+    "lots": 10,
+    "ticks": -58,
+    "net": -300,
+    "netPerContract": -30
+   },
+   {
+    "id": 6,
+    "date": "2026-10-05",
+    "session": "OUTSIDE",
+    "lots": 5,
+    "ticks": -99,
+    "net": -252.5,
+    "netPerContract": -50.5
+   },
+   {
+    "id": 17,
+    "date": "2026-10-09",
+    "session": "OUTSIDE",
+    "lots": 2,
+    "ticks": -73,
+    "net": -75,
+    "netPerContract": -37.5
+   }
+  ],
+  "best": [
+   {
+    "id": 13,
+    "date": "2026-10-08",
+    "session": "NY_AM",
+    "lots": 1,
+    "ticks": 262,
+    "net": 130,
+    "netPerContract": 130
+   },
+   {
+    "id": 32,
+    "date": "2026-10-09",
+    "session": "NY_PM",
+    "lots": 2,
+    "ticks": 48.5,
+    "net": 46.5,
+    "netPerContract": 23.25
+   },
+   {
+    "id": 30,
+    "date": "2026-10-09",
+    "session": "NY_PM",
+    "lots": 1,
+    "ticks": 93,
+    "net": 45.5,
+    "netPerContract": 45.5
+   },
+   {
+    "id": 1,
+    "date": "2026-10-05",
+    "session": "LONDON",
+    "lots": 1,
+    "ticks": 67,
+    "net": 32.5,
+    "netPerContract": 32.5
+   },
+   {
+    "id": 7,
+    "date": "2026-10-05",
+    "session": "OUTSIDE",
+    "lots": 1,
+    "ticks": 51,
+    "net": 24.5,
+    "netPerContract": 24.5
+   }
+  ],
+  "drawdown": {
+   "rows": [
+    {
+     "session": "LONDON",
+     "days": 1,
+     "trades": 3,
+     "total": 33,
+     "perTrade": 11,
+     "drawdownMedian": 2.5,
+     "drawdownP75": 2.5,
+     "drawdownWorst": 2.5,
+     "drawdownWorstDay": "2026-10-05",
+     "chainedDrawdown": 2.5,
+     "greenDays": 1,
+     "worstStreak": 1,
+     "overLimit": null
+    },
+    {
+     "session": "NY_AM",
+     "days": 2,
+     "trades": 2,
+     "total": 130,
+     "perTrade": 65,
+     "drawdownMedian": 0,
+     "drawdownP75": 0,
+     "drawdownWorst": 0,
+     "drawdownWorstDay": null,
+     "chainedDrawdown": 0,
+     "greenDays": 1,
+     "worstStreak": 1,
+     "overLimit": null
+    },
+    {
+     "session": "NY_LUNCH",
+     "days": 3,
+     "trades": 11,
+     "total": -862,
+     "perTrade": -78.36,
+     "drawdownMedian": 70,
+     "drawdownP75": 807.5,
+     "drawdownWorst": 807.5,
+     "drawdownWorstDay": "2026-10-09",
+     "chainedDrawdown": 862,
+     "greenDays": 1,
+     "worstStreak": 7,
+     "overLimit": null
+    },
+    {
+     "session": "NY_PM",
+     "days": 1,
+     "trades": 6,
+     "total": -221.5,
+     "perTrade": -36.92,
+     "drawdownMedian": 305.5,
+     "drawdownP75": 305.5,
+     "drawdownWorst": 305.5,
+     "drawdownWorstDay": "2026-10-09",
+     "chainedDrawdown": 305.5,
+     "greenDays": 0,
+     "worstStreak": 2,
+     "overLimit": null
+    },
+    {
+     "session": "OUTSIDE",
+     "days": 2,
+     "trades": 12,
+     "total": -513.5,
+     "perTrade": -42.79,
+     "drawdownMedian": 274.75,
+     "drawdownP75": 316,
+     "drawdownWorst": 316,
+     "drawdownWorstDay": "2026-10-05",
+     "chainedDrawdown": 516.5,
+     "greenDays": 0,
+     "worstStreak": 5,
+     "overLimit": null
+    }
+   ],
+   "gaps": [
+    {
+     "from": 11,
+     "to": 12,
+     "label": "entre NY AM y el almuerzo",
+     "days": 2,
+     "trades": 11,
+     "total": -516.5,
+     "perTrade": -46.95,
+     "drawdownWorst": 316,
+     "greenDays": 0
+    },
+    {
+     "from": 13,
+     "to": 13.5,
+     "label": "entre el almuerzo y NY PM",
+     "days": 1,
+     "trades": 1,
+     "total": 3,
+     "perTrade": 3,
+     "drawdownWorst": 0,
+     "greenDays": 1
+    }
+   ],
+   "thresholds": [
+    25,
+    50,
+    75,
+    100,
+    150,
+    200,
+    300
+   ],
+   "cells": [
+    {
+     "session": "NY_LUNCH",
+     "threshold": 25,
+     "days": 2,
+     "daysWithRest": 2,
+     "tradesAfter": 8,
+     "perTradeAfter": -96.81,
+     "baseline": -78.36,
+     "diff": -18.45,
+     "medianAfter": -387.25,
+     "p": null,
+     "survives": false,
+     "enough": false
+    },
+    {
+     "session": "NY_LUNCH",
+     "threshold": 50,
+     "days": 2,
+     "daysWithRest": 2,
+     "tradesAfter": 7,
+     "perTradeAfter": -105.93,
+     "baseline": -78.36,
+     "diff": -27.56,
+     "medianAfter": -370.75,
+     "p": null,
+     "survives": false,
+     "enough": false
+    },
+    {
+     "session": "NY_LUNCH",
+     "threshold": 75,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 5,
+     "perTradeAfter": -137.9,
+     "baseline": -78.36,
+     "diff": -59.54,
+     "medianAfter": -689.5,
+     "p": null,
+     "survives": false,
+     "enough": false
+    },
+    {
+     "session": "NY_LUNCH",
+     "threshold": 100,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 5,
+     "perTradeAfter": -137.9,
+     "baseline": -78.36,
+     "diff": -59.54,
+     "medianAfter": -689.5,
+     "p": null,
+     "survives": false,
+     "enough": false
+    },
+    {
+     "session": "NY_LUNCH",
+     "threshold": 150,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 4,
+     "perTradeAfter": -157.63,
+     "baseline": -78.36,
+     "diff": -79.26,
+     "medianAfter": -630.5,
+     "p": null,
+     "survives": false,
+     "enough": false
+    },
+    {
+     "session": "NY_LUNCH",
+     "threshold": 200,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 3,
+     "perTradeAfter": -106.83,
+     "baseline": -78.36,
+     "diff": -28.47,
+     "medianAfter": -320.5,
+     "p": null,
+     "survives": false,
+     "enough": false
+    },
+    {
+     "session": "NY_LUNCH",
+     "threshold": 300,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 3,
+     "perTradeAfter": -106.83,
+     "baseline": -78.36,
+     "diff": -28.47,
+     "medianAfter": -320.5,
+     "p": null,
+     "survives": false,
+     "enough": false
+    },
+    {
+     "session": "NY_PM",
+     "threshold": 25,
+     "days": 1,
+     "daysWithRest": 0,
+     "tradesAfter": 0,
+     "perTradeAfter": null,
+     "baseline": -36.92,
+     "diff": null,
+     "medianAfter": null,
+     "p": null,
+     "survives": false,
+     "enough": false
+    },
+    {
+     "session": "NY_PM",
+     "threshold": 50,
+     "days": 1,
+     "daysWithRest": 0,
+     "tradesAfter": 0,
+     "perTradeAfter": null,
+     "baseline": -36.92,
+     "diff": null,
+     "medianAfter": null,
+     "p": null,
+     "survives": false,
+     "enough": false
+    },
+    {
+     "session": "NY_PM",
+     "threshold": 75,
+     "days": 1,
+     "daysWithRest": 0,
+     "tradesAfter": 0,
+     "perTradeAfter": null,
+     "baseline": -36.92,
+     "diff": null,
+     "medianAfter": null,
+     "p": null,
+     "survives": false,
+     "enough": false
+    },
+    {
+     "session": "NY_PM",
+     "threshold": 100,
+     "days": 1,
+     "daysWithRest": 0,
+     "tradesAfter": 0,
+     "perTradeAfter": null,
+     "baseline": -36.92,
+     "diff": null,
+     "medianAfter": null,
+     "p": null,
+     "survives": false,
+     "enough": false
+    },
+    {
+     "session": "NY_PM",
+     "threshold": 150,
+     "days": 1,
+     "daysWithRest": 0,
+     "tradesAfter": 0,
+     "perTradeAfter": null,
+     "baseline": -36.92,
+     "diff": null,
+     "medianAfter": null,
+     "p": null,
+     "survives": false,
+     "enough": false
+    },
+    {
+     "session": "NY_PM",
+     "threshold": 200,
+     "days": 1,
+     "daysWithRest": 0,
+     "tradesAfter": 0,
+     "perTradeAfter": null,
+     "baseline": -36.92,
+     "diff": null,
+     "medianAfter": null,
+     "p": null,
+     "survives": false,
+     "enough": false
+    },
+    {
+     "session": "NY_PM",
+     "threshold": 300,
+     "days": 1,
+     "daysWithRest": 0,
+     "tradesAfter": 0,
+     "perTradeAfter": null,
+     "baseline": -36.92,
+     "diff": null,
+     "medianAfter": null,
+     "p": null,
+     "survives": false,
+     "enough": false
+    },
+    {
+     "session": "OUTSIDE",
+     "threshold": 25,
+     "days": 2,
+     "daysWithRest": 2,
+     "tradesAfter": 9,
+     "perTradeAfter": -45.67,
+     "baseline": -42.79,
+     "diff": -2.88,
+     "medianAfter": -205.5,
+     "p": null,
+     "survives": false,
+     "enough": false
+    },
+    {
+     "session": "OUTSIDE",
+     "threshold": 50,
+     "days": 2,
+     "daysWithRest": 2,
+     "tradesAfter": 8,
+     "perTradeAfter": -46.75,
+     "baseline": -42.79,
+     "diff": -3.96,
+     "medianAfter": -187,
+     "p": null,
+     "survives": false,
+     "enough": false
+    },
+    {
+     "session": "OUTSIDE",
+     "threshold": 75,
+     "days": 2,
+     "daysWithRest": 2,
+     "tradesAfter": 7,
+     "perTradeAfter": -17.36,
+     "baseline": -42.79,
+     "diff": 25.43,
+     "medianAfter": -60.75,
+     "p": null,
+     "survives": false,
+     "enough": false
+    },
+    {
+     "session": "OUTSIDE",
+     "threshold": 100,
+     "days": 2,
+     "daysWithRest": 2,
+     "tradesAfter": 6,
+     "perTradeAfter": -13.42,
+     "baseline": -42.79,
+     "diff": 29.38,
+     "medianAfter": -40.25,
+     "p": null,
+     "survives": false,
+     "enough": false
+    },
+    {
+     "session": "OUTSIDE",
+     "threshold": 150,
+     "days": 2,
+     "daysWithRest": 2,
+     "tradesAfter": 5,
+     "perTradeAfter": -5.6,
+     "baseline": -42.79,
+     "diff": 37.19,
+     "medianAfter": -14,
+     "p": null,
+     "survives": false,
+     "enough": false
+    },
+    {
+     "session": "OUTSIDE",
+     "threshold": 200,
+     "days": 2,
+     "daysWithRest": 2,
+     "tradesAfter": 4,
+     "perTradeAfter": 9,
+     "baseline": -42.79,
+     "diff": 51.79,
+     "medianAfter": 18,
+     "p": null,
+     "survives": false,
+     "enough": false
+    },
+    {
+     "session": "OUTSIDE",
+     "threshold": 300,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 3,
+     "perTradeAfter": 11,
+     "baseline": -42.79,
+     "diff": 53.79,
+     "medianAfter": 33,
+     "p": null,
+     "survives": false,
+     "enough": false
+    }
+   ],
+   "permutations": 2000,
+   "minTradesAfter": 10,
+   "tested": 0,
+   "survivors": 0,
+   "fdr": 0.1,
+   "dailyLossLimit": 0
+  },
+  "breakeven": 0.7246,
+  "payoff": 0.38,
+  "sinAlineacion": {
+   "operations": 21,
+   "net": -1417.5,
+   "perTrade": -67.5
+  },
+  "revenge": {
+   "operations": 10,
+   "net": -510.5,
+   "perTrade": -51.05
+  }
+ },
+ "semanal|2026-10-12": {
+  "periodo": "semanal",
+  "days": [
+   "2026-10-12",
+   "2026-10-13",
+   "2026-10-14",
+   "2026-10-15",
+   "2026-10-16"
+  ],
+  "from": "2026-10-12",
+  "to": "2026-10-16",
+  "expectedDays": 5,
+  "prev": "2026-10-09",
+  "next": "2026-10-19",
+  "isLatest": false,
+  "calendar": [
+   {
+    "date": "2026-10-05",
+    "count": 12,
+    "pnl": -316
+   },
+   {
+    "date": "2026-10-08",
+    "count": 2,
+    "pnl": 141.5
+   },
+   {
+    "date": "2026-10-09",
+    "count": 20,
+    "pnl": -1259.5
+   },
+   {
+    "date": "2026-10-12",
+    "count": 3,
+    "pnl": -148
+   },
+   {
+    "date": "2026-10-13",
+    "count": 32,
+    "pnl": -161
+   },
+   {
+    "date": "2026-10-14",
+    "count": 54,
+    "pnl": 568
+   },
+   {
+    "date": "2026-10-15",
+    "count": 56,
+    "pnl": -264.5
+   },
+   {
+    "date": "2026-10-16",
+    "count": 15,
+    "pnl": -347.5
+   },
+   {
+    "date": "2026-10-19",
+    "count": 8,
+    "pnl": -11
+   },
+   {
+    "date": "2026-10-20",
+    "count": 48,
+    "pnl": 295.5
+   },
+   {
+    "date": "2026-10-21",
+    "count": 15,
+    "pnl": 191
+   },
+   {
+    "date": "2026-10-22",
+    "count": 40,
+    "pnl": 36
+   },
+   {
+    "date": "2026-10-23",
+    "count": 54,
+    "pnl": -195
+   },
+   {
+    "date": "2026-10-26",
+    "count": 38,
+    "pnl": 206
+   },
+   {
+    "date": "2026-10-27",
+    "count": 62,
+    "pnl": 302
+   },
+   {
+    "date": "2026-10-28",
+    "count": 55,
+    "pnl": -879.5
+   },
+   {
+    "date": "2026-10-29",
+    "count": 41,
+    "pnl": 560
+   },
+   {
+    "date": "2026-10-30",
+    "count": 18,
+    "pnl": 261.5
+   }
+  ],
+  "operations": 160,
+  "contracts": 311,
+  "gross": -42,
+  "commission": 311,
+  "net": -353,
+  "winRate": 0.2938,
+  "dailyLossLimit": 0,
+  "remaining": null,
+  "maxLot": 11,
+  "medianLot": 2,
+  "byLot": [
+   {
+    "key": "1",
+    "label": "1 lote",
+    "operations": 64,
+    "contracts": 64,
+    "gross": -199,
+    "net": -263,
+    "perTrade": -4.11,
+    "ticksPerTrade": -6.22,
+    "wins": 23,
+    "winRate": 0.3594,
+    "median": -14.5
+   },
+   {
+    "key": "2",
+    "label": "2 lotes",
+    "operations": 80,
+    "contracts": 160,
+    "gross": -1904.5,
+    "net": -2064.5,
+    "perTrade": -25.81,
+    "ticksPerTrade": -23.81,
+    "wins": 16,
+    "winRate": 0.2,
+    "median": -50
+   },
+   {
+    "key": "4",
+    "label": "4 lotes",
+    "operations": 8,
+    "contracts": 32,
+    "gross": 1180.5,
+    "net": 1148.5,
+    "perTrade": 143.56,
+    "ticksPerTrade": 73.79,
+    "wins": 5,
+    "winRate": 0.625,
+    "median": 24.5
+   },
+   {
+    "key": "5",
+    "label": "5 lotes",
+    "operations": 2,
+    "contracts": 10,
+    "gross": 282,
+    "net": 272,
+    "perTrade": 136,
+    "ticksPerTrade": 56.4,
+    "wins": 1,
+    "winRate": 0.5,
+    "median": 136
+   },
+   {
+    "key": "6",
+    "label": "6 lotes",
+    "operations": 3,
+    "contracts": 18,
+    "gross": 446,
+    "net": 428,
+    "perTrade": 142.67,
+    "ticksPerTrade": 49.53,
+    "wins": 1,
+    "winRate": 0.3333,
+    "median": -11
+   },
+   {
+    "key": "8",
+    "label": "8 lotes",
+    "operations": 2,
+    "contracts": 16,
+    "gross": -177,
+    "net": -193,
+    "perTrade": -96.5,
+    "ticksPerTrade": -22.15,
+    "wins": 0,
+    "winRate": 0,
+    "median": -96.5
+   },
+   {
+    "key": "11",
+    "label": "11 lotes",
+    "operations": 1,
+    "contracts": 11,
+    "gross": 330,
+    "net": 319,
+    "perTrade": 319,
+    "ticksPerTrade": 60,
+    "wins": 1,
+    "winRate": 1,
+    "median": 319
+   }
+  ],
+  "bigLots": {
+   "key": "grandes",
+   "label": "mas de 2 lotes",
+   "operations": 16,
+   "contracts": 87,
+   "gross": 2061.5,
+   "net": 1974.5,
+   "perTrade": 123.41,
+   "ticksPerTrade": 54.21,
+   "wins": 8,
+   "winRate": 0.5,
+   "median": 2.25
+  },
+  "smallLots": {
+   "key": "pequenias",
+   "label": "2 lotes o menos",
+   "operations": 144,
+   "contracts": 224,
+   "gross": -2103.5,
+   "net": -2327.5,
+   "perTrade": -16.16,
+   "ticksPerTrade": -15.99,
+   "wins": 39,
+   "winRate": 0.2708,
+   "median": -29.75
+  },
+  "ticksPerTrade": -8.97,
+  "ticksMedian": -39,
+  "previous": {
+   "from": "2026-10-05",
+   "to": "2026-10-09",
+   "days": 3,
+   "net": -1434,
+   "ticksPerTrade": -10.75
+  },
+  "bySession": [
+   {
+    "key": "ASIA",
+    "label": "ASIA",
+    "operations": 38,
+    "contracts": 99,
+    "gross": -420.5,
+    "net": -519.5,
+    "perTrade": -13.67,
+    "ticksPerTrade": -14.69,
+    "wins": 10,
+    "winRate": 0.2632,
+    "median": -30
+   },
+   {
+    "key": "LONDON",
+    "label": "LONDON",
+    "operations": 1,
+    "contracts": 1,
+    "gross": 0,
+    "net": -1,
+    "perTrade": -1,
+    "ticksPerTrade": 0,
+    "wins": 0,
+    "winRate": 0,
+    "median": -1
+   },
+   {
+    "key": "NY_AM",
+    "label": "NY_AM",
+    "operations": 48,
+    "contracts": 75,
+    "gross": -991,
+    "net": -1066,
+    "perTrade": -22.21,
+    "ticksPerTrade": -23.06,
+    "wins": 9,
+    "winRate": 0.1875,
+    "median": -33.25
+   },
+   {
+    "key": "NY_LUNCH",
+    "label": "NY_LUNCH",
+    "operations": 13,
+    "contracts": 31,
+    "gross": 421,
+    "net": 390,
+    "perTrade": 30,
+    "ticksPerTrade": 16.06,
+    "wins": 4,
+    "winRate": 0.3077,
+    "median": -60.5
+   },
+   {
+    "key": "NY_PM",
+    "label": "NY_PM",
+    "operations": 18,
+    "contracts": 29,
+    "gross": -61,
+    "net": -90,
+    "perTrade": -5,
+    "ticksPerTrade": -8.67,
+    "wins": 4,
+    "winRate": 0.2222,
+    "median": -11.5
+   },
+   {
+    "key": "OUTSIDE",
+    "label": "OUTSIDE",
+    "operations": 42,
+    "contracts": 76,
+    "gross": 1009.5,
+    "net": 933.5,
+    "perTrade": 22.23,
+    "ticksPerTrade": 4.22,
+    "wins": 20,
+    "winRate": 0.4762,
+    "median": -19.75
+   }
+  ],
+  "byGap": [
+   {
+    "key": "0",
+    "label": "tras cerrar Asia",
+    "operations": 5,
+    "contracts": 9,
+    "gross": 433.5,
+    "net": 424.5,
+    "perTrade": 84.9,
+    "ticksPerTrade": 59.16,
+    "wins": 4,
+    "winRate": 0.8,
+    "median": 42
+   },
+   {
+    "key": "5",
+    "label": "entre Londres y NY AM",
+    "operations": 1,
+    "contracts": 1,
+    "gross": 14,
+    "net": 13,
+    "perTrade": 13,
+    "ticksPerTrade": 28,
+    "wins": 1,
+    "winRate": 1,
+    "median": 13
+   },
+   {
+    "key": "11",
+    "label": "entre NY AM y el almuerzo",
+    "operations": 14,
+    "contracts": 28,
+    "gross": 164,
+    "net": 136,
+    "perTrade": 9.71,
+    "ticksPerTrade": -25.01,
+    "wins": 4,
+    "winRate": 0.2857,
+    "median": -40.5
+   },
+   {
+    "key": "13",
+    "label": "entre el almuerzo y NY PM",
+    "operations": 9,
+    "contracts": 21,
+    "gross": 226,
+    "net": 205,
+    "perTrade": 22.78,
+    "ticksPerTrade": -14.39,
+    "wins": 2,
+    "winRate": 0.2222,
+    "median": -49
+   },
+   {
+    "key": "16",
+    "label": "entre NY PM y Asia",
+    "operations": 13,
+    "contracts": 17,
+    "gross": 172,
+    "net": 155,
+    "perTrade": 11.92,
+    "ticksPerTrade": 25.62,
+    "wins": 9,
+    "winRate": 0.6923,
+    "median": 3
+   }
+  ],
+  "worst": [
+   {
+    "id": 2699,
+    "date": "2026-10-14",
+    "session": "OUTSIDE",
+    "lots": 2,
+    "ticks": -180,
+    "net": -182,
+    "netPerContract": -91
+   },
+   {
+    "id": 19896,
+    "date": "2026-10-15",
+    "session": "NY_AM",
+    "lots": 4,
+    "ticks": -60.5,
+    "net": -125,
+    "netPerContract": -31.25
+   },
+   {
+    "id": 32569,
+    "date": "2026-10-16",
+    "session": "ASIA",
+    "lots": 8,
+    "ticks": -29,
+    "net": -124,
+    "netPerContract": -15.5
+   },
+   {
+    "id": 18375,
+    "date": "2026-10-15",
+    "session": "NY_AM",
+    "lots": 4,
+    "ticks": -53.3,
+    "net": -110.5,
+    "netPerContract": -27.63
+   },
+   {
+    "id": 3500,
+    "date": "2026-10-14",
+    "session": "NY_LUNCH",
+    "lots": 4,
+    "ticks": -50,
+    "net": -104,
+    "netPerContract": -26
+   }
+  ],
+  "best": [
+   {
+    "id": 3912,
+    "date": "2026-10-14",
+    "session": "NY_LUNCH",
+    "lots": 4,
+    "ticks": 348,
+    "net": 692,
+    "netPerContract": 173
+   },
+   {
+    "id": 23102,
+    "date": "2026-10-15",
+    "session": "OUTSIDE",
+    "lots": 4,
+    "ticks": 333,
+    "net": 662,
+    "netPerContract": 165.5
+   },
+   {
+    "id": 5754,
+    "date": "2026-10-14",
+    "session": "OUTSIDE",
+    "lots": 6,
+    "ticks": 180,
+    "net": 534,
+    "netPerContract": 89
+   },
+   {
+    "id": 608,
+    "date": "2026-10-14",
+    "session": "OUTSIDE",
+    "lots": 5,
+    "ticks": 142.8,
+    "net": 352,
+    "netPerContract": 70.4
+   },
+   {
+    "id": 33146,
+    "date": "2026-10-16",
+    "session": "ASIA",
+    "lots": 11,
+    "ticks": 60,
+    "net": 319,
+    "netPerContract": 29
+   }
+  ],
+  "drawdown": {
+   "rows": [
+    {
+     "session": "ASIA",
+     "days": 4,
+     "trades": 38,
+     "total": -519.5,
+     "perTrade": -13.67,
+     "drawdownMedian": 145.25,
+     "drawdownP75": 202,
+     "drawdownWorst": 586.5,
+     "drawdownWorstDay": "2026-10-16",
+     "chainedDrawdown": 809.5,
+     "greenDays": 1,
+     "worstStreak": 13,
+     "overLimit": null
+    },
+    {
+     "session": "LONDON",
+     "days": 1,
+     "trades": 1,
+     "total": -1,
+     "perTrade": -1,
+     "drawdownMedian": 1,
+     "drawdownP75": 1,
+     "drawdownWorst": 1,
+     "drawdownWorstDay": "2026-10-13",
+     "chainedDrawdown": 1,
+     "greenDays": 0,
+     "worstStreak": 1,
+     "overLimit": null
+    },
+    {
+     "session": "NY_AM",
+     "days": 4,
+     "trades": 48,
+     "total": -1066,
+     "perTrade": -22.21,
+     "drawdownMedian": 239.5,
+     "drawdownP75": 272.5,
+     "drawdownWorst": 827.5,
+     "drawdownWorstDay": "2026-10-15",
+     "chainedDrawdown": 1066,
+     "greenDays": 0,
+     "worstStreak": 9,
+     "overLimit": null
+    },
+    {
+     "session": "NY_LUNCH",
+     "days": 3,
+     "trades": 13,
+     "total": 390,
+     "perTrade": 30,
+     "drawdownMedian": 104,
+     "drawdownP75": 370,
+     "drawdownWorst": 370,
+     "drawdownWorstDay": "2026-10-15",
+     "chainedDrawdown": 423,
+     "greenDays": 2,
+     "worstStreak": 6,
+     "overLimit": null
+    },
+    {
+     "session": "NY_PM",
+     "days": 3,
+     "trades": 18,
+     "total": -90,
+     "perTrade": -5,
+     "drawdownMedian": 95.5,
+     "drawdownP75": 122.5,
+     "drawdownWorst": 122.5,
+     "drawdownWorstDay": "2026-10-14",
+     "chainedDrawdown": 183.5,
+     "greenDays": 1,
+     "worstStreak": 7,
+     "overLimit": null
+    },
+    {
+     "session": "OUTSIDE",
+     "days": 4,
+     "trades": 42,
+     "total": 933.5,
+     "perTrade": 22.23,
+     "drawdownMedian": 105.25,
+     "drawdownP75": 124,
+     "drawdownWorst": 670.5,
+     "drawdownWorstDay": "2026-10-14",
+     "chainedDrawdown": 670.5,
+     "greenDays": 3,
+     "worstStreak": 10,
+     "overLimit": null
+    }
+   ],
+   "gaps": [
+    {
+     "from": 0,
+     "to": 2,
+     "label": "tras cerrar Asia",
+     "days": 2,
+     "trades": 5,
+     "total": 424.5,
+     "perTrade": 84.9,
+     "drawdownWorst": 23,
+     "greenDays": 2
+    },
+    {
+     "from": 5,
+     "to": 9.5,
+     "label": "entre Londres y NY AM",
+     "days": 1,
+     "trades": 1,
+     "total": 13,
+     "perTrade": 13,
+     "drawdownWorst": 0,
+     "greenDays": 1
+    },
+    {
+     "from": 11,
+     "to": 12,
+     "label": "entre NY AM y el almuerzo",
+     "days": 4,
+     "trades": 14,
+     "total": 136,
+     "perTrade": 9.71,
+     "drawdownWorst": 366,
+     "greenDays": 1
+    },
+    {
+     "from": 13,
+     "to": 13.5,
+     "label": "entre el almuerzo y NY PM",
+     "days": 3,
+     "trades": 9,
+     "total": 205,
+     "perTrade": 22.78,
+     "drawdownWorst": 304.5,
+     "greenDays": 2
+    },
+    {
+     "from": 16,
+     "to": 20,
+     "label": "entre NY PM y Asia",
+     "days": 3,
+     "trades": 13,
+     "total": 155,
+     "perTrade": 11.92,
+     "drawdownWorst": 52.5,
+     "greenDays": 3
+    }
+   ],
+   "thresholds": [
+    25,
+    50,
+    75,
+    100,
+    150,
+    200,
+    300
+   ],
+   "cells": [
+    {
+     "session": "ASIA",
+     "threshold": 25,
+     "days": 3,
+     "daysWithRest": 3,
+     "tradesAfter": 30,
+     "perTradeAfter": -15.8,
+     "baseline": -13.67,
+     "diff": -2.13,
+     "medianAfter": -98,
+     "p": 0.3078,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "ASIA",
+     "threshold": 50,
+     "days": 3,
+     "daysWithRest": 3,
+     "tradesAfter": 28,
+     "perTradeAfter": -15.07,
+     "baseline": -13.67,
+     "diff": -1.4,
+     "medianAfter": -98,
+     "p": 0.3703,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "ASIA",
+     "threshold": 75,
+     "days": 3,
+     "daysWithRest": 2,
+     "tradesAfter": 24,
+     "perTradeAfter": -12.6,
+     "baseline": -13.67,
+     "diff": 1.07,
+     "medianAfter": -151.25,
+     "p": 0.6042,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "ASIA",
+     "threshold": 100,
+     "days": 2,
+     "daysWithRest": 2,
+     "tradesAfter": 23,
+     "perTradeAfter": -11.65,
+     "baseline": -13.67,
+     "diff": 2.02,
+     "medianAfter": -134,
+     "p": 0.6527,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "ASIA",
+     "threshold": 150,
+     "days": 2,
+     "daysWithRest": 2,
+     "tradesAfter": 21,
+     "perTradeAfter": -8.86,
+     "baseline": -13.67,
+     "diff": 4.81,
+     "medianAfter": -93,
+     "p": 0.702,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "ASIA",
+     "threshold": 200,
+     "days": 2,
+     "daysWithRest": 2,
+     "tradesAfter": 19,
+     "perTradeAfter": -3.55,
+     "baseline": -13.67,
+     "diff": 10.12,
+     "medianAfter": -33.75,
+     "p": 0.7873,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "ASIA",
+     "threshold": 300,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 5,
+     "perTradeAfter": 7,
+     "baseline": -13.67,
+     "diff": 20.67,
+     "medianAfter": 35,
+     "p": null,
+     "survives": false,
+     "enough": false
+    },
+    {
+     "session": "NY_AM",
+     "threshold": 25,
+     "days": 4,
+     "daysWithRest": 3,
+     "tradesAfter": 42,
+     "perTradeAfter": -20.54,
+     "baseline": -22.21,
+     "diff": 1.67,
+     "medianAfter": -189,
+     "p": 0.5712,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "NY_AM",
+     "threshold": 50,
+     "days": 4,
+     "daysWithRest": 3,
+     "tradesAfter": 40,
+     "perTradeAfter": -19.43,
+     "baseline": -22.21,
+     "diff": 2.78,
+     "medianAfter": -158,
+     "p": 0.7906,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "NY_AM",
+     "threshold": 75,
+     "days": 3,
+     "daysWithRest": 3,
+     "tradesAfter": 32,
+     "perTradeAfter": -25.16,
+     "baseline": -22.21,
+     "diff": -2.95,
+     "medianAfter": -129,
+     "p": 0.1879,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "NY_AM",
+     "threshold": 100,
+     "days": 3,
+     "daysWithRest": 3,
+     "tradesAfter": 31,
+     "perTradeAfter": -24.97,
+     "baseline": -22.21,
+     "diff": -2.76,
+     "medianAfter": -98,
+     "p": 0.2114,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "NY_AM",
+     "threshold": 150,
+     "days": 3,
+     "daysWithRest": 3,
+     "tradesAfter": 27,
+     "perTradeAfter": -23.41,
+     "baseline": -22.21,
+     "diff": -1.2,
+     "medianAfter": -67,
+     "p": 0.3433,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "NY_AM",
+     "threshold": 200,
+     "days": 3,
+     "daysWithRest": 3,
+     "tradesAfter": 24,
+     "perTradeAfter": -19.54,
+     "baseline": -22.21,
+     "diff": 2.67,
+     "medianAfter": -18,
+     "p": 0.6955,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "NY_AM",
+     "threshold": 300,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 13,
+     "perTradeAfter": -32.46,
+     "baseline": -22.21,
+     "diff": -10.25,
+     "medianAfter": -422,
+     "p": 0.1992,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "NY_LUNCH",
+     "threshold": 25,
+     "days": 2,
+     "daysWithRest": 2,
+     "tradesAfter": 10,
+     "perTradeAfter": 46.15,
+     "baseline": 30,
+     "diff": 16.15,
+     "medianAfter": 230.75,
+     "p": 0.9295,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "NY_LUNCH",
+     "threshold": 50,
+     "days": 2,
+     "daysWithRest": 2,
+     "tradesAfter": 10,
+     "perTradeAfter": 46.15,
+     "baseline": 30,
+     "diff": 16.15,
+     "medianAfter": 230.75,
+     "p": 0.9289,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "NY_LUNCH",
+     "threshold": 75,
+     "days": 2,
+     "daysWithRest": 2,
+     "tradesAfter": 9,
+     "perTradeAfter": 58.11,
+     "baseline": 30,
+     "diff": 28.11,
+     "medianAfter": 261.5,
+     "p": null,
+     "survives": false,
+     "enough": false
+    },
+    {
+     "session": "NY_LUNCH",
+     "threshold": 100,
+     "days": 2,
+     "daysWithRest": 2,
+     "tradesAfter": 9,
+     "perTradeAfter": 58.11,
+     "baseline": 30,
+     "diff": 28.11,
+     "medianAfter": 261.5,
+     "p": null,
+     "survives": false,
+     "enough": false
+    },
+    {
+     "session": "NY_LUNCH",
+     "threshold": 150,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 4,
+     "perTradeAfter": -17.38,
+     "baseline": 30,
+     "diff": -47.38,
+     "medianAfter": -69.5,
+     "p": null,
+     "survives": false,
+     "enough": false
+    },
+    {
+     "session": "NY_LUNCH",
+     "threshold": 200,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 3,
+     "perTradeAfter": -2.17,
+     "baseline": 30,
+     "diff": -32.17,
+     "medianAfter": -6.5,
+     "p": null,
+     "survives": false,
+     "enough": false
+    },
+    {
+     "session": "NY_LUNCH",
+     "threshold": 300,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 2,
+     "perTradeAfter": 27.25,
+     "baseline": 30,
+     "diff": -2.75,
+     "medianAfter": 54.5,
+     "p": null,
+     "survives": false,
+     "enough": false
+    },
+    {
+     "session": "NY_PM",
+     "threshold": 25,
+     "days": 3,
+     "daysWithRest": 3,
+     "tradesAfter": 11,
+     "perTradeAfter": -7.23,
+     "baseline": -5,
+     "diff": -2.23,
+     "medianAfter": -11.5,
+     "p": 0.1411,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "NY_PM",
+     "threshold": 50,
+     "days": 3,
+     "daysWithRest": 2,
+     "tradesAfter": 6,
+     "perTradeAfter": 4,
+     "baseline": -5,
+     "diff": 9,
+     "medianAfter": 12,
+     "p": null,
+     "survives": false,
+     "enough": false
+    },
+    {
+     "session": "NY_PM",
+     "threshold": 75,
+     "days": 2,
+     "daysWithRest": 1,
+     "tradesAfter": 2,
+     "perTradeAfter": 24.25,
+     "baseline": -5,
+     "diff": 29.25,
+     "medianAfter": 48.5,
+     "p": null,
+     "survives": false,
+     "enough": false
+    },
+    {
+     "session": "NY_PM",
+     "threshold": 100,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 2,
+     "perTradeAfter": 24.25,
+     "baseline": -5,
+     "diff": 29.25,
+     "medianAfter": 48.5,
+     "p": null,
+     "survives": false,
+     "enough": false
+    },
+    {
+     "session": "OUTSIDE",
+     "threshold": 25,
+     "days": 4,
+     "daysWithRest": 3,
+     "tradesAfter": 34,
+     "perTradeAfter": 30.31,
+     "baseline": 22.23,
+     "diff": 8.08,
+     "medianAfter": 321.5,
+     "p": 0.4953,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "OUTSIDE",
+     "threshold": 50,
+     "days": 4,
+     "daysWithRest": 3,
+     "tradesAfter": 23,
+     "perTradeAfter": 11.48,
+     "baseline": 22.23,
+     "diff": -10.75,
+     "medianAfter": 3.5,
+     "p": 0.091,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "OUTSIDE",
+     "threshold": 75,
+     "days": 4,
+     "daysWithRest": 3,
+     "tradesAfter": 15,
+     "perTradeAfter": 0.5,
+     "baseline": 22.23,
+     "diff": -21.73,
+     "medianAfter": 3,
+     "p": 0.095,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "OUTSIDE",
+     "threshold": 100,
+     "days": 2,
+     "daysWithRest": 2,
+     "tradesAfter": 13,
+     "perTradeAfter": 14.31,
+     "baseline": 22.23,
+     "diff": -7.92,
+     "medianAfter": 93,
+     "p": 0.266,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "OUTSIDE",
+     "threshold": 150,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 11,
+     "perTradeAfter": 16.82,
+     "baseline": 22.23,
+     "diff": -5.41,
+     "medianAfter": 185,
+     "p": 0.3424,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "OUTSIDE",
+     "threshold": 200,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 11,
+     "perTradeAfter": 16.82,
+     "baseline": 22.23,
+     "diff": -5.41,
+     "medianAfter": 185,
+     "p": 0.3143,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "OUTSIDE",
+     "threshold": 300,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 10,
+     "perTradeAfter": 23.3,
+     "baseline": 22.23,
+     "diff": 1.07,
+     "medianAfter": 233,
+     "p": 0.2818,
+     "survives": false,
+     "enough": true
+    }
+   ],
+   "permutations": 2000,
+   "minTradesAfter": 10,
+   "tested": 23,
+   "survivors": 0,
+   "fdr": 0.1,
+   "dailyLossLimit": 0
+  },
+  "breakeven": 0.3096,
+  "payoff": 2.23,
+  "sinAlineacion": {
+   "operations": 77,
+   "net": -197.5,
+   "perTrade": -2.56
+  },
+  "revenge": {
+   "operations": 57,
+   "net": -411,
+   "perTrade": -7.21
+  }
+ },
+ "semanal|2026-10-19": {
+  "periodo": "semanal",
+  "days": [
+   "2026-10-19",
+   "2026-10-20",
+   "2026-10-21",
+   "2026-10-22",
+   "2026-10-23"
+  ],
+  "from": "2026-10-19",
+  "to": "2026-10-23",
+  "expectedDays": 5,
+  "prev": "2026-10-16",
+  "next": "2026-10-26",
+  "isLatest": false,
+  "calendar": [
+   {
+    "date": "2026-10-05",
+    "count": 12,
+    "pnl": -316
+   },
+   {
+    "date": "2026-10-08",
+    "count": 2,
+    "pnl": 141.5
+   },
+   {
+    "date": "2026-10-09",
+    "count": 20,
+    "pnl": -1259.5
+   },
+   {
+    "date": "2026-10-12",
+    "count": 3,
+    "pnl": -148
+   },
+   {
+    "date": "2026-10-13",
+    "count": 32,
+    "pnl": -161
+   },
+   {
+    "date": "2026-10-14",
+    "count": 54,
+    "pnl": 568
+   },
+   {
+    "date": "2026-10-15",
+    "count": 56,
+    "pnl": -264.5
+   },
+   {
+    "date": "2026-10-16",
+    "count": 15,
+    "pnl": -347.5
+   },
+   {
+    "date": "2026-10-19",
+    "count": 8,
+    "pnl": -11
+   },
+   {
+    "date": "2026-10-20",
+    "count": 48,
+    "pnl": 295.5
+   },
+   {
+    "date": "2026-10-21",
+    "count": 15,
+    "pnl": 191
+   },
+   {
+    "date": "2026-10-22",
+    "count": 40,
+    "pnl": 36
+   },
+   {
+    "date": "2026-10-23",
+    "count": 54,
+    "pnl": -195
+   },
+   {
+    "date": "2026-10-26",
+    "count": 38,
+    "pnl": 206
+   },
+   {
+    "date": "2026-10-27",
+    "count": 62,
+    "pnl": 302
+   },
+   {
+    "date": "2026-10-28",
+    "count": 55,
+    "pnl": -879.5
+   },
+   {
+    "date": "2026-10-29",
+    "count": 41,
+    "pnl": 560
+   },
+   {
+    "date": "2026-10-30",
+    "count": 18,
+    "pnl": 261.5
+   }
+  ],
+  "operations": 165,
+  "contracts": 229,
+  "gross": 545.5,
+  "commission": 229,
+  "net": 316.5,
+  "winRate": 0.3333,
+  "dailyLossLimit": 0,
+  "remaining": null,
+  "maxLot": 3,
+  "medianLot": 1,
+  "byLot": [
+   {
+    "key": "1",
+    "label": "1 lote",
+    "operations": 110,
+    "contracts": 110,
+    "gross": -572.5,
+    "net": -682.5,
+    "perTrade": -6.2,
+    "ticksPerTrade": -10.41,
+    "wins": 29,
+    "winRate": 0.2636,
+    "median": -17.75
+   },
+   {
+    "key": "2",
+    "label": "2 lotes",
+    "operations": 46,
+    "contracts": 92,
+    "gross": 827,
+    "net": 735,
+    "perTrade": 15.98,
+    "ticksPerTrade": 17.98,
+    "wins": 20,
+    "winRate": 0.4348,
+    "median": -1.75
+   },
+   {
+    "key": "3",
+    "label": "3 lotes",
+    "operations": 9,
+    "contracts": 27,
+    "gross": 291,
+    "net": 264,
+    "perTrade": 29.33,
+    "ticksPerTrade": 21.57,
+    "wins": 6,
+    "winRate": 0.6667,
+    "median": 19
+   }
+  ],
+  "bigLots": {
+   "key": "grandes",
+   "label": "mas de 1 lote",
+   "operations": 55,
+   "contracts": 119,
+   "gross": 1118,
+   "net": 999,
+   "perTrade": 18.16,
+   "ticksPerTrade": 18.57,
+   "wins": 26,
+   "winRate": 0.4727,
+   "median": -1
+  },
+  "smallLots": {
+   "key": "pequenias",
+   "label": "1 lote o menos",
+   "operations": 110,
+   "contracts": 110,
+   "gross": -572.5,
+   "net": -682.5,
+   "perTrade": -6.2,
+   "ticksPerTrade": -10.41,
+   "wins": 29,
+   "winRate": 0.2636,
+   "median": -17.75
+  },
+  "ticksPerTrade": -0.75,
+  "ticksMedian": -28,
+  "previous": {
+   "from": "2026-10-12",
+   "to": "2026-10-16",
+   "days": 5,
+   "net": -353,
+   "ticksPerTrade": -8.97
+  },
+  "bySession": [
+   {
+    "key": "ASIA",
+    "label": "ASIA",
+    "operations": 53,
+    "contracts": 73,
+    "gross": 155.5,
+    "net": 82.5,
+    "perTrade": 1.56,
+    "ticksPerTrade": -0.77,
+    "wins": 17,
+    "winRate": 0.3208,
+    "median": -10
+   },
+   {
+    "key": "NY_AM",
+    "label": "NY_AM",
+    "operations": 37,
+    "contracts": 48,
+    "gross": 388,
+    "net": 340,
+    "perTrade": 9.19,
+    "ticksPerTrade": 13,
+    "wins": 12,
+    "winRate": 0.3243,
+    "median": -29
+   },
+   {
+    "key": "NY_LUNCH",
+    "label": "NY_LUNCH",
+    "operations": 14,
+    "contracts": 18,
+    "gross": 178,
+    "net": 160,
+    "perTrade": 11.43,
+    "ticksPerTrade": -2.29,
+    "wins": 4,
+    "winRate": 0.2857,
+    "median": -21
+   },
+   {
+    "key": "NY_PM",
+    "label": "NY_PM",
+    "operations": 2,
+    "contracts": 2,
+    "gross": 19,
+    "net": 17,
+    "perTrade": 8.5,
+    "ticksPerTrade": 19,
+    "wins": 2,
+    "winRate": 1,
+    "median": 8.5
+   },
+   {
+    "key": "OUTSIDE",
+    "label": "OUTSIDE",
+    "operations": 59,
+    "contracts": 88,
+    "gross": -195,
+    "net": -283,
+    "perTrade": -4.8,
+    "ticksPerTrade": -9.66,
+    "wins": 20,
+    "winRate": 0.339,
+    "median": -10
+   }
+  ],
+  "byGap": [
+   {
+    "key": "0",
+    "label": "tras cerrar Asia",
+    "operations": 8,
+    "contracts": 12,
+    "gross": 167,
+    "net": 155,
+    "perTrade": 19.38,
+    "ticksPerTrade": 19.27,
+    "wins": 4,
+    "winRate": 0.5,
+    "median": 2
+   },
+   {
+    "key": "5",
+    "label": "entre Londres y NY AM",
+    "operations": 10,
+    "contracts": 11,
+    "gross": 33,
+    "net": 22,
+    "perTrade": 2.2,
+    "ticksPerTrade": 0.45,
+    "wins": 4,
+    "winRate": 0.4,
+    "median": -12.5
+   },
+   {
+    "key": "11",
+    "label": "entre NY AM y el almuerzo",
+    "operations": 7,
+    "contracts": 13,
+    "gross": -163,
+    "net": -176,
+    "perTrade": -25.14,
+    "ticksPerTrade": -36.07,
+    "wins": 2,
+    "winRate": 0.2857,
+    "median": -46
+   },
+   {
+    "key": "13",
+    "label": "entre el almuerzo y NY PM",
+    "operations": 10,
+    "contracts": 14,
+    "gross": -293.5,
+    "net": -307.5,
+    "perTrade": -30.75,
+    "ticksPerTrade": -47,
+    "wins": 0,
+    "winRate": 0,
+    "median": -31
+   },
+   {
+    "key": "16",
+    "label": "entre NY PM y Asia",
+    "operations": 24,
+    "contracts": 38,
+    "gross": 61.5,
+    "net": 23.5,
+    "perTrade": 0.98,
+    "ticksPerTrade": -0.26,
+    "wins": 10,
+    "winRate": 0.4167,
+    "median": -1.75
+   }
+  ],
+  "worst": [
+   {
+    "id": 89205,
+    "date": "2026-10-22",
+    "session": "NY_AM",
+    "lots": 2,
+    "ticks": -87,
+    "net": -89,
+    "netPerContract": -44.5
+   },
+   {
+    "id": 91236,
+    "date": "2026-10-22",
+    "session": "NY_AM",
+    "lots": 1,
+    "ticks": -159,
+    "net": -80.5,
+    "netPerContract": -80.5
+   },
+   {
+    "id": 95068,
+    "date": "2026-10-22",
+    "session": "OUTSIDE",
+    "lots": 2,
+    "ticks": -72,
+    "net": -74,
+    "netPerContract": -37
+   },
+   {
+    "id": 108708,
+    "date": "2026-10-23",
+    "session": "OUTSIDE",
+    "lots": 3,
+    "ticks": -47.3,
+    "net": -74,
+    "netPerContract": -24.67
+   },
+   {
+    "id": 124657,
+    "date": "2026-10-23",
+    "session": "NY_AM",
+    "lots": 2,
+    "ticks": -71.5,
+    "net": -73.5,
+    "netPerContract": -36.75
+   }
+  ],
+  "best": [
+   {
+    "id": 64258,
+    "date": "2026-10-20",
+    "session": "NY_AM",
+    "lots": 1,
+    "ticks": 721,
+    "net": 359.5,
+    "netPerContract": 359.5
+   },
+   {
+    "id": 69480,
+    "date": "2026-10-21",
+    "session": "OUTSIDE",
+    "lots": 2,
+    "ticks": 226,
+    "net": 224,
+    "netPerContract": 112
+   },
+   {
+    "id": 97775,
+    "date": "2026-10-22",
+    "session": "NY_LUNCH",
+    "lots": 2,
+    "ticks": 189.5,
+    "net": 187.5,
+    "netPerContract": 93.75
+   },
+   {
+    "id": 125348,
+    "date": "2026-10-23",
+    "session": "NY_AM",
+    "lots": 2,
+    "ticks": 180,
+    "net": 178,
+    "netPerContract": 89
+   },
+   {
+    "id": 52409,
+    "date": "2026-10-20",
+    "session": "ASIA",
+    "lots": 3,
+    "ticks": 118,
+    "net": 174,
+    "netPerContract": 58
+   }
+  ],
+  "drawdown": {
+   "rows": [
+    {
+     "session": "ASIA",
+     "days": 4,
+     "trades": 53,
+     "total": 82.5,
+     "perTrade": 1.56,
+     "drawdownMedian": 76.25,
+     "drawdownP75": 93,
+     "drawdownWorst": 242.5,
+     "drawdownWorstDay": "2026-10-20",
+     "chainedDrawdown": 242.5,
+     "greenDays": 1,
+     "worstStreak": 7,
+     "overLimit": null
+    },
+    {
+     "session": "NY_AM",
+     "days": 5,
+     "trades": 37,
+     "total": 340,
+     "perTrade": 9.19,
+     "drawdownMedian": 157.5,
+     "drawdownP75": 219,
+     "drawdownWorst": 229,
+     "drawdownWorstDay": "2026-10-23",
+     "chainedDrawdown": 410,
+     "greenDays": 4,
+     "worstStreak": 7,
+     "overLimit": null
+    },
+    {
+     "session": "NY_LUNCH",
+     "days": 2,
+     "trades": 14,
+     "total": 160,
+     "perTrade": 11.43,
+     "drawdownMedian": 99.25,
+     "drawdownP75": 133,
+     "drawdownWorst": 133,
+     "drawdownWorstDay": "2026-10-23",
+     "chainedDrawdown": 133,
+     "greenDays": 1,
+     "worstStreak": 6,
+     "overLimit": null
+    },
+    {
+     "session": "NY_PM",
+     "days": 1,
+     "trades": 2,
+     "total": 17,
+     "perTrade": 8.5,
+     "drawdownMedian": 0,
+     "drawdownP75": 0,
+     "drawdownWorst": 0,
+     "drawdownWorstDay": null,
+     "chainedDrawdown": 0,
+     "greenDays": 1,
+     "worstStreak": 0,
+     "overLimit": null
+    },
+    {
+     "session": "OUTSIDE",
+     "days": 5,
+     "trades": 59,
+     "total": -283,
+     "perTrade": -4.8,
+     "drawdownMedian": 70,
+     "drawdownP75": 166.5,
+     "drawdownWorst": 391,
+     "drawdownWorstDay": "2026-10-23",
+     "chainedDrawdown": 584,
+     "greenDays": 2,
+     "worstStreak": 8,
+     "overLimit": null
+    }
+   ],
+   "gaps": [
+    {
+     "from": 0,
+     "to": 2,
+     "label": "tras cerrar Asia",
+     "days": 2,
+     "trades": 8,
+     "total": 155,
+     "perTrade": 19.38,
+     "drawdownWorst": 36.5,
+     "greenDays": 1
+    },
+    {
+     "from": 5,
+     "to": 9.5,
+     "label": "entre Londres y NY AM",
+     "days": 2,
+     "trades": 10,
+     "total": 22,
+     "perTrade": 2.2,
+     "drawdownWorst": 43,
+     "greenDays": 1
+    },
+    {
+     "from": 11,
+     "to": 12,
+     "label": "entre NY AM y el almuerzo",
+     "days": 3,
+     "trades": 7,
+     "total": -176,
+     "perTrade": -25.14,
+     "drawdownWorst": 166.5,
+     "greenDays": 1
+    },
+    {
+     "from": 13,
+     "to": 13.5,
+     "label": "entre el almuerzo y NY PM",
+     "days": 3,
+     "trades": 10,
+     "total": -307.5,
+     "perTrade": -30.75,
+     "drawdownWorst": 178.5,
+     "greenDays": 0
+    },
+    {
+     "from": 16,
+     "to": 20,
+     "label": "entre NY PM y Asia",
+     "days": 3,
+     "trades": 24,
+     "total": 23.5,
+     "perTrade": 0.98,
+     "drawdownWorst": 208,
+     "greenDays": 2
+    }
+   ],
+   "thresholds": [
+    25,
+    50,
+    75,
+    100,
+    150,
+    200,
+    300
+   ],
+   "cells": [
+    {
+     "session": "ASIA",
+     "threshold": 25,
+     "days": 4,
+     "daysWithRest": 4,
+     "tradesAfter": 41,
+     "perTradeAfter": 4,
+     "baseline": 1.56,
+     "diff": 2.44,
+     "medianAfter": 4.25,
+     "p": 0.8396,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "ASIA",
+     "threshold": 50,
+     "days": 3,
+     "daysWithRest": 3,
+     "tradesAfter": 31,
+     "perTradeAfter": 1.34,
+     "baseline": 1.56,
+     "diff": -0.22,
+     "medianAfter": -1.5,
+     "p": 0.7441,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "ASIA",
+     "threshold": 75,
+     "days": 2,
+     "daysWithRest": 2,
+     "tradesAfter": 26,
+     "perTradeAfter": 3.17,
+     "baseline": 1.56,
+     "diff": 1.62,
+     "medianAfter": 41.25,
+     "p": 0.8432,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "ASIA",
+     "threshold": 100,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 23,
+     "perTradeAfter": 1.78,
+     "baseline": 1.56,
+     "diff": 0.23,
+     "medianAfter": 41,
+     "p": 0.577,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "ASIA",
+     "threshold": 150,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 17,
+     "perTradeAfter": 5.82,
+     "baseline": 1.56,
+     "diff": 4.27,
+     "medianAfter": 99,
+     "p": 0.8338,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "ASIA",
+     "threshold": 200,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 14,
+     "perTradeAfter": 12.68,
+     "baseline": 1.56,
+     "diff": 11.12,
+     "medianAfter": 177.5,
+     "p": 0.934,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "NY_AM",
+     "threshold": 25,
+     "days": 4,
+     "daysWithRest": 4,
+     "tradesAfter": 28,
+     "perTradeAfter": 18.93,
+     "baseline": 9.19,
+     "diff": 9.74,
+     "medianAfter": 131.25,
+     "p": 0.984,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "NY_AM",
+     "threshold": 50,
+     "days": 3,
+     "daysWithRest": 3,
+     "tradesAfter": 24,
+     "perTradeAfter": 19.17,
+     "baseline": 9.19,
+     "diff": 9.98,
+     "medianAfter": 207.5,
+     "p": 0.8961,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "NY_AM",
+     "threshold": 75,
+     "days": 3,
+     "daysWithRest": 3,
+     "tradesAfter": 23,
+     "perTradeAfter": 21.7,
+     "baseline": 9.19,
+     "diff": 12.51,
+     "medianAfter": 207.5,
+     "p": 0.8921,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "NY_AM",
+     "threshold": 100,
+     "days": 3,
+     "daysWithRest": 3,
+     "tradesAfter": 18,
+     "perTradeAfter": 27.75,
+     "baseline": 9.19,
+     "diff": 18.56,
+     "medianAfter": 241.5,
+     "p": 0.8823,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "NY_AM",
+     "threshold": 150,
+     "days": 3,
+     "daysWithRest": 3,
+     "tradesAfter": 14,
+     "perTradeAfter": 44.75,
+     "baseline": 9.19,
+     "diff": 35.56,
+     "medianAfter": 277,
+     "p": 0.9272,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "NY_AM",
+     "threshold": 200,
+     "days": 2,
+     "daysWithRest": 2,
+     "tradesAfter": 9,
+     "perTradeAfter": 42.56,
+     "baseline": 9.19,
+     "diff": 33.37,
+     "medianAfter": 191.5,
+     "p": null,
+     "survives": false,
+     "enough": false
+    },
+    {
+     "session": "NY_LUNCH",
+     "threshold": 25,
+     "days": 2,
+     "daysWithRest": 2,
+     "tradesAfter": 11,
+     "perTradeAfter": 21.27,
+     "baseline": 11.43,
+     "diff": 9.84,
+     "medianAfter": 117,
+     "p": 0.5992,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "NY_LUNCH",
+     "threshold": 50,
+     "days": 2,
+     "daysWithRest": 2,
+     "tradesAfter": 9,
+     "perTradeAfter": 31.33,
+     "baseline": 11.43,
+     "diff": 19.9,
+     "medianAfter": 141,
+     "p": null,
+     "survives": false,
+     "enough": false
+    },
+    {
+     "session": "NY_LUNCH",
+     "threshold": 75,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 5,
+     "perTradeAfter": -3.2,
+     "baseline": 11.43,
+     "diff": -14.63,
+     "medianAfter": -16,
+     "p": null,
+     "survives": false,
+     "enough": false
+    },
+    {
+     "session": "NY_LUNCH",
+     "threshold": 100,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 3,
+     "perTradeAfter": 4.33,
+     "baseline": 11.43,
+     "diff": -7.1,
+     "medianAfter": 13,
+     "p": null,
+     "survives": false,
+     "enough": false
+    },
+    {
+     "session": "OUTSIDE",
+     "threshold": 25,
+     "days": 5,
+     "daysWithRest": 5,
+     "tradesAfter": 52,
+     "perTradeAfter": -2.75,
+     "baseline": -4.8,
+     "diff": 2.05,
+     "medianAfter": -39,
+     "p": 0.7501,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "OUTSIDE",
+     "threshold": 50,
+     "days": 5,
+     "daysWithRest": 4,
+     "tradesAfter": 35,
+     "perTradeAfter": -11.57,
+     "baseline": -4.8,
+     "diff": -6.77,
+     "medianAfter": -46.75,
+     "p": 0.1294,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "OUTSIDE",
+     "threshold": 75,
+     "days": 2,
+     "daysWithRest": 2,
+     "tradesAfter": 20,
+     "perTradeAfter": -17.77,
+     "baseline": -4.8,
+     "diff": -12.98,
+     "medianAfter": -177.75,
+     "p": 0.049,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "OUTSIDE",
+     "threshold": 100,
+     "days": 2,
+     "daysWithRest": 2,
+     "tradesAfter": 18,
+     "perTradeAfter": -17.47,
+     "baseline": -4.8,
+     "diff": -12.68,
+     "medianAfter": -157.25,
+     "p": 0.1044,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "OUTSIDE",
+     "threshold": 150,
+     "days": 2,
+     "daysWithRest": 1,
+     "tradesAfter": 11,
+     "perTradeAfter": -16.64,
+     "baseline": -4.8,
+     "diff": -11.84,
+     "medianAfter": -183,
+     "p": 0.1535,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "OUTSIDE",
+     "threshold": 200,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 11,
+     "perTradeAfter": -16.64,
+     "baseline": -4.8,
+     "diff": -11.84,
+     "medianAfter": -183,
+     "p": 0.0954,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "OUTSIDE",
+     "threshold": 300,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 3,
+     "perTradeAfter": -28.67,
+     "baseline": -4.8,
+     "diff": -23.87,
+     "medianAfter": -86,
+     "p": null,
+     "survives": false,
+     "enough": false
+    }
+   ],
+   "permutations": 2000,
+   "minTradesAfter": 10,
+   "tested": 18,
+   "survivors": 0,
+   "fdr": 0.1,
+   "dailyLossLimit": 0
+  },
+  "breakeven": 0.3115,
+  "payoff": 2.21,
+  "sinAlineacion": {
+   "operations": 63,
+   "net": -378.5,
+   "perTrade": -6.01
+  },
+  "revenge": {
+   "operations": 54,
+   "net": 394,
+   "perTrade": 7.3
+  }
+ },
+ "semanal|2026-10-26": {
+  "periodo": "semanal",
+  "days": [
+   "2026-10-26",
+   "2026-10-27",
+   "2026-10-28",
+   "2026-10-29",
+   "2026-10-30"
+  ],
+  "from": "2026-10-26",
+  "to": "2026-10-30",
+  "expectedDays": 5,
+  "prev": "2026-10-23",
+  "next": null,
+  "isLatest": true,
+  "calendar": [
+   {
+    "date": "2026-10-05",
+    "count": 12,
+    "pnl": -316
+   },
+   {
+    "date": "2026-10-08",
+    "count": 2,
+    "pnl": 141.5
+   },
+   {
+    "date": "2026-10-09",
+    "count": 20,
+    "pnl": -1259.5
+   },
+   {
+    "date": "2026-10-12",
+    "count": 3,
+    "pnl": -148
+   },
+   {
+    "date": "2026-10-13",
+    "count": 32,
+    "pnl": -161
+   },
+   {
+    "date": "2026-10-14",
+    "count": 54,
+    "pnl": 568
+   },
+   {
+    "date": "2026-10-15",
+    "count": 56,
+    "pnl": -264.5
+   },
+   {
+    "date": "2026-10-16",
+    "count": 15,
+    "pnl": -347.5
+   },
+   {
+    "date": "2026-10-19",
+    "count": 8,
+    "pnl": -11
+   },
+   {
+    "date": "2026-10-20",
+    "count": 48,
+    "pnl": 295.5
+   },
+   {
+    "date": "2026-10-21",
+    "count": 15,
+    "pnl": 191
+   },
+   {
+    "date": "2026-10-22",
+    "count": 40,
+    "pnl": 36
+   },
+   {
+    "date": "2026-10-23",
+    "count": 54,
+    "pnl": -195
+   },
+   {
+    "date": "2026-10-26",
+    "count": 38,
+    "pnl": 206
+   },
+   {
+    "date": "2026-10-27",
+    "count": 62,
+    "pnl": 302
+   },
+   {
+    "date": "2026-10-28",
+    "count": 55,
+    "pnl": -879.5
+   },
+   {
+    "date": "2026-10-29",
+    "count": 41,
+    "pnl": 560
+   },
+   {
+    "date": "2026-10-30",
+    "count": 18,
+    "pnl": 261.5
+   }
+  ],
+  "operations": 214,
+  "contracts": 537,
+  "gross": 987,
+  "commission": 537,
+  "net": 450,
+  "winRate": 0.3551,
+  "dailyLossLimit": 0,
+  "remaining": null,
+  "maxLot": 40,
+  "medianLot": 2,
+  "byLot": [
+   {
+    "key": "1",
+    "label": "1 lote",
+    "operations": 105,
+    "contracts": 105,
+    "gross": -325.5,
+    "net": -430.5,
+    "perTrade": -4.1,
+    "ticksPerTrade": -6.2,
+    "wins": 34,
+    "winRate": 0.3238,
+    "median": -7
+   },
+   {
+    "key": "2",
+    "label": "2 lotes",
+    "operations": 61,
+    "contracts": 122,
+    "gross": 83,
+    "net": -39,
+    "perTrade": -0.64,
+    "ticksPerTrade": 1.36,
+    "wins": 25,
+    "winRate": 0.4098,
+    "median": -1.5
+   },
+   {
+    "key": "3",
+    "label": "3 lotes",
+    "operations": 24,
+    "contracts": 72,
+    "gross": -24.5,
+    "net": -96.5,
+    "perTrade": -4.02,
+    "ticksPerTrade": -0.69,
+    "wins": 7,
+    "winRate": 0.2917,
+    "median": -2.25
+   },
+   {
+    "key": "4",
+    "label": "4 lotes",
+    "operations": 10,
+    "contracts": 40,
+    "gross": 516.5,
+    "net": 476.5,
+    "perTrade": 47.65,
+    "ticksPerTrade": 25.83,
+    "wins": 4,
+    "winRate": 0.4,
+    "median": -32.5
+   },
+   {
+    "key": "5",
+    "label": "5 lotes",
+    "operations": 3,
+    "contracts": 15,
+    "gross": 25,
+    "net": 10,
+    "perTrade": 3.33,
+    "ticksPerTrade": 3.33,
+    "wins": 1,
+    "winRate": 0.3333,
+    "median": 0
+   },
+   {
+    "key": "6",
+    "label": "6 lotes",
+    "operations": 4,
+    "contracts": 24,
+    "gross": -308,
+    "net": -332,
+    "perTrade": -83,
+    "ticksPerTrade": -25.65,
+    "wins": 0,
+    "winRate": 0,
+    "median": -73
+   },
+   {
+    "key": "8",
+    "label": "8 lotes",
+    "operations": 1,
+    "contracts": 8,
+    "gross": 36,
+    "net": 28,
+    "perTrade": 28,
+    "ticksPerTrade": 9,
+    "wins": 1,
+    "winRate": 1,
+    "median": 28
+   },
+   {
+    "key": "10",
+    "label": "10 lotes",
+    "operations": 2,
+    "contracts": 20,
+    "gross": 147,
+    "net": 127,
+    "perTrade": 63.5,
+    "ticksPerTrade": 14.7,
+    "wins": 2,
+    "winRate": 1,
+    "median": 63.5
+   },
+   {
+    "key": "20",
+    "label": "20 lotes",
+    "operations": 1,
+    "contracts": 20,
+    "gross": -589,
+    "net": -609,
+    "perTrade": -609,
+    "ticksPerTrade": -58.9,
+    "wins": 0,
+    "winRate": 0,
+    "median": -609
+   },
+   {
+    "key": "31",
+    "label": "31 lotes",
+    "operations": 1,
+    "contracts": 31,
+    "gross": 241,
+    "net": 210,
+    "perTrade": 210,
+    "ticksPerTrade": 15.5,
+    "wins": 1,
+    "winRate": 1,
+    "median": 210
+   },
+   {
+    "key": "40",
+    "label": "40 lotes",
+    "operations": 2,
+    "contracts": 80,
+    "gross": 1185.5,
+    "net": 1105.5,
+    "perTrade": 552.75,
+    "ticksPerTrade": 29.6,
+    "wins": 1,
+    "winRate": 0.5,
+    "median": 552.75
+   }
+  ],
+  "bigLots": {
+   "key": "grandes",
+   "label": "mas de 2 lotes",
+   "operations": 48,
+   "contracts": 310,
+   "gross": 1229.5,
+   "net": 919.5,
+   "perTrade": 19.16,
+   "ticksPerTrade": 4.24,
+   "wins": 17,
+   "winRate": 0.3542,
+   "median": -2.25
+  },
+  "smallLots": {
+   "key": "pequenias",
+   "label": "2 lotes o menos",
+   "operations": 166,
+   "contracts": 227,
+   "gross": -242.5,
+   "net": -469.5,
+   "perTrade": -2.83,
+   "ticksPerTrade": -3.42,
+   "wins": 59,
+   "winRate": 0.3554,
+   "median": -3.25
+  },
+  "ticksPerTrade": -1.7,
+  "ticksMedian": -0.35,
+  "previous": {
+   "from": "2026-10-19",
+   "to": "2026-10-23",
+   "days": 5,
+   "net": 316.5,
+   "ticksPerTrade": -0.75
+  },
+  "bySession": [
+   {
+    "key": "ASIA",
+    "label": "ASIA",
+    "operations": 93,
+    "contracts": 328,
+    "gross": 289.5,
+    "net": -38.5,
+    "perTrade": -0.41,
+    "ticksPerTrade": -5.78,
+    "wins": 32,
+    "winRate": 0.3441,
+    "median": -7
+   },
+   {
+    "key": "NY_AM",
+    "label": "NY_AM",
+    "operations": 9,
+    "contracts": 10,
+    "gross": 276.5,
+    "net": 266.5,
+    "perTrade": 29.61,
+    "ticksPerTrade": 34.22,
+    "wins": 4,
+    "winRate": 0.4444,
+    "median": -29.5
+   },
+   {
+    "key": "NY_LUNCH",
+    "label": "NY_LUNCH",
+    "operations": 15,
+    "contracts": 19,
+    "gross": -47,
+    "net": -66,
+    "perTrade": -4.4,
+    "ticksPerTrade": -21.3,
+    "wins": 2,
+    "winRate": 0.1333,
+    "median": -20
+   },
+   {
+    "key": "NY_PM",
+    "label": "NY_PM",
+    "operations": 17,
+    "contracts": 37,
+    "gross": 165,
+    "net": 128,
+    "perTrade": 7.53,
+    "ticksPerTrade": -6,
+    "wins": 3,
+    "winRate": 0.1765,
+    "median": -14
+   },
+   {
+    "key": "OUTSIDE",
+    "label": "OUTSIDE",
+    "operations": 80,
+    "contracts": 143,
+    "gross": 303,
+    "net": 160,
+    "perTrade": 2,
+    "ticksPerTrade": 3.58,
+    "wins": 35,
+    "winRate": 0.4375,
+    "median": -0.5
+   }
+  ],
+  "byGap": [
+   {
+    "key": "0",
+    "label": "tras cerrar Asia",
+    "operations": 24,
+    "contracts": 60,
+    "gross": -98.5,
+    "net": -158.5,
+    "perTrade": -6.6,
+    "ticksPerTrade": 1.3,
+    "wins": 8,
+    "winRate": 0.3333,
+    "median": -1
+   },
+   {
+    "key": "5",
+    "label": "entre Londres y NY AM",
+    "operations": 16,
+    "contracts": 24,
+    "gross": 94,
+    "net": 70,
+    "perTrade": 4.38,
+    "ticksPerTrade": 13.34,
+    "wins": 9,
+    "winRate": 0.5625,
+    "median": 5.25
+   },
+   {
+    "key": "11",
+    "label": "entre NY AM y el almuerzo",
+    "operations": 18,
+    "contracts": 25,
+    "gross": -4.5,
+    "net": -29.5,
+    "perTrade": -1.64,
+    "ticksPerTrade": -15.22,
+    "wins": 6,
+    "winRate": 0.3333,
+    "median": -21.75
+   },
+   {
+    "key": "13",
+    "label": "entre el almuerzo y NY PM",
+    "operations": 10,
+    "contracts": 20,
+    "gross": 132,
+    "net": 112,
+    "perTrade": 11.2,
+    "ticksPerTrade": -0.47,
+    "wins": 4,
+    "winRate": 0.4,
+    "median": -10.25
+   },
+   {
+    "key": "16",
+    "label": "entre NY PM y Asia",
+    "operations": 12,
+    "contracts": 14,
+    "gross": 180,
+    "net": 166,
+    "perTrade": 13.83,
+    "ticksPerTrade": 26.72,
+    "wins": 8,
+    "winRate": 0.6667,
+    "median": 3.5
+   }
+  ],
+  "worst": [
+   {
+    "id": 302991,
+    "date": "2026-10-29",
+    "session": "ASIA",
+    "lots": 40,
+    "ticks": -54,
+    "net": -1119,
+    "netPerContract": -27.98
+   },
+   {
+    "id": 301926,
+    "date": "2026-10-29",
+    "session": "ASIA",
+    "lots": 20,
+    "ticks": -58.9,
+    "net": -609,
+    "netPerContract": -30.45
+   },
+   {
+    "id": 313734,
+    "date": "2026-10-29",
+    "session": "ASIA",
+    "lots": 6,
+    "ticks": -59.7,
+    "net": -185,
+    "netPerContract": -30.83
+   },
+   {
+    "id": 234695,
+    "date": "2026-10-27",
+    "session": "OUTSIDE",
+    "lots": 3,
+    "ticks": -83.7,
+    "net": -128.5,
+    "netPerContract": -42.83
+   },
+   {
+    "id": 284672,
+    "date": "2026-10-28",
+    "session": "NY_PM",
+    "lots": 4,
+    "ticks": -59.5,
+    "net": -123,
+    "netPerContract": -30.75
+   }
+  ],
+  "best": [
+   {
+    "id": 303525,
+    "date": "2026-10-29",
+    "session": "ASIA",
+    "lots": 40,
+    "ticks": 113.2,
+    "net": 2224.5,
+    "netPerContract": 55.61
+   },
+   {
+    "id": 331281,
+    "date": "2026-10-29",
+    "session": "NY_PM",
+    "lots": 4,
+    "ticks": 289.5,
+    "net": 575,
+    "netPerContract": 143.75
+   },
+   {
+    "id": 181443,
+    "date": "2026-10-26",
+    "session": "OUTSIDE",
+    "lots": 3,
+    "ticks": 191,
+    "net": 283.5,
+    "netPerContract": 94.5
+   },
+   {
+    "id": 205642,
+    "date": "2026-10-27",
+    "session": "ASIA",
+    "lots": 4,
+    "ticks": 138.8,
+    "net": 273.5,
+    "netPerContract": 68.38
+   },
+   {
+    "id": 236070,
+    "date": "2026-10-27",
+    "session": "OUTSIDE",
+    "lots": 3,
+    "ticks": 177,
+    "net": 262.5,
+    "netPerContract": 87.5
+   }
+  ],
+  "drawdown": {
+   "rows": [
+    {
+     "session": "ASIA",
+     "days": 4,
+     "trades": 93,
+     "total": -38.5,
+     "perTrade": -0.41,
+     "drawdownMedian": 225.75,
+     "drawdownP75": 278,
+     "drawdownWorst": 2269,
+     "drawdownWorstDay": "2026-10-29",
+     "chainedDrawdown": 2530.5,
+     "greenDays": 2,
+     "worstStreak": 9,
+     "overLimit": null
+    },
+    {
+     "session": "NY_AM",
+     "days": 3,
+     "trades": 9,
+     "total": 266.5,
+     "perTrade": 29.61,
+     "drawdownMedian": 73.5,
+     "drawdownP75": 92,
+     "drawdownWorst": 92,
+     "drawdownWorstDay": "2026-10-27",
+     "chainedDrawdown": 165.5,
+     "greenDays": 2,
+     "worstStreak": 2,
+     "overLimit": null
+    },
+    {
+     "session": "NY_LUNCH",
+     "days": 3,
+     "trades": 15,
+     "total": -66,
+     "perTrade": -4.4,
+     "drawdownMedian": 42,
+     "drawdownP75": 162.5,
+     "drawdownWorst": 162.5,
+     "drawdownWorstDay": "2026-10-26",
+     "chainedDrawdown": 162.5,
+     "greenDays": 1,
+     "worstStreak": 7,
+     "overLimit": null
+    },
+    {
+     "session": "NY_PM",
+     "days": 2,
+     "trades": 17,
+     "total": 128,
+     "perTrade": 7.53,
+     "drawdownMedian": 223.5,
+     "drawdownP75": 405,
+     "drawdownWorst": 405,
+     "drawdownWorstDay": "2026-10-28",
+     "chainedDrawdown": 447,
+     "greenDays": 1,
+     "worstStreak": 11,
+     "overLimit": null
+    },
+    {
+     "session": "OUTSIDE",
+     "days": 5,
+     "trades": 80,
+     "total": 160,
+     "perTrade": 2,
+     "drawdownMedian": 181.5,
+     "drawdownP75": 201,
+     "drawdownWorst": 280,
+     "drawdownWorstDay": "2026-10-28",
+     "chainedDrawdown": 392,
+     "greenDays": 4,
+     "worstStreak": 6,
+     "overLimit": null
+    }
+   ],
+   "gaps": [
+    {
+     "from": 0,
+     "to": 2,
+     "label": "tras cerrar Asia",
+     "days": 3,
+     "trades": 24,
+     "total": -158.5,
+     "perTrade": -6.6,
+     "drawdownWorst": 277,
+     "greenDays": 1
+    },
+    {
+     "from": 5,
+     "to": 9.5,
+     "label": "entre Londres y NY AM",
+     "days": 3,
+     "trades": 16,
+     "total": 70,
+     "perTrade": 4.38,
+     "drawdownWorst": 176.5,
+     "greenDays": 3
+    },
+    {
+     "from": 11,
+     "to": 12,
+     "label": "entre NY AM y el almuerzo",
+     "days": 2,
+     "trades": 18,
+     "total": -29.5,
+     "perTrade": -1.64,
+     "drawdownWorst": 200,
+     "greenDays": 1
+    },
+    {
+     "from": 13,
+     "to": 13.5,
+     "label": "entre el almuerzo y NY PM",
+     "days": 3,
+     "trades": 10,
+     "total": 112,
+     "perTrade": 11.2,
+     "drawdownWorst": 145.5,
+     "greenDays": 1
+    },
+    {
+     "from": 16,
+     "to": 20,
+     "label": "entre NY PM y Asia",
+     "days": 3,
+     "trades": 12,
+     "total": 166,
+     "perTrade": 13.83,
+     "drawdownWorst": 4,
+     "greenDays": 3
+    }
+   ],
+   "thresholds": [
+    25,
+    50,
+    75,
+    100,
+    150,
+    200,
+    300
+   ],
+   "cells": [
+    {
+     "session": "ASIA",
+     "threshold": 25,
+     "days": 4,
+     "daysWithRest": 4,
+     "tradesAfter": 84,
+     "perTradeAfter": 1.3,
+     "baseline": -0.41,
+     "diff": 1.71,
+     "medianAfter": 45,
+     "p": 0.5557,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "ASIA",
+     "threshold": 50,
+     "days": 4,
+     "daysWithRest": 4,
+     "tradesAfter": 78,
+     "perTradeAfter": 3.35,
+     "baseline": -0.41,
+     "diff": 3.76,
+     "medianAfter": 96,
+     "p": 0.7941,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "ASIA",
+     "threshold": 75,
+     "days": 4,
+     "daysWithRest": 4,
+     "tradesAfter": 69,
+     "perTradeAfter": 4.99,
+     "baseline": -0.41,
+     "diff": 5.4,
+     "medianAfter": 116.25,
+     "p": 0.7991,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "ASIA",
+     "threshold": 100,
+     "days": 4,
+     "daysWithRest": 4,
+     "tradesAfter": 65,
+     "perTradeAfter": 6.78,
+     "baseline": -0.41,
+     "diff": 7.19,
+     "medianAfter": 130.5,
+     "p": 0.7496,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "ASIA",
+     "threshold": 150,
+     "days": 3,
+     "daysWithRest": 3,
+     "tradesAfter": 49,
+     "perTradeAfter": 8.07,
+     "baseline": -0.41,
+     "diff": 8.49,
+     "medianAfter": 172.5,
+     "p": 0.6132,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "ASIA",
+     "threshold": 200,
+     "days": 2,
+     "daysWithRest": 2,
+     "tradesAfter": 32,
+     "perTradeAfter": 15.69,
+     "baseline": -0.41,
+     "diff": 16.1,
+     "medianAfter": 251,
+     "p": 0.624,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "ASIA",
+     "threshold": 300,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 16,
+     "perTradeAfter": 30.06,
+     "baseline": -0.41,
+     "diff": 30.48,
+     "medianAfter": 481,
+     "p": 0.5751,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "NY_AM",
+     "threshold": 25,
+     "days": 2,
+     "daysWithRest": 2,
+     "tradesAfter": 5,
+     "perTradeAfter": 19.6,
+     "baseline": 29.61,
+     "diff": -10.01,
+     "medianAfter": 49,
+     "p": null,
+     "survives": false,
+     "enough": false
+    },
+    {
+     "session": "NY_AM",
+     "threshold": 50,
+     "days": 2,
+     "daysWithRest": 1,
+     "tradesAfter": 3,
+     "perTradeAfter": 57.83,
+     "baseline": 29.61,
+     "diff": 28.22,
+     "medianAfter": 173.5,
+     "p": null,
+     "survives": false,
+     "enough": false
+    },
+    {
+     "session": "NY_AM",
+     "threshold": 75,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 3,
+     "perTradeAfter": 57.83,
+     "baseline": 29.61,
+     "diff": 28.22,
+     "medianAfter": 173.5,
+     "p": null,
+     "survives": false,
+     "enough": false
+    },
+    {
+     "session": "NY_LUNCH",
+     "threshold": 25,
+     "days": 3,
+     "daysWithRest": 1,
+     "tradesAfter": 9,
+     "perTradeAfter": 4.33,
+     "baseline": -4.4,
+     "diff": 8.73,
+     "medianAfter": 39,
+     "p": null,
+     "survives": false,
+     "enough": false
+    },
+    {
+     "session": "NY_LUNCH",
+     "threshold": 50,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 7,
+     "perTradeAfter": 10.5,
+     "baseline": -4.4,
+     "diff": 14.9,
+     "medianAfter": 73.5,
+     "p": null,
+     "survives": false,
+     "enough": false
+    },
+    {
+     "session": "NY_LUNCH",
+     "threshold": 75,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 6,
+     "perTradeAfter": 17.42,
+     "baseline": -4.4,
+     "diff": 21.82,
+     "medianAfter": 104.5,
+     "p": null,
+     "survives": false,
+     "enough": false
+    },
+    {
+     "session": "NY_LUNCH",
+     "threshold": 100,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 5,
+     "perTradeAfter": 25.9,
+     "baseline": -4.4,
+     "diff": 30.3,
+     "medianAfter": 129.5,
+     "p": null,
+     "survives": false,
+     "enough": false
+    },
+    {
+     "session": "NY_LUNCH",
+     "threshold": 150,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 3,
+     "perTradeAfter": 56.83,
+     "baseline": -4.4,
+     "diff": 61.23,
+     "medianAfter": 170.5,
+     "p": null,
+     "survives": false,
+     "enough": false
+    },
+    {
+     "session": "NY_PM",
+     "threshold": 25,
+     "days": 2,
+     "daysWithRest": 2,
+     "tradesAfter": 13,
+     "perTradeAfter": 17.38,
+     "baseline": 7.53,
+     "diff": 9.86,
+     "medianAfter": 113,
+     "p": 0.8505,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "NY_PM",
+     "threshold": 50,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 12,
+     "perTradeAfter": -29.08,
+     "baseline": 7.53,
+     "diff": -36.61,
+     "medianAfter": -349,
+     "p": 0.2207,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "NY_PM",
+     "threshold": 75,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 11,
+     "perTradeAfter": -26.73,
+     "baseline": 7.53,
+     "diff": -34.26,
+     "medianAfter": -294,
+     "p": 0.3686,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "NY_PM",
+     "threshold": 100,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 11,
+     "perTradeAfter": -26.73,
+     "baseline": 7.53,
+     "diff": -34.26,
+     "medianAfter": -294,
+     "p": 0.2506,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "NY_PM",
+     "threshold": 150,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 9,
+     "perTradeAfter": -27.83,
+     "baseline": 7.53,
+     "diff": -35.36,
+     "medianAfter": -250.5,
+     "p": null,
+     "survives": false,
+     "enough": false
+    },
+    {
+     "session": "NY_PM",
+     "threshold": 200,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 5,
+     "perTradeAfter": -32.2,
+     "baseline": 7.53,
+     "diff": -39.73,
+     "medianAfter": -161,
+     "p": null,
+     "survives": false,
+     "enough": false
+    },
+    {
+     "session": "NY_PM",
+     "threshold": 300,
+     "days": 1,
+     "daysWithRest": 0,
+     "tradesAfter": 0,
+     "perTradeAfter": null,
+     "baseline": 7.53,
+     "diff": null,
+     "medianAfter": null,
+     "p": null,
+     "survives": false,
+     "enough": false
+    },
+    {
+     "session": "OUTSIDE",
+     "threshold": 25,
+     "days": 5,
+     "daysWithRest": 5,
+     "tradesAfter": 55,
+     "perTradeAfter": 2.35,
+     "baseline": 2,
+     "diff": 0.35,
+     "medianAfter": -17.5,
+     "p": 0.3598,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "OUTSIDE",
+     "threshold": 50,
+     "days": 5,
+     "daysWithRest": 5,
+     "tradesAfter": 38,
+     "perTradeAfter": 6.07,
+     "baseline": 2,
+     "diff": 4.07,
+     "medianAfter": 22.5,
+     "p": 0.6667,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "OUTSIDE",
+     "threshold": 75,
+     "days": 5,
+     "daysWithRest": 5,
+     "tradesAfter": 35,
+     "perTradeAfter": 10.1,
+     "baseline": 2,
+     "diff": 8.1,
+     "medianAfter": 85,
+     "p": 0.8351,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "OUTSIDE",
+     "threshold": 100,
+     "days": 5,
+     "daysWithRest": 5,
+     "tradesAfter": 34,
+     "perTradeAfter": 11.31,
+     "baseline": 2,
+     "diff": 9.31,
+     "medianAfter": 85,
+     "p": 0.7767,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "OUTSIDE",
+     "threshold": 150,
+     "days": 4,
+     "daysWithRest": 4,
+     "tradesAfter": 21,
+     "perTradeAfter": 32.64,
+     "baseline": 2,
+     "diff": 30.64,
+     "medianAfter": 198.5,
+     "p": 0.99,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "OUTSIDE",
+     "threshold": 200,
+     "days": 2,
+     "daysWithRest": 2,
+     "tradesAfter": 10,
+     "perTradeAfter": 33.6,
+     "baseline": 2,
+     "diff": 31.6,
+     "medianAfter": 168,
+     "p": 0.9783,
+     "survives": false,
+     "enough": true
+    }
+   ],
+   "permutations": 2000,
+   "minTradesAfter": 10,
+   "tested": 17,
+   "survivors": 0,
+   "fdr": 0.1,
+   "dailyLossLimit": 0
+  },
+  "breakeven": 0.3378,
+  "payoff": 1.96,
+  "sinAlineacion": {
+   "operations": 126,
+   "net": -639.5,
+   "perTrade": -5.08
+  },
+  "revenge": {
+   "operations": 103,
+   "net": -420,
+   "perTrade": -4.08
+  }
+ },
+ "diario|2026-10-26": {
+  "periodo": "diario",
+  "days": [
+   "2026-10-26"
+  ],
+  "from": "2026-10-26",
+  "to": "2026-10-26",
+  "expectedDays": 1,
+  "prev": "2026-10-23",
+  "next": "2026-10-27",
+  "isLatest": false,
+  "calendar": [
+   {
+    "date": "2026-10-05",
+    "count": 12,
+    "pnl": -316
+   },
+   {
+    "date": "2026-10-08",
+    "count": 2,
+    "pnl": 141.5
+   },
+   {
+    "date": "2026-10-09",
+    "count": 20,
+    "pnl": -1259.5
+   },
+   {
+    "date": "2026-10-12",
+    "count": 3,
+    "pnl": -148
+   },
+   {
+    "date": "2026-10-13",
+    "count": 32,
+    "pnl": -161
+   },
+   {
+    "date": "2026-10-14",
+    "count": 54,
+    "pnl": 568
+   },
+   {
+    "date": "2026-10-15",
+    "count": 56,
+    "pnl": -264.5
+   },
+   {
+    "date": "2026-10-16",
+    "count": 15,
+    "pnl": -347.5
+   },
+   {
+    "date": "2026-10-19",
+    "count": 8,
+    "pnl": -11
+   },
+   {
+    "date": "2026-10-20",
+    "count": 48,
+    "pnl": 295.5
+   },
+   {
+    "date": "2026-10-21",
+    "count": 15,
+    "pnl": 191
+   },
+   {
+    "date": "2026-10-22",
+    "count": 40,
+    "pnl": 36
+   },
+   {
+    "date": "2026-10-23",
+    "count": 54,
+    "pnl": -195
+   },
+   {
+    "date": "2026-10-26",
+    "count": 38,
+    "pnl": 206
+   },
+   {
+    "date": "2026-10-27",
+    "count": 62,
+    "pnl": 302
+   },
+   {
+    "date": "2026-10-28",
+    "count": 55,
+    "pnl": -879.5
+   },
+   {
+    "date": "2026-10-29",
+    "count": 41,
+    "pnl": 560
+   },
+   {
+    "date": "2026-10-30",
+    "count": 18,
+    "pnl": 261.5
+   }
+  ],
+  "operations": 38,
+  "contracts": 47,
+  "gross": 253,
+  "commission": 47,
+  "net": 206,
+  "winRate": 0.3158,
+  "dailyLossLimit": 0,
+  "remaining": null,
+  "maxLot": 3,
+  "medianLot": 1,
+  "byLot": [
+   {
+    "key": "1",
+    "label": "1 lote",
+    "operations": 32,
+    "contracts": 32,
+    "gross": -236.5,
+    "net": -268.5,
+    "perTrade": -8.39,
+    "ticksPerTrade": -14.78,
+    "wins": 8,
+    "winRate": 0.25,
+    "median": -28.75
+   },
+   {
+    "key": "2",
+    "label": "2 lotes",
+    "operations": 3,
+    "contracts": 6,
+    "gross": 96,
+    "net": 90,
+    "perTrade": 30,
+    "ticksPerTrade": 32,
+    "wins": 2,
+    "winRate": 0.6667,
+    "median": 8.5
+   },
+   {
+    "key": "3",
+    "label": "3 lotes",
+    "operations": 3,
+    "contracts": 9,
+    "gross": 393.5,
+    "net": 384.5,
+    "perTrade": 128.17,
+    "ticksPerTrade": 87.43,
+    "wins": 2,
+    "winRate": 0.6667,
+    "median": 102
+   }
+  ],
+  "bigLots": {
+   "key": "grandes",
+   "label": "mas de 1 lote",
+   "operations": 6,
+   "contracts": 15,
+   "gross": 489.5,
+   "net": 474.5,
+   "perTrade": 79.08,
+   "ticksPerTrade": 59.72,
+   "wins": 4,
+   "winRate": 0.6667,
+   "median": 50
+  },
+  "smallLots": {
+   "key": "pequenias",
+   "label": "1 lote o menos",
+   "operations": 32,
+   "contracts": 32,
+   "gross": -236.5,
+   "net": -268.5,
+   "perTrade": -8.39,
+   "ticksPerTrade": -14.78,
+   "wins": 8,
+   "winRate": 0.25,
+   "median": -28.75
+  },
+  "ticksPerTrade": -3.02,
+  "ticksMedian": -38.5,
+  "previous": {
+   "from": "2026-10-23",
+   "to": "2026-10-23",
+   "days": 1,
+   "net": -195,
+   "ticksPerTrade": -3.56
+  },
+  "bySession": [
+   {
+    "key": "ASIA",
+    "label": "ASIA",
+    "operations": 15,
+    "contracts": 15,
+    "gross": 119,
+    "net": 104,
+    "perTrade": 6.93,
+    "ticksPerTrade": 15.87,
+    "wins": 6,
+    "winRate": 0.4,
+    "median": -4
+   },
+   {
+    "key": "NY_AM",
+    "label": "NY_AM",
+    "operations": 2,
+    "contracts": 2,
+    "gross": -71.5,
+    "net": -73.5,
+    "perTrade": -36.75,
+    "ticksPerTrade": -71.5,
+    "wins": 0,
+    "winRate": 0,
+    "median": -36.75
+   },
+   {
+    "key": "NY_LUNCH",
+    "label": "NY_LUNCH",
+    "operations": 10,
+    "contracts": 14,
+    "gross": 22,
+    "net": 8,
+    "perTrade": 0.8,
+    "ticksPerTrade": -18.15,
+    "wins": 2,
+    "winRate": 0.2,
+    "median": -20.25
+   },
+   {
+    "key": "OUTSIDE",
+    "label": "OUTSIDE",
+    "operations": 11,
+    "contracts": 16,
+    "gross": 183.5,
+    "net": 167.5,
+    "perTrade": 15.23,
+    "ticksPerTrade": -2.56,
+    "wins": 4,
+    "winRate": 0.3636,
+    "median": -1
+   }
+  ],
+  "byGap": [
+   {
+    "key": "0",
+    "label": "tras cerrar Asia",
+    "operations": 1,
+    "contracts": 1,
+    "gross": 0,
+    "net": -1,
+    "perTrade": -1,
+    "ticksPerTrade": 0,
+    "wins": 0,
+    "winRate": 0,
+    "median": -1
+   },
+   {
+    "key": "11",
+    "label": "entre NY AM y el almuerzo",
+    "operations": 7,
+    "contracts": 7,
+    "gross": -115.5,
+    "net": -122.5,
+    "perTrade": -17.5,
+    "ticksPerTrade": -33,
+    "wins": 2,
+    "winRate": 0.2857,
+    "median": -32.5
+   },
+   {
+    "key": "13",
+    "label": "entre el almuerzo y NY PM",
+    "operations": 3,
+    "contracts": 8,
+    "gross": 299,
+    "net": 291,
+    "perTrade": 97,
+    "ticksPerTrade": 67.6,
+    "wins": 2,
+    "winRate": 0.6667,
+    "median": 8.5
+   }
+  ],
+  "worst": [
+   {
+    "id": 168229,
+    "date": "2026-10-26",
+    "session": "OUTSIDE",
+    "lots": 1,
+    "ticks": -104,
+    "net": -53,
+    "netPerContract": -53
+   },
+   {
+    "id": 169751,
+    "date": "2026-10-26",
+    "session": "OUTSIDE",
+    "lots": 1,
+    "ticks": -93,
+    "net": -47.5,
+    "netPerContract": -47.5
+   },
+   {
+    "id": 166719,
+    "date": "2026-10-26",
+    "session": "NY_AM",
+    "lots": 1,
+    "ticks": -86,
+    "net": -44,
+    "netPerContract": -44
+   },
+   {
+    "id": 169369,
+    "date": "2026-10-26",
+    "session": "OUTSIDE",
+    "lots": 1,
+    "ticks": -70,
+    "net": -36,
+    "netPerContract": -36
+   },
+   {
+    "id": 157113,
+    "date": "2026-10-26",
+    "session": "ASIA",
+    "lots": 1,
+    "ticks": -63,
+    "net": -32.5,
+    "netPerContract": -32.5
+   }
+  ],
+  "best": [
+   {
+    "id": 181443,
+    "date": "2026-10-26",
+    "session": "OUTSIDE",
+    "lots": 3,
+    "ticks": 191,
+    "net": 283.5,
+    "netPerContract": 94.5
+   },
+   {
+    "id": 164844,
+    "date": "2026-10-26",
+    "session": "ASIA",
+    "lots": 1,
+    "ticks": 208,
+    "net": 103,
+    "netPerContract": 103
+   },
+   {
+    "id": 177102,
+    "date": "2026-10-26",
+    "session": "NY_LUNCH",
+    "lots": 3,
+    "ticks": 70,
+    "net": 102,
+    "netPerContract": 34
+   },
+   {
+    "id": 158931,
+    "date": "2026-10-26",
+    "session": "ASIA",
+    "lots": 1,
+    "ticks": 204,
+    "net": 101,
+    "netPerContract": 101
+   },
+   {
+    "id": 178674,
+    "date": "2026-10-26",
+    "session": "NY_LUNCH",
+    "lots": 2,
+    "ticks": 93.5,
+    "net": 91.5,
+    "netPerContract": 45.75
+   }
+  ],
+  "drawdown": {
+   "rows": [
+    {
+     "session": "ASIA",
+     "days": 1,
+     "trades": 15,
+     "total": 104,
+     "perTrade": 6.93,
+     "drawdownMedian": 123,
+     "drawdownP75": 123,
+     "drawdownWorst": 123,
+     "drawdownWorstDay": "2026-10-26",
+     "chainedDrawdown": 123,
+     "greenDays": 1,
+     "worstStreak": 5,
+     "overLimit": null
+    },
+    {
+     "session": "NY_AM",
+     "days": 1,
+     "trades": 2,
+     "total": -73.5,
+     "perTrade": -36.75,
+     "drawdownMedian": 73.5,
+     "drawdownP75": 73.5,
+     "drawdownWorst": 73.5,
+     "drawdownWorstDay": "2026-10-26",
+     "chainedDrawdown": 73.5,
+     "greenDays": 0,
+     "worstStreak": 2,
+     "overLimit": null
+    },
+    {
+     "session": "NY_LUNCH",
+     "days": 1,
+     "trades": 10,
+     "total": 8,
+     "perTrade": 0.8,
+     "drawdownMedian": 162.5,
+     "drawdownP75": 162.5,
+     "drawdownWorst": 162.5,
+     "drawdownWorstDay": "2026-10-26",
+     "chainedDrawdown": 162.5,
+     "greenDays": 1,
+     "worstStreak": 7,
+     "overLimit": null
+    },
+    {
+     "session": "OUTSIDE",
+     "days": 1,
+     "trades": 11,
+     "total": 167.5,
+     "perTrade": 15.23,
+     "drawdownMedian": 201,
+     "drawdownP75": 201,
+     "drawdownWorst": 201,
+     "drawdownWorstDay": "2026-10-26",
+     "chainedDrawdown": 201,
+     "greenDays": 1,
+     "worstStreak": 6,
+     "overLimit": null
+    }
+   ],
+   "gaps": [
+    {
+     "from": 0,
+     "to": 2,
+     "label": "tras cerrar Asia",
+     "days": 1,
+     "trades": 1,
+     "total": -1,
+     "perTrade": -1,
+     "drawdownWorst": 1,
+     "greenDays": 0
+    },
+    {
+     "from": 11,
+     "to": 12,
+     "label": "entre NY AM y el almuerzo",
+     "days": 1,
+     "trades": 7,
+     "total": -122.5,
+     "perTrade": -17.5,
+     "drawdownWorst": 200,
+     "greenDays": 0
+    },
+    {
+     "from": 13,
+     "to": 13.5,
+     "label": "entre el almuerzo y NY PM",
+     "days": 1,
+     "trades": 3,
+     "total": 291,
+     "perTrade": 97,
+     "drawdownWorst": 1,
+     "greenDays": 1
+    }
+   ],
+   "thresholds": [
+    25,
+    50,
+    75,
+    100,
+    150,
+    200,
+    300
+   ],
+   "cells": [
+    {
+     "session": "ASIA",
+     "threshold": 25,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 14,
+     "perTradeAfter": 9.43,
+     "baseline": 6.93,
+     "diff": 2.5,
+     "medianAfter": 132,
+     "p": 0.4137,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "ASIA",
+     "threshold": 50,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 13,
+     "perTradeAfter": 12.54,
+     "baseline": 6.93,
+     "diff": 5.61,
+     "medianAfter": 163,
+     "p": 0.4514,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "ASIA",
+     "threshold": 75,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 12,
+     "perTradeAfter": 16.29,
+     "baseline": 6.93,
+     "diff": 9.36,
+     "medianAfter": 195.5,
+     "p": 0.4661,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "ASIA",
+     "threshold": 100,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 10,
+     "perTradeAfter": 22.7,
+     "baseline": 6.93,
+     "diff": 15.77,
+     "medianAfter": 227,
+     "p": 0.8816,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "NY_AM",
+     "threshold": 25,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 1,
+     "perTradeAfter": -29.5,
+     "baseline": -36.75,
+     "diff": 7.25,
+     "medianAfter": -29.5,
+     "p": null,
+     "survives": false,
+     "enough": false
+    },
+    {
+     "session": "NY_AM",
+     "threshold": 50,
+     "days": 1,
+     "daysWithRest": 0,
+     "tradesAfter": 0,
+     "perTradeAfter": null,
+     "baseline": -36.75,
+     "diff": null,
+     "medianAfter": null,
+     "p": null,
+     "survives": false,
+     "enough": false
+    },
+    {
+     "session": "NY_LUNCH",
+     "threshold": 25,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 9,
+     "perTradeAfter": 4.33,
+     "baseline": 0.8,
+     "diff": 3.53,
+     "medianAfter": 39,
+     "p": null,
+     "survives": false,
+     "enough": false
+    },
+    {
+     "session": "NY_LUNCH",
+     "threshold": 50,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 7,
+     "perTradeAfter": 10.5,
+     "baseline": 0.8,
+     "diff": 9.7,
+     "medianAfter": 73.5,
+     "p": null,
+     "survives": false,
+     "enough": false
+    },
+    {
+     "session": "NY_LUNCH",
+     "threshold": 75,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 6,
+     "perTradeAfter": 17.42,
+     "baseline": 0.8,
+     "diff": 16.62,
+     "medianAfter": 104.5,
+     "p": null,
+     "survives": false,
+     "enough": false
+    },
+    {
+     "session": "NY_LUNCH",
+     "threshold": 100,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 5,
+     "perTradeAfter": 25.9,
+     "baseline": 0.8,
+     "diff": 25.1,
+     "medianAfter": 129.5,
+     "p": null,
+     "survives": false,
+     "enough": false
+    },
+    {
+     "session": "NY_LUNCH",
+     "threshold": 150,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 3,
+     "perTradeAfter": 56.83,
+     "baseline": 0.8,
+     "diff": 56.03,
+     "medianAfter": 170.5,
+     "p": null,
+     "survives": false,
+     "enough": false
+    },
+    {
+     "session": "OUTSIDE",
+     "threshold": 25,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 9,
+     "perTradeAfter": 22.33,
+     "baseline": 15.23,
+     "diff": 7.11,
+     "medianAfter": 201,
+     "p": null,
+     "survives": false,
+     "enough": false
+    },
+    {
+     "session": "OUTSIDE",
+     "threshold": 50,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 8,
+     "perTradeAfter": 31.75,
+     "baseline": 15.23,
+     "diff": 16.52,
+     "medianAfter": 254,
+     "p": null,
+     "survives": false,
+     "enough": false
+    },
+    {
+     "session": "OUTSIDE",
+     "threshold": 75,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 8,
+     "perTradeAfter": 31.75,
+     "baseline": 15.23,
+     "diff": 16.52,
+     "medianAfter": 254,
+     "p": null,
+     "survives": false,
+     "enough": false
+    },
+    {
+     "session": "OUTSIDE",
+     "threshold": 100,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 7,
+     "perTradeAfter": 40.71,
+     "baseline": 15.23,
+     "diff": 25.49,
+     "medianAfter": 285,
+     "p": null,
+     "survives": false,
+     "enough": false
+    },
+    {
+     "session": "OUTSIDE",
+     "threshold": 150,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 6,
+     "perTradeAfter": 53.5,
+     "baseline": 15.23,
+     "diff": 38.27,
+     "medianAfter": 321,
+     "p": null,
+     "survives": false,
+     "enough": false
+    },
+    {
+     "session": "OUTSIDE",
+     "threshold": 200,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 5,
+     "perTradeAfter": 73.7,
+     "baseline": 15.23,
+     "diff": 58.47,
+     "medianAfter": 368.5,
+     "p": null,
+     "survives": false,
+     "enough": false
+    }
+   ],
+   "permutations": 2000,
+   "minTradesAfter": 10,
+   "tested": 4,
+   "survivors": 0,
+   "fdr": 0.1,
+   "dailyLossLimit": 0
+  },
+  "breakeven": 0.2618,
+  "payoff": 2.82,
+  "sinAlineacion": null,
+  "revenge": {
+   "operations": 20,
+   "net": -142,
+   "perTrade": -7.1
+  }
+ },
+ "diario|2026-10-27": {
+  "periodo": "diario",
+  "days": [
+   "2026-10-27"
+  ],
+  "from": "2026-10-27",
+  "to": "2026-10-27",
+  "expectedDays": 1,
+  "prev": "2026-10-26",
+  "next": "2026-10-28",
+  "isLatest": false,
+  "calendar": [
+   {
+    "date": "2026-10-05",
+    "count": 12,
+    "pnl": -316
+   },
+   {
+    "date": "2026-10-08",
+    "count": 2,
+    "pnl": 141.5
+   },
+   {
+    "date": "2026-10-09",
+    "count": 20,
+    "pnl": -1259.5
+   },
+   {
+    "date": "2026-10-12",
+    "count": 3,
+    "pnl": -148
+   },
+   {
+    "date": "2026-10-13",
+    "count": 32,
+    "pnl": -161
+   },
+   {
+    "date": "2026-10-14",
+    "count": 54,
+    "pnl": 568
+   },
+   {
+    "date": "2026-10-15",
+    "count": 56,
+    "pnl": -264.5
+   },
+   {
+    "date": "2026-10-16",
+    "count": 15,
+    "pnl": -347.5
+   },
+   {
+    "date": "2026-10-19",
+    "count": 8,
+    "pnl": -11
+   },
+   {
+    "date": "2026-10-20",
+    "count": 48,
+    "pnl": 295.5
+   },
+   {
+    "date": "2026-10-21",
+    "count": 15,
+    "pnl": 191
+   },
+   {
+    "date": "2026-10-22",
+    "count": 40,
+    "pnl": 36
+   },
+   {
+    "date": "2026-10-23",
+    "count": 54,
+    "pnl": -195
+   },
+   {
+    "date": "2026-10-26",
+    "count": 38,
+    "pnl": 206
+   },
+   {
+    "date": "2026-10-27",
+    "count": 62,
+    "pnl": 302
+   },
+   {
+    "date": "2026-10-28",
+    "count": 55,
+    "pnl": -879.5
+   },
+   {
+    "date": "2026-10-29",
+    "count": 41,
+    "pnl": 560
+   },
+   {
+    "date": "2026-10-30",
+    "count": 18,
+    "pnl": 261.5
+   }
+  ],
+  "operations": 62,
+  "contracts": 103,
+  "gross": 405,
+  "commission": 103,
+  "net": 302,
+  "winRate": 0.371,
+  "dailyLossLimit": 0,
+  "remaining": null,
+  "maxLot": 4,
+  "medianLot": 1,
+  "byLot": [
+   {
+    "key": "1",
+    "label": "1 lote",
+    "operations": 34,
+    "contracts": 34,
+    "gross": -63,
+    "net": -97,
+    "perTrade": -2.85,
+    "ticksPerTrade": -3.71,
+    "wins": 12,
+    "winRate": 0.3529,
+    "median": -0.5
+   },
+   {
+    "key": "2",
+    "label": "2 lotes",
+    "operations": 19,
+    "contracts": 38,
+    "gross": 130,
+    "net": 92,
+    "perTrade": 4.84,
+    "ticksPerTrade": 6.84,
+    "wins": 7,
+    "winRate": 0.3684,
+    "median": -0.5
+   },
+   {
+    "key": "3",
+    "label": "3 lotes",
+    "operations": 5,
+    "contracts": 15,
+    "gross": 96,
+    "net": 81,
+    "perTrade": 16.2,
+    "ticksPerTrade": 12.8,
+    "wins": 2,
+    "winRate": 0.4,
+    "median": -0.5
+   },
+   {
+    "key": "4",
+    "label": "4 lotes",
+    "operations": 4,
+    "contracts": 16,
+    "gross": 242,
+    "net": 226,
+    "perTrade": 56.5,
+    "ticksPerTrade": 30.28,
+    "wins": 2,
+    "winRate": 0.5,
+    "median": 12.25
+   }
+  ],
+  "bigLots": {
+   "key": "grandes",
+   "label": "mas de 1 lote",
+   "operations": 28,
+   "contracts": 69,
+   "gross": 468,
+   "net": 399,
+   "perTrade": 14.25,
+   "ticksPerTrade": 11.25,
+   "wins": 11,
+   "winRate": 0.3929,
+   "median": -0.5
+  },
+  "smallLots": {
+   "key": "pequenias",
+   "label": "1 lote o menos",
+   "operations": 34,
+   "contracts": 34,
+   "gross": -63,
+   "net": -97,
+   "perTrade": -2.85,
+   "ticksPerTrade": -3.71,
+   "wins": 12,
+   "winRate": 0.3529,
+   "median": -0.5
+  },
+  "ticksPerTrade": 3.05,
+  "ticksMedian": 1,
+  "previous": {
+   "from": "2026-10-26",
+   "to": "2026-10-26",
+   "days": 1,
+   "net": 206,
+   "ticksPerTrade": -3.02
+  },
+  "bySession": [
+   {
+    "key": "ASIA",
+    "label": "ASIA",
+    "operations": 29,
+    "contracts": 59,
+    "gross": 25.5,
+    "net": -33.5,
+    "perTrade": -1.16,
+    "ticksPerTrade": -5.7,
+    "wins": 8,
+    "winRate": 0.2759,
+    "median": -1
+   },
+   {
+    "key": "NY_AM",
+    "label": "NY_AM",
+    "operations": 5,
+    "contracts": 5,
+    "gross": 86.5,
+    "net": 81.5,
+    "perTrade": 16.3,
+    "ticksPerTrade": 34.6,
+    "wins": 2,
+    "winRate": 0.4,
+    "median": -29.5
+   },
+   {
+    "key": "OUTSIDE",
+    "label": "OUTSIDE",
+    "operations": 28,
+    "contracts": 39,
+    "gross": 293,
+    "net": 254,
+    "perTrade": 9.07,
+    "ticksPerTrade": 6.48,
+    "wins": 13,
+    "winRate": 0.4643,
+    "median": -0.25
+   }
+  ],
+  "byGap": [
+   {
+    "key": "0",
+    "label": "tras cerrar Asia",
+    "operations": 14,
+    "contracts": 18,
+    "gross": 137.5,
+    "net": 119.5,
+    "perTrade": 8.54,
+    "ticksPerTrade": 9.68,
+    "wins": 7,
+    "winRate": 0.5,
+    "median": 0.25
+   },
+   {
+    "key": "5",
+    "label": "entre Londres y NY AM",
+    "operations": 2,
+    "contracts": 2,
+    "gross": 31,
+    "net": 29,
+    "perTrade": 14.5,
+    "ticksPerTrade": 31,
+    "wins": 1,
+    "winRate": 0.5,
+    "median": 14.5
+   },
+   {
+    "key": "11",
+    "label": "entre NY AM y el almuerzo",
+    "operations": 11,
+    "contracts": 18,
+    "gross": 111,
+    "net": 93,
+    "perTrade": 8.45,
+    "ticksPerTrade": -3.91,
+    "wins": 4,
+    "winRate": 0.3636,
+    "median": -2.5
+   },
+   {
+    "key": "16",
+    "label": "entre NY PM y Asia",
+    "operations": 1,
+    "contracts": 1,
+    "gross": 13.5,
+    "net": 12.5,
+    "perTrade": 12.5,
+    "ticksPerTrade": 27,
+    "wins": 1,
+    "winRate": 1,
+    "median": 12.5
+   }
+  ],
+  "worst": [
+   {
+    "id": 234695,
+    "date": "2026-10-27",
+    "session": "OUTSIDE",
+    "lots": 3,
+    "ticks": -83.7,
+    "net": -128.5,
+    "netPerContract": -42.83
+   },
+   {
+    "id": 195577,
+    "date": "2026-10-27",
+    "session": "ASIA",
+    "lots": 4,
+    "ticks": -34,
+    "net": -72,
+    "netPerContract": -18
+   },
+   {
+    "id": 208198,
+    "date": "2026-10-27",
+    "session": "ASIA",
+    "lots": 4,
+    "ticks": -28.5,
+    "net": -61,
+    "netPerContract": -15.25
+   },
+   {
+    "id": 195163,
+    "date": "2026-10-27",
+    "session": "ASIA",
+    "lots": 3,
+    "ticks": -35.7,
+    "net": -56.5,
+    "netPerContract": -18.83
+   },
+   {
+    "id": 223442,
+    "date": "2026-10-27",
+    "session": "NY_AM",
+    "lots": 1,
+    "ticks": -90,
+    "net": -46,
+    "netPerContract": -46
+   }
+  ],
+  "best": [
+   {
+    "id": 205642,
+    "date": "2026-10-27",
+    "session": "ASIA",
+    "lots": 4,
+    "ticks": 138.8,
+    "net": 273.5,
+    "netPerContract": 68.38
+   },
+   {
+    "id": 236070,
+    "date": "2026-10-27",
+    "session": "OUTSIDE",
+    "lots": 3,
+    "ticks": 177,
+    "net": 262.5,
+    "netPerContract": 87.5
+   },
+   {
+    "id": 225223,
+    "date": "2026-10-27",
+    "session": "NY_AM",
+    "lots": 1,
+    "ticks": 325,
+    "net": 161.5,
+    "netPerContract": 161.5
+   },
+   {
+    "id": 216404,
+    "date": "2026-10-27",
+    "session": "OUTSIDE",
+    "lots": 2,
+    "ticks": 96.5,
+    "net": 94.5,
+    "netPerContract": 47.25
+   },
+   {
+    "id": 196406,
+    "date": "2026-10-27",
+    "session": "ASIA",
+    "lots": 4,
+    "ticks": 44.8,
+    "net": 85.5,
+    "netPerContract": 21.38
+   }
+  ],
+  "drawdown": {
+   "rows": [
+    {
+     "session": "ASIA",
+     "days": 1,
+     "trades": 29,
+     "total": -33.5,
+     "perTrade": -1.16,
+     "drawdownMedian": 278,
+     "drawdownP75": 278,
+     "drawdownWorst": 278,
+     "drawdownWorstDay": "2026-10-27",
+     "chainedDrawdown": 278,
+     "greenDays": 0,
+     "worstStreak": 7,
+     "overLimit": null
+    },
+    {
+     "session": "NY_AM",
+     "days": 1,
+     "trades": 5,
+     "total": 81.5,
+     "perTrade": 16.3,
+     "drawdownMedian": 92,
+     "drawdownP75": 92,
+     "drawdownWorst": 92,
+     "drawdownWorstDay": "2026-10-27",
+     "chainedDrawdown": 92,
+     "greenDays": 1,
+     "worstStreak": 2,
+     "overLimit": null
+    },
+    {
+     "session": "OUTSIDE",
+     "days": 1,
+     "trades": 28,
+     "total": 254,
+     "perTrade": 9.07,
+     "drawdownMedian": 181.5,
+     "drawdownP75": 181.5,
+     "drawdownWorst": 181.5,
+     "drawdownWorstDay": "2026-10-27",
+     "chainedDrawdown": 181.5,
+     "greenDays": 1,
+     "worstStreak": 4,
+     "overLimit": null
+    }
+   ],
+   "gaps": [
+    {
+     "from": 0,
+     "to": 2,
+     "label": "tras cerrar Asia",
+     "days": 1,
+     "trades": 14,
+     "total": 119.5,
+     "perTrade": 8.54,
+     "drawdownWorst": 36.5,
+     "greenDays": 1
+    },
+    {
+     "from": 5,
+     "to": 9.5,
+     "label": "entre Londres y NY AM",
+     "days": 1,
+     "trades": 2,
+     "total": 29,
+     "perTrade": 14.5,
+     "drawdownWorst": 0.5,
+     "greenDays": 1
+    },
+    {
+     "from": 11,
+     "to": 12,
+     "label": "entre NY AM y el almuerzo",
+     "days": 1,
+     "trades": 11,
+     "total": 93,
+     "perTrade": 8.45,
+     "drawdownWorst": 181.5,
+     "greenDays": 1
+    },
+    {
+     "from": 16,
+     "to": 20,
+     "label": "entre NY PM y Asia",
+     "days": 1,
+     "trades": 1,
+     "total": 12.5,
+     "perTrade": 12.5,
+     "drawdownWorst": 0,
+     "greenDays": 1
+    }
+   ],
+   "thresholds": [
+    25,
+    50,
+    75,
+    100,
+    150,
+    200,
+    300
+   ],
+   "cells": [
+    {
+     "session": "ASIA",
+     "threshold": 25,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 27,
+     "perTradeAfter": -0.26,
+     "baseline": -1.16,
+     "diff": 0.9,
+     "medianAfter": -7,
+     "p": 0.3698,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "ASIA",
+     "threshold": 50,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 23,
+     "perTradeAfter": 1.26,
+     "baseline": -1.16,
+     "diff": 2.42,
+     "medianAfter": 29,
+     "p": 0.662,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "ASIA",
+     "threshold": 75,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 19,
+     "perTradeAfter": 2.66,
+     "baseline": -1.16,
+     "diff": 3.81,
+     "medianAfter": 50.5,
+     "p": 0.7772,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "ASIA",
+     "threshold": 100,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 18,
+     "perTradeAfter": 4.39,
+     "baseline": -1.16,
+     "diff": 5.54,
+     "medianAfter": 79,
+     "p": 0.8382,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "ASIA",
+     "threshold": 150,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 14,
+     "perTradeAfter": 12.32,
+     "baseline": -1.16,
+     "diff": 13.48,
+     "medianAfter": 172.5,
+     "p": 0.9818,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "ASIA",
+     "threshold": 200,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 14,
+     "perTradeAfter": 12.32,
+     "baseline": -1.16,
+     "diff": 13.48,
+     "medianAfter": 172.5,
+     "p": 0.7718,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "NY_AM",
+     "threshold": 25,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 4,
+     "perTradeAfter": 31.88,
+     "baseline": 16.3,
+     "diff": 15.57,
+     "medianAfter": 127.5,
+     "p": null,
+     "survives": false,
+     "enough": false
+    },
+    {
+     "session": "NY_AM",
+     "threshold": 50,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 3,
+     "perTradeAfter": 57.83,
+     "baseline": 16.3,
+     "diff": 41.53,
+     "medianAfter": 173.5,
+     "p": null,
+     "survives": false,
+     "enough": false
+    },
+    {
+     "session": "NY_AM",
+     "threshold": 75,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 3,
+     "perTradeAfter": 57.83,
+     "baseline": 16.3,
+     "diff": 41.53,
+     "medianAfter": 173.5,
+     "p": null,
+     "survives": false,
+     "enough": false
+    },
+    {
+     "session": "OUTSIDE",
+     "threshold": 25,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 20,
+     "perTradeAfter": 13.8,
+     "baseline": 9.07,
+     "diff": 4.73,
+     "medianAfter": 276,
+     "p": 0.8684,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "OUTSIDE",
+     "threshold": 50,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 7,
+     "perTradeAfter": 20.57,
+     "baseline": 9.07,
+     "diff": 11.5,
+     "medianAfter": 144,
+     "p": null,
+     "survives": false,
+     "enough": false
+    },
+    {
+     "session": "OUTSIDE",
+     "threshold": 75,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 5,
+     "perTradeAfter": 40.9,
+     "baseline": 9.07,
+     "diff": 31.83,
+     "medianAfter": 204.5,
+     "p": null,
+     "survives": false,
+     "enough": false
+    },
+    {
+     "session": "OUTSIDE",
+     "threshold": 100,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 5,
+     "perTradeAfter": 40.9,
+     "baseline": 9.07,
+     "diff": 31.83,
+     "medianAfter": 204.5,
+     "p": null,
+     "survives": false,
+     "enough": false
+    },
+    {
+     "session": "OUTSIDE",
+     "threshold": 150,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 2,
+     "perTradeAfter": 133.25,
+     "baseline": 9.07,
+     "diff": 124.18,
+     "medianAfter": 266.5,
+     "p": null,
+     "survives": false,
+     "enough": false
+    }
+   ],
+   "permutations": 2000,
+   "minTradesAfter": 10,
+   "tested": 7,
+   "survivors": 0,
+   "fdr": 0.1,
+   "dailyLossLimit": 0
+  },
+  "breakeven": 0.3067,
+  "payoff": 2.26,
+  "sinAlineacion": null,
+  "revenge": {
+   "operations": 29,
+   "net": -52.5,
+   "perTrade": -1.81
+  }
+ },
+ "diario|2026-10-28": {
+  "periodo": "diario",
+  "days": [
+   "2026-10-28"
+  ],
+  "from": "2026-10-28",
+  "to": "2026-10-28",
+  "expectedDays": 1,
+  "prev": "2026-10-27",
+  "next": "2026-10-29",
+  "isLatest": false,
+  "calendar": [
+   {
+    "date": "2026-10-05",
+    "count": 12,
+    "pnl": -316
+   },
+   {
+    "date": "2026-10-08",
+    "count": 2,
+    "pnl": 141.5
+   },
+   {
+    "date": "2026-10-09",
+    "count": 20,
+    "pnl": -1259.5
+   },
+   {
+    "date": "2026-10-12",
+    "count": 3,
+    "pnl": -148
+   },
+   {
+    "date": "2026-10-13",
+    "count": 32,
+    "pnl": -161
+   },
+   {
+    "date": "2026-10-14",
+    "count": 54,
+    "pnl": 568
+   },
+   {
+    "date": "2026-10-15",
+    "count": 56,
+    "pnl": -264.5
+   },
+   {
+    "date": "2026-10-16",
+    "count": 15,
+    "pnl": -347.5
+   },
+   {
+    "date": "2026-10-19",
+    "count": 8,
+    "pnl": -11
+   },
+   {
+    "date": "2026-10-20",
+    "count": 48,
+    "pnl": 295.5
+   },
+   {
+    "date": "2026-10-21",
+    "count": 15,
+    "pnl": 191
+   },
+   {
+    "date": "2026-10-22",
+    "count": 40,
+    "pnl": 36
+   },
+   {
+    "date": "2026-10-23",
+    "count": 54,
+    "pnl": -195
+   },
+   {
+    "date": "2026-10-26",
+    "count": 38,
+    "pnl": 206
+   },
+   {
+    "date": "2026-10-27",
+    "count": 62,
+    "pnl": 302
+   },
+   {
+    "date": "2026-10-28",
+    "count": 55,
+    "pnl": -879.5
+   },
+   {
+    "date": "2026-10-29",
+    "count": 41,
+    "pnl": 560
+   },
+   {
+    "date": "2026-10-30",
+    "count": 18,
+    "pnl": 261.5
+   }
+  ],
+  "operations": 55,
+  "contracts": 132,
+  "gross": -747.5,
+  "commission": 132,
+  "net": -879.5,
+  "winRate": 0.2545,
+  "dailyLossLimit": 0,
+  "remaining": null,
+  "maxLot": 6,
+  "medianLot": 2,
+  "byLot": [
+   {
+    "key": "1",
+    "label": "1 lote",
+    "operations": 14,
+    "contracts": 14,
+    "gross": -116.5,
+    "net": -130.5,
+    "perTrade": -9.32,
+    "ticksPerTrade": -16.64,
+    "wins": 3,
+    "winRate": 0.2143,
+    "median": -15.5
+   },
+   {
+    "key": "2",
+    "label": "2 lotes",
+    "operations": 22,
+    "contracts": 44,
+    "gross": -228.5,
+    "net": -272.5,
+    "perTrade": -12.39,
+    "ticksPerTrade": -10.39,
+    "wins": 8,
+    "winRate": 0.3636,
+    "median": -21
+   },
+   {
+    "key": "3",
+    "label": "3 lotes",
+    "operations": 10,
+    "contracts": 30,
+    "gross": -92.5,
+    "net": -122.5,
+    "perTrade": -12.25,
+    "ticksPerTrade": -6.18,
+    "wins": 2,
+    "winRate": 0.2,
+    "median": -2.25
+   },
+   {
+    "key": "4",
+    "label": "4 lotes",
+    "operations": 4,
+    "contracts": 16,
+    "gross": -186,
+    "net": -202,
+    "perTrade": -50.5,
+    "ticksPerTrade": -23.25,
+    "wins": 1,
+    "winRate": 0.25,
+    "median": -41.25
+   },
+   {
+    "key": "5",
+    "label": "5 lotes",
+    "operations": 2,
+    "contracts": 10,
+    "gross": 5,
+    "net": -5,
+    "perTrade": -2.5,
+    "ticksPerTrade": 1,
+    "wins": 0,
+    "winRate": 0,
+    "median": -2.5
+   },
+   {
+    "key": "6",
+    "label": "6 lotes",
+    "operations": 3,
+    "contracts": 18,
+    "gross": -129,
+    "net": -147,
+    "perTrade": -49,
+    "ticksPerTrade": -14.3,
+    "wins": 0,
+    "winRate": 0,
+    "median": -38.5
+   }
+  ],
+  "bigLots": {
+   "key": "grandes",
+   "label": "mas de 2 lotes",
+   "operations": 19,
+   "contracts": 74,
+   "gross": -402.5,
+   "net": -476.5,
+   "perTrade": -25.08,
+   "ticksPerTrade": -10.3,
+   "wins": 3,
+   "winRate": 0.1579,
+   "median": -4
+  },
+  "smallLots": {
+   "key": "pequenias",
+   "label": "2 lotes o menos",
+   "operations": 36,
+   "contracts": 58,
+   "gross": -345,
+   "net": -403,
+   "perTrade": -11.19,
+   "ticksPerTrade": -12.82,
+   "wins": 11,
+   "winRate": 0.3056,
+   "median": -15.5
+  },
+  "ticksPerTrade": -11.95,
+  "ticksMedian": -8.5,
+  "previous": {
+   "from": "2026-10-27",
+   "to": "2026-10-27",
+   "days": 1,
+   "net": 302,
+   "ticksPerTrade": 3.05
+  },
+  "bySession": [
+   {
+    "key": "ASIA",
+    "label": "ASIA",
+    "operations": 25,
+    "contracts": 53,
+    "gross": -118.5,
+    "net": -171.5,
+    "perTrade": -6.86,
+    "ticksPerTrade": -6.09,
+    "wins": 9,
+    "winRate": 0.36,
+    "median": -5
+   },
+   {
+    "key": "NY_LUNCH",
+    "label": "NY_LUNCH",
+    "operations": 2,
+    "contracts": 2,
+    "gross": -30,
+    "net": -32,
+    "perTrade": -16,
+    "ticksPerTrade": -30,
+    "wins": 0,
+    "winRate": 0,
+    "median": -16
+   },
+   {
+    "key": "NY_PM",
+    "label": "NY_PM",
+    "operations": 15,
+    "contracts": 31,
+    "gross": -374,
+    "net": -405,
+    "perTrade": -27,
+    "ticksPerTrade": -23.43,
+    "wins": 2,
+    "winRate": 0.1333,
+    "median": -14
+   },
+   {
+    "key": "OUTSIDE",
+    "label": "OUTSIDE",
+    "operations": 13,
+    "contracts": 46,
+    "gross": -225,
+    "net": -271,
+    "perTrade": -20.85,
+    "ticksPerTrade": -7.18,
+    "wins": 3,
+    "winRate": 0.2308,
+    "median": -4
+   }
+  ],
+  "byGap": [
+   {
+    "key": "0",
+    "label": "tras cerrar Asia",
+    "operations": 9,
+    "contracts": 41,
+    "gross": -236,
+    "net": -277,
+    "perTrade": -30.78,
+    "ticksPerTrade": -11.6,
+    "wins": 1,
+    "winRate": 0.1111,
+    "median": -4
+   },
+   {
+    "key": "5",
+    "label": "entre Londres y NY AM",
+    "operations": 1,
+    "contracts": 1,
+    "gross": 40.5,
+    "net": 39.5,
+    "perTrade": 39.5,
+    "ticksPerTrade": 81,
+    "wins": 1,
+    "winRate": 1,
+    "median": 39.5
+   },
+   {
+    "key": "13",
+    "label": "entre el almuerzo y NY PM",
+    "operations": 3,
+    "contracts": 4,
+    "gross": -29.5,
+    "net": -33.5,
+    "perTrade": -11.17,
+    "ticksPerTrade": -23.33,
+    "wins": 1,
+    "winRate": 0.3333,
+    "median": -19.5
+   }
+  ],
+  "worst": [
+   {
+    "id": 284672,
+    "date": "2026-10-28",
+    "session": "NY_PM",
+    "lots": 4,
+    "ticks": -59.5,
+    "net": -123,
+    "netPerContract": -30.75
+   },
+   {
+    "id": 264093,
+    "date": "2026-10-28",
+    "session": "OUTSIDE",
+    "lots": 6,
+    "ticks": -33.8,
+    "net": -107.5,
+    "netPerContract": -17.92
+   },
+   {
+    "id": 259201,
+    "date": "2026-10-28",
+    "session": "OUTSIDE",
+    "lots": 4,
+    "ticks": -37.3,
+    "net": -78.5,
+    "netPerContract": -19.63
+   },
+   {
+    "id": 280578,
+    "date": "2026-10-28",
+    "session": "NY_PM",
+    "lots": 2,
+    "ticks": -60,
+    "net": -62,
+    "netPerContract": -31
+   },
+   {
+    "id": 276025,
+    "date": "2026-10-28",
+    "session": "NY_PM",
+    "lots": 2,
+    "ticks": -53,
+    "net": -55,
+    "netPerContract": -27.5
+   }
+  ],
+  "best": [
+   {
+    "id": 244425,
+    "date": "2026-10-28",
+    "session": "ASIA",
+    "lots": 2,
+    "ticks": 93,
+    "net": 91,
+    "netPerContract": 45.5
+   },
+   {
+    "id": 247245,
+    "date": "2026-10-28",
+    "session": "ASIA",
+    "lots": 2,
+    "ticks": 68.5,
+    "net": 66.5,
+    "netPerContract": 33.25
+   },
+   {
+    "id": 266558,
+    "date": "2026-10-28",
+    "session": "OUTSIDE",
+    "lots": 1,
+    "ticks": 81,
+    "net": 39.5,
+    "netPerContract": 39.5
+   },
+   {
+    "id": 240227,
+    "date": "2026-10-28",
+    "session": "ASIA",
+    "lots": 2,
+    "ticks": 14.5,
+    "net": 12.5,
+    "netPerContract": 6.25
+   },
+   {
+    "id": 249137,
+    "date": "2026-10-28",
+    "session": "ASIA",
+    "lots": 2,
+    "ticks": 13,
+    "net": 11,
+    "netPerContract": 5.5
+   }
+  ],
+  "drawdown": {
+   "rows": [
+    {
+     "session": "ASIA",
+     "days": 1,
+     "trades": 25,
+     "total": -171.5,
+     "perTrade": -6.86,
+     "drawdownMedian": 173.5,
+     "drawdownP75": 173.5,
+     "drawdownWorst": 173.5,
+     "drawdownWorstDay": "2026-10-28",
+     "chainedDrawdown": 173.5,
+     "greenDays": 0,
+     "worstStreak": 4,
+     "overLimit": null
+    },
+    {
+     "session": "NY_LUNCH",
+     "days": 1,
+     "trades": 2,
+     "total": -32,
+     "perTrade": -16,
+     "drawdownMedian": 32,
+     "drawdownP75": 32,
+     "drawdownWorst": 32,
+     "drawdownWorstDay": "2026-10-28",
+     "chainedDrawdown": 32,
+     "greenDays": 0,
+     "worstStreak": 2,
+     "overLimit": null
+    },
+    {
+     "session": "NY_PM",
+     "days": 1,
+     "trades": 15,
+     "total": -405,
+     "perTrade": -27,
+     "drawdownMedian": 405,
+     "drawdownP75": 405,
+     "drawdownWorst": 405,
+     "drawdownWorstDay": "2026-10-28",
+     "chainedDrawdown": 405,
+     "greenDays": 0,
+     "worstStreak": 11,
+     "overLimit": null
+    },
+    {
+     "session": "OUTSIDE",
+     "days": 1,
+     "trades": 13,
+     "total": -271,
+     "perTrade": -20.85,
+     "drawdownMedian": 280,
+     "drawdownP75": 280,
+     "drawdownWorst": 280,
+     "drawdownWorstDay": "2026-10-28",
+     "chainedDrawdown": 280,
+     "greenDays": 0,
+     "worstStreak": 6,
+     "overLimit": null
+    }
+   ],
+   "gaps": [
+    {
+     "from": 0,
+     "to": 2,
+     "label": "tras cerrar Asia",
+     "days": 1,
+     "trades": 9,
+     "total": -277,
+     "perTrade": -30.78,
+     "drawdownWorst": 277,
+     "greenDays": 0
+    },
+    {
+     "from": 5,
+     "to": 9.5,
+     "label": "entre Londres y NY AM",
+     "days": 1,
+     "trades": 1,
+     "total": 39.5,
+     "perTrade": 39.5,
+     "drawdownWorst": 0,
+     "greenDays": 1
+    },
+    {
+     "from": 13,
+     "to": 13.5,
+     "label": "entre el almuerzo y NY PM",
+     "days": 1,
+     "trades": 3,
+     "total": -33.5,
+     "perTrade": -11.17,
+     "drawdownWorst": 42.5,
+     "greenDays": 0
+    }
+   ],
+   "thresholds": [
+    25,
+    50,
+    75,
+    100,
+    150,
+    200,
+    300
+   ],
+   "cells": [
+    {
+     "session": "ASIA",
+     "threshold": 25,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 22,
+     "perTradeAfter": -5.14,
+     "baseline": -6.86,
+     "diff": 1.72,
+     "medianAfter": -113,
+     "p": 0.9635,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "ASIA",
+     "threshold": 50,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 22,
+     "perTradeAfter": -5.14,
+     "baseline": -6.86,
+     "diff": 1.72,
+     "medianAfter": -113,
+     "p": 0.6219,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "ASIA",
+     "threshold": 75,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 18,
+     "perTradeAfter": -4.67,
+     "baseline": -6.86,
+     "diff": 2.19,
+     "medianAfter": -84,
+     "p": 0.5432,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "ASIA",
+     "threshold": 100,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 17,
+     "perTradeAfter": -2.79,
+     "baseline": -6.86,
+     "diff": 4.07,
+     "medianAfter": -47.5,
+     "p": 0.831,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "ASIA",
+     "threshold": 150,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 16,
+     "perTradeAfter": -0.88,
+     "baseline": -6.86,
+     "diff": 5.99,
+     "medianAfter": -14,
+     "p": 0.6295,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "NY_LUNCH",
+     "threshold": 25,
+     "days": 1,
+     "daysWithRest": 0,
+     "tradesAfter": 0,
+     "perTradeAfter": null,
+     "baseline": -16,
+     "diff": null,
+     "medianAfter": null,
+     "p": null,
+     "survives": false,
+     "enough": false
+    },
+    {
+     "session": "NY_PM",
+     "threshold": 25,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 12,
+     "perTradeAfter": -29.08,
+     "baseline": -27,
+     "diff": -2.08,
+     "medianAfter": -349,
+     "p": 0.2156,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "NY_PM",
+     "threshold": 50,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 12,
+     "perTradeAfter": -29.08,
+     "baseline": -27,
+     "diff": -2.08,
+     "medianAfter": -349,
+     "p": 0.2388,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "NY_PM",
+     "threshold": 75,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 11,
+     "perTradeAfter": -26.73,
+     "baseline": -27,
+     "diff": 0.27,
+     "medianAfter": -294,
+     "p": 0.3675,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "NY_PM",
+     "threshold": 100,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 11,
+     "perTradeAfter": -26.73,
+     "baseline": -27,
+     "diff": 0.27,
+     "medianAfter": -294,
+     "p": 0.2567,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "NY_PM",
+     "threshold": 150,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 9,
+     "perTradeAfter": -27.83,
+     "baseline": -27,
+     "diff": -0.83,
+     "medianAfter": -250.5,
+     "p": null,
+     "survives": false,
+     "enough": false
+    },
+    {
+     "session": "NY_PM",
+     "threshold": 200,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 5,
+     "perTradeAfter": -32.2,
+     "baseline": -27,
+     "diff": -5.2,
+     "medianAfter": -161,
+     "p": null,
+     "survives": false,
+     "enough": false
+    },
+    {
+     "session": "NY_PM",
+     "threshold": 300,
+     "days": 1,
+     "daysWithRest": 0,
+     "tradesAfter": 0,
+     "perTradeAfter": null,
+     "baseline": -27,
+     "diff": null,
+     "medianAfter": null,
+     "p": null,
+     "survives": false,
+     "enough": false
+    },
+    {
+     "session": "OUTSIDE",
+     "threshold": 25,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 12,
+     "perTradeAfter": -18.67,
+     "baseline": -20.85,
+     "diff": 2.18,
+     "medianAfter": -224,
+     "p": 0.567,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "OUTSIDE",
+     "threshold": 50,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 11,
+     "perTradeAfter": -13.23,
+     "baseline": -20.85,
+     "diff": 7.62,
+     "medianAfter": -145.5,
+     "p": 0.9268,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "OUTSIDE",
+     "threshold": 75,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 11,
+     "perTradeAfter": -13.23,
+     "baseline": -20.85,
+     "diff": 7.62,
+     "medianAfter": -145.5,
+     "p": 0.8942,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "OUTSIDE",
+     "threshold": 100,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 11,
+     "perTradeAfter": -13.23,
+     "baseline": -20.85,
+     "diff": 7.62,
+     "medianAfter": -145.5,
+     "p": 0.8024,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "OUTSIDE",
+     "threshold": 150,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 5,
+     "perTradeAfter": -6.5,
+     "baseline": -20.85,
+     "diff": 14.35,
+     "medianAfter": -32.5,
+     "p": null,
+     "survives": false,
+     "enough": false
+    },
+    {
+     "session": "OUTSIDE",
+     "threshold": 200,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 5,
+     "perTradeAfter": -6.5,
+     "baseline": -20.85,
+     "diff": 14.35,
+     "medianAfter": -32.5,
+     "p": null,
+     "survives": false,
+     "enough": false
+    }
+   ],
+   "permutations": 2000,
+   "minTradesAfter": 10,
+   "tested": 13,
+   "survivors": 0,
+   "fdr": 0.1,
+   "dailyLossLimit": 0
+  },
+  "breakeven": 0.6061,
+  "payoff": 0.65,
+  "sinAlineacion": null,
+  "revenge": {
+   "operations": 31,
+   "net": -598.5,
+   "perTrade": -19.31
+  }
+ },
+ "diario|2026-10-29": {
+  "periodo": "diario",
+  "days": [
+   "2026-10-29"
+  ],
+  "from": "2026-10-29",
+  "to": "2026-10-29",
+  "expectedDays": 1,
+  "prev": "2026-10-28",
+  "next": "2026-10-30",
+  "isLatest": false,
+  "calendar": [
+   {
+    "date": "2026-10-05",
+    "count": 12,
+    "pnl": -316
+   },
+   {
+    "date": "2026-10-08",
+    "count": 2,
+    "pnl": 141.5
+   },
+   {
+    "date": "2026-10-09",
+    "count": 20,
+    "pnl": -1259.5
+   },
+   {
+    "date": "2026-10-12",
+    "count": 3,
+    "pnl": -148
+   },
+   {
+    "date": "2026-10-13",
+    "count": 32,
+    "pnl": -161
+   },
+   {
+    "date": "2026-10-14",
+    "count": 54,
+    "pnl": 568
+   },
+   {
+    "date": "2026-10-15",
+    "count": 56,
+    "pnl": -264.5
+   },
+   {
+    "date": "2026-10-16",
+    "count": 15,
+    "pnl": -347.5
+   },
+   {
+    "date": "2026-10-19",
+    "count": 8,
+    "pnl": -11
+   },
+   {
+    "date": "2026-10-20",
+    "count": 48,
+    "pnl": 295.5
+   },
+   {
+    "date": "2026-10-21",
+    "count": 15,
+    "pnl": 191
+   },
+   {
+    "date": "2026-10-22",
+    "count": 40,
+    "pnl": 36
+   },
+   {
+    "date": "2026-10-23",
+    "count": 54,
+    "pnl": -195
+   },
+   {
+    "date": "2026-10-26",
+    "count": 38,
+    "pnl": 206
+   },
+   {
+    "date": "2026-10-27",
+    "count": 62,
+    "pnl": 302
+   },
+   {
+    "date": "2026-10-28",
+    "count": 55,
+    "pnl": -879.5
+   },
+   {
+    "date": "2026-10-29",
+    "count": 41,
+    "pnl": 560
+   },
+   {
+    "date": "2026-10-30",
+    "count": 18,
+    "pnl": 261.5
+   }
+  ],
+  "operations": 41,
+  "contracts": 228,
+  "gross": 788,
+  "commission": 228,
+  "net": 560,
+  "winRate": 0.3902,
+  "dailyLossLimit": 0,
+  "remaining": null,
+  "maxLot": 40,
+  "medianLot": 2,
+  "byLot": [
+   {
+    "key": "1",
+    "label": "1 lote",
+    "operations": 16,
+    "contracts": 16,
+    "gross": 21.5,
+    "net": 5.5,
+    "perTrade": 0.34,
+    "ticksPerTrade": 2.69,
+    "wins": 6,
+    "winRate": 0.375,
+    "median": -1
+   },
+   {
+    "key": "2",
+    "label": "2 lotes",
+    "operations": 8,
+    "contracts": 16,
+    "gross": -134,
+    "net": -150,
+    "perTrade": -18.75,
+    "ticksPerTrade": -16.75,
+    "wins": 2,
+    "winRate": 0.25,
+    "median": -40.75
+   },
+   {
+    "key": "3",
+    "label": "3 lotes",
+    "operations": 6,
+    "contracts": 18,
+    "gross": -421.5,
+    "net": -439.5,
+    "perTrade": -73.25,
+    "ticksPerTrade": -46.83,
+    "wins": 1,
+    "winRate": 0.1667,
+    "median": -91.25
+   },
+   {
+    "key": "4",
+    "label": "4 lotes",
+    "operations": 2,
+    "contracts": 8,
+    "gross": 460.5,
+    "net": 452.5,
+    "perTrade": 226.25,
+    "ticksPerTrade": 115.1,
+    "wins": 1,
+    "winRate": 0.5,
+    "median": 226.25
+   },
+   {
+    "key": "5",
+    "label": "5 lotes",
+    "operations": 1,
+    "contracts": 5,
+    "gross": 20,
+    "net": 15,
+    "perTrade": 15,
+    "ticksPerTrade": 8,
+    "wins": 1,
+    "winRate": 1,
+    "median": 15
+   },
+   {
+    "key": "6",
+    "label": "6 lotes",
+    "operations": 1,
+    "contracts": 6,
+    "gross": -179,
+    "net": -185,
+    "perTrade": -185,
+    "ticksPerTrade": -59.7,
+    "wins": 0,
+    "winRate": 0,
+    "median": -185
+   },
+   {
+    "key": "8",
+    "label": "8 lotes",
+    "operations": 1,
+    "contracts": 8,
+    "gross": 36,
+    "net": 28,
+    "perTrade": 28,
+    "ticksPerTrade": 9,
+    "wins": 1,
+    "winRate": 1,
+    "median": 28
+   },
+   {
+    "key": "10",
+    "label": "10 lotes",
+    "operations": 2,
+    "contracts": 20,
+    "gross": 147,
+    "net": 127,
+    "perTrade": 63.5,
+    "ticksPerTrade": 14.7,
+    "wins": 2,
+    "winRate": 1,
+    "median": 63.5
+   },
+   {
+    "key": "20",
+    "label": "20 lotes",
+    "operations": 1,
+    "contracts": 20,
+    "gross": -589,
+    "net": -609,
+    "perTrade": -609,
+    "ticksPerTrade": -58.9,
+    "wins": 0,
+    "winRate": 0,
+    "median": -609
+   },
+   {
+    "key": "31",
+    "label": "31 lotes",
+    "operations": 1,
+    "contracts": 31,
+    "gross": 241,
+    "net": 210,
+    "perTrade": 210,
+    "ticksPerTrade": 15.5,
+    "wins": 1,
+    "winRate": 1,
+    "median": 210
+   },
+   {
+    "key": "40",
+    "label": "40 lotes",
+    "operations": 2,
+    "contracts": 80,
+    "gross": 1185.5,
+    "net": 1105.5,
+    "perTrade": 552.75,
+    "ticksPerTrade": 29.6,
+    "wins": 1,
+    "winRate": 0.5,
+    "median": 552.75
+   }
+  ],
+  "bigLots": {
+   "key": "grandes",
+   "label": "mas de 2 lotes",
+   "operations": 17,
+   "contracts": 196,
+   "gross": 900.5,
+   "net": 704.5,
+   "perTrade": 41.44,
+   "ticksPerTrade": -2.84,
+   "wins": 8,
+   "winRate": 0.4706,
+   "median": -69
+  },
+  "smallLots": {
+   "key": "pequenias",
+   "label": "2 lotes o menos",
+   "operations": 24,
+   "contracts": 32,
+   "gross": -112.5,
+   "net": -144.5,
+   "perTrade": -6.02,
+   "ticksPerTrade": -3.79,
+   "wins": 8,
+   "winRate": 0.3333,
+   "median": -7.5
+  },
+  "ticksPerTrade": -3.4,
+  "ticksMedian": -12,
+  "previous": {
+   "from": "2026-10-28",
+   "to": "2026-10-28",
+   "days": 1,
+   "net": -879.5,
+   "ticksPerTrade": -11.95
+  },
+  "bySession": [
+   {
+    "key": "ASIA",
+    "label": "ASIA",
+    "operations": 24,
+    "contracts": 201,
+    "gross": 263.5,
+    "net": 62.5,
+    "perTrade": 2.6,
+    "ticksPerTrade": -19.08,
+    "wins": 9,
+    "winRate": 0.375,
+    "median": -24.25
+   },
+   {
+    "key": "NY_LUNCH",
+    "label": "NY_LUNCH",
+    "operations": 3,
+    "contracts": 3,
+    "gross": -39,
+    "net": -42,
+    "perTrade": -14,
+    "ticksPerTrade": -26,
+    "wins": 0,
+    "winRate": 0,
+    "median": -20
+   },
+   {
+    "key": "NY_PM",
+    "label": "NY_PM",
+    "operations": 2,
+    "contracts": 6,
+    "gross": 539,
+    "net": 533,
+    "perTrade": 266.5,
+    "ticksPerTrade": 124.75,
+    "wins": 1,
+    "winRate": 0.5,
+    "median": 266.5
+   },
+   {
+    "key": "OUTSIDE",
+    "label": "OUTSIDE",
+    "operations": 12,
+    "contracts": 18,
+    "gross": 24.5,
+    "net": 6.5,
+    "perTrade": 0.54,
+    "ticksPerTrade": 12.27,
+    "wins": 6,
+    "winRate": 0.5,
+    "median": 0
+   }
+  ],
+  "byGap": [
+   {
+    "key": "13",
+    "label": "entre el almuerzo y NY PM",
+    "operations": 4,
+    "contracts": 8,
+    "gross": -137.5,
+    "net": -145.5,
+    "perTrade": -36.38,
+    "ticksPerTrade": -34.38,
+    "wins": 1,
+    "winRate": 0.25,
+    "median": -42.25
+   },
+   {
+    "key": "16",
+    "label": "entre NY PM y Asia",
+    "operations": 8,
+    "contracts": 10,
+    "gross": 162,
+    "net": 152,
+    "perTrade": 19,
+    "ticksPerTrade": 35.59,
+    "wins": 5,
+    "winRate": 0.625,
+    "median": 5.25
+   }
+  ],
+  "worst": [
+   {
+    "id": 302991,
+    "date": "2026-10-29",
+    "session": "ASIA",
+    "lots": 40,
+    "ticks": -54,
+    "net": -1119,
+    "netPerContract": -27.98
+   },
+   {
+    "id": 301926,
+    "date": "2026-10-29",
+    "session": "ASIA",
+    "lots": 20,
+    "ticks": -58.9,
+    "net": -609,
+    "netPerContract": -30.45
+   },
+   {
+    "id": 313734,
+    "date": "2026-10-29",
+    "session": "ASIA",
+    "lots": 6,
+    "ticks": -59.7,
+    "net": -185,
+    "netPerContract": -30.83
+   },
+   {
+    "id": 300332,
+    "date": "2026-10-29",
+    "session": "ASIA",
+    "lots": 4,
+    "ticks": -59.3,
+    "net": -122.5,
+    "netPerContract": -30.63
+   },
+   {
+    "id": 299271,
+    "date": "2026-10-29",
+    "session": "ASIA",
+    "lots": 3,
+    "ticks": -79.3,
+    "net": -122,
+    "netPerContract": -40.67
+   }
+  ],
+  "best": [
+   {
+    "id": 303525,
+    "date": "2026-10-29",
+    "session": "ASIA",
+    "lots": 40,
+    "ticks": 113.2,
+    "net": 2224.5,
+    "netPerContract": 55.61
+   },
+   {
+    "id": 331281,
+    "date": "2026-10-29",
+    "session": "NY_PM",
+    "lots": 4,
+    "ticks": 289.5,
+    "net": 575,
+    "netPerContract": 143.75
+   },
+   {
+    "id": 316998,
+    "date": "2026-10-29",
+    "session": "ASIA",
+    "lots": 31,
+    "ticks": 15.5,
+    "net": 210,
+    "netPerContract": 6.77
+   },
+   {
+    "id": 307804,
+    "date": "2026-10-29",
+    "session": "ASIA",
+    "lots": 2,
+    "ticks": 108.5,
+    "net": 106.5,
+    "netPerContract": 53.25
+   },
+   {
+    "id": 316999,
+    "date": "2026-10-29",
+    "session": "ASIA",
+    "lots": 10,
+    "ticks": 20.8,
+    "net": 94,
+    "netPerContract": 9.4
+   }
+  ],
+  "drawdown": {
+   "rows": [
+    {
+     "session": "ASIA",
+     "days": 1,
+     "trades": 24,
+     "total": 62.5,
+     "perTrade": 2.6,
+     "drawdownMedian": 2269,
+     "drawdownP75": 2269,
+     "drawdownWorst": 2269,
+     "drawdownWorstDay": "2026-10-29",
+     "chainedDrawdown": 2269,
+     "greenDays": 1,
+     "worstStreak": 9,
+     "overLimit": null
+    },
+    {
+     "session": "NY_LUNCH",
+     "days": 1,
+     "trades": 3,
+     "total": -42,
+     "perTrade": -14,
+     "drawdownMedian": 42,
+     "drawdownP75": 42,
+     "drawdownWorst": 42,
+     "drawdownWorstDay": "2026-10-29",
+     "chainedDrawdown": 42,
+     "greenDays": 0,
+     "worstStreak": 3,
+     "overLimit": null
+    },
+    {
+     "session": "NY_PM",
+     "days": 1,
+     "trades": 2,
+     "total": 533,
+     "perTrade": 266.5,
+     "drawdownMedian": 42,
+     "drawdownP75": 42,
+     "drawdownWorst": 42,
+     "drawdownWorstDay": "2026-10-29",
+     "chainedDrawdown": 42,
+     "greenDays": 1,
+     "worstStreak": 1,
+     "overLimit": null
+    },
+    {
+     "session": "OUTSIDE",
+     "days": 1,
+     "trades": 12,
+     "total": 6.5,
+     "perTrade": 0.54,
+     "drawdownMedian": 145.5,
+     "drawdownP75": 145.5,
+     "drawdownWorst": 145.5,
+     "drawdownWorstDay": "2026-10-29",
+     "chainedDrawdown": 145.5,
+     "greenDays": 1,
+     "worstStreak": 2,
+     "overLimit": null
+    }
+   ],
+   "gaps": [
+    {
+     "from": 13,
+     "to": 13.5,
+     "label": "entre el almuerzo y NY PM",
+     "days": 1,
+     "trades": 4,
+     "total": -145.5,
+     "perTrade": -36.38,
+     "drawdownWorst": 145.5,
+     "greenDays": 0
+    },
+    {
+     "from": 16,
+     "to": 20,
+     "label": "entre NY PM y Asia",
+     "days": 1,
+     "trades": 8,
+     "total": 152,
+     "perTrade": 19,
+     "drawdownWorst": 1.5,
+     "greenDays": 1
+    }
+   ],
+   "thresholds": [
+    25,
+    50,
+    75,
+    100,
+    150,
+    200,
+    300
+   ],
+   "cells": [
+    {
+     "session": "ASIA",
+     "threshold": 25,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 21,
+     "perTradeAfter": 4.62,
+     "baseline": 2.6,
+     "diff": 2.01,
+     "medianAfter": 97,
+     "p": 0.2974,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "ASIA",
+     "threshold": 50,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 20,
+     "perTradeAfter": 9.1,
+     "baseline": 2.6,
+     "diff": 6.5,
+     "medianAfter": 182,
+     "p": 0.7386,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "ASIA",
+     "threshold": 75,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 20,
+     "perTradeAfter": 9.1,
+     "baseline": 2.6,
+     "diff": 6.5,
+     "medianAfter": 182,
+     "p": 0.6767,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "ASIA",
+     "threshold": 100,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 20,
+     "perTradeAfter": 9.1,
+     "baseline": 2.6,
+     "diff": 6.5,
+     "medianAfter": 182,
+     "p": 0.4985,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "ASIA",
+     "threshold": 150,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 19,
+     "perTradeAfter": 12.47,
+     "baseline": 2.6,
+     "diff": 9.87,
+     "medianAfter": 237,
+     "p": 0.522,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "ASIA",
+     "threshold": 200,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 18,
+     "perTradeAfter": 18.31,
+     "baseline": 2.6,
+     "diff": 15.7,
+     "medianAfter": 329.5,
+     "p": 0.5581,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "ASIA",
+     "threshold": 300,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 16,
+     "perTradeAfter": 30.06,
+     "baseline": 2.6,
+     "diff": 27.46,
+     "medianAfter": 481,
+     "p": 0.5622,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "NY_LUNCH",
+     "threshold": 25,
+     "days": 1,
+     "daysWithRest": 0,
+     "tradesAfter": 0,
+     "perTradeAfter": null,
+     "baseline": -14,
+     "diff": null,
+     "medianAfter": null,
+     "p": null,
+     "survives": false,
+     "enough": false
+    },
+    {
+     "session": "NY_PM",
+     "threshold": 25,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 1,
+     "perTradeAfter": 575,
+     "baseline": 266.5,
+     "diff": 308.5,
+     "medianAfter": 575,
+     "p": null,
+     "survives": false,
+     "enough": false
+    },
+    {
+     "session": "OUTSIDE",
+     "threshold": 25,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 3,
+     "perTradeAfter": -35.33,
+     "baseline": 0.54,
+     "diff": -35.88,
+     "medianAfter": -106,
+     "p": null,
+     "survives": false,
+     "enough": false
+    },
+    {
+     "session": "OUTSIDE",
+     "threshold": 50,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 2,
+     "perTradeAfter": -22.25,
+     "baseline": 0.54,
+     "diff": -22.79,
+     "medianAfter": -44.5,
+     "p": null,
+     "survives": false,
+     "enough": false
+    },
+    {
+     "session": "OUTSIDE",
+     "threshold": 75,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 2,
+     "perTradeAfter": -22.25,
+     "baseline": 0.54,
+     "diff": -22.79,
+     "medianAfter": -44.5,
+     "p": null,
+     "survives": false,
+     "enough": false
+    },
+    {
+     "session": "OUTSIDE",
+     "threshold": 100,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 2,
+     "perTradeAfter": -22.25,
+     "baseline": 0.54,
+     "diff": -22.79,
+     "medianAfter": -44.5,
+     "p": null,
+     "survives": false,
+     "enough": false
+    }
+   ],
+   "permutations": 2000,
+   "minTradesAfter": 10,
+   "tested": 7,
+   "survivors": 0,
+   "fdr": 0.1,
+   "dailyLossLimit": 0
+  },
+  "breakeven": 0.3497,
+  "payoff": 1.86,
+  "sinAlineacion": null,
+  "revenge": {
+   "operations": 18,
+   "net": 506.5,
+   "perTrade": 28.14
+  }
+ },
+ "diario|2026-10-30": {
+  "periodo": "diario",
+  "days": [
+   "2026-10-30"
+  ],
+  "from": "2026-10-30",
+  "to": "2026-10-30",
+  "expectedDays": 1,
+  "prev": "2026-10-29",
+  "next": null,
+  "isLatest": true,
+  "calendar": [
+   {
+    "date": "2026-10-05",
+    "count": 12,
+    "pnl": -316
+   },
+   {
+    "date": "2026-10-08",
+    "count": 2,
+    "pnl": 141.5
+   },
+   {
+    "date": "2026-10-09",
+    "count": 20,
+    "pnl": -1259.5
+   },
+   {
+    "date": "2026-10-12",
+    "count": 3,
+    "pnl": -148
+   },
+   {
+    "date": "2026-10-13",
+    "count": 32,
+    "pnl": -161
+   },
+   {
+    "date": "2026-10-14",
+    "count": 54,
+    "pnl": 568
+   },
+   {
+    "date": "2026-10-15",
+    "count": 56,
+    "pnl": -264.5
+   },
+   {
+    "date": "2026-10-16",
+    "count": 15,
+    "pnl": -347.5
+   },
+   {
+    "date": "2026-10-19",
+    "count": 8,
+    "pnl": -11
+   },
+   {
+    "date": "2026-10-20",
+    "count": 48,
+    "pnl": 295.5
+   },
+   {
+    "date": "2026-10-21",
+    "count": 15,
+    "pnl": 191
+   },
+   {
+    "date": "2026-10-22",
+    "count": 40,
+    "pnl": 36
+   },
+   {
+    "date": "2026-10-23",
+    "count": 54,
+    "pnl": -195
+   },
+   {
+    "date": "2026-10-26",
+    "count": 38,
+    "pnl": 206
+   },
+   {
+    "date": "2026-10-27",
+    "count": 62,
+    "pnl": 302
+   },
+   {
+    "date": "2026-10-28",
+    "count": 55,
+    "pnl": -879.5
+   },
+   {
+    "date": "2026-10-29",
+    "count": 41,
+    "pnl": 560
+   },
+   {
+    "date": "2026-10-30",
+    "count": 18,
+    "pnl": 261.5
+   }
+  ],
+  "operations": 18,
+  "contracts": 27,
+  "gross": 288.5,
+  "commission": 27,
+  "net": 261.5,
+  "winRate": 0.6111,
+  "dailyLossLimit": 0,
+  "remaining": null,
+  "maxLot": 2,
+  "medianLot": 1.5,
+  "byLot": [
+   {
+    "key": "1",
+    "label": "1 lote",
+    "operations": 9,
+    "contracts": 9,
+    "gross": 69,
+    "net": 60,
+    "perTrade": 6.67,
+    "ticksPerTrade": 15.33,
+    "wins": 5,
+    "winRate": 0.5556,
+    "median": 2
+   },
+   {
+    "key": "2",
+    "label": "2 lotes",
+    "operations": 9,
+    "contracts": 18,
+    "gross": 219.5,
+    "net": 201.5,
+    "perTrade": 22.39,
+    "ticksPerTrade": 24.39,
+    "wins": 6,
+    "winRate": 0.6667,
+    "median": 6
+   }
+  ],
+  "bigLots": {
+   "key": "grandes",
+   "label": "mas de 1.5 lotes",
+   "operations": 9,
+   "contracts": 18,
+   "gross": 219.5,
+   "net": 201.5,
+   "perTrade": 22.39,
+   "ticksPerTrade": 24.39,
+   "wins": 6,
+   "winRate": 0.6667,
+   "median": 6
+  },
+  "smallLots": {
+   "key": "pequenias",
+   "label": "1.5 lotes o menos",
+   "operations": 9,
+   "contracts": 9,
+   "gross": 69,
+   "net": 60,
+   "perTrade": 6.67,
+   "ticksPerTrade": 15.33,
+   "wins": 5,
+   "winRate": 0.5556,
+   "median": 2
+  },
+  "ticksPerTrade": 19.86,
+  "ticksMedian": 7.25,
+  "previous": {
+   "from": "2026-10-29",
+   "to": "2026-10-29",
+   "days": 1,
+   "net": 560,
+   "ticksPerTrade": -3.4
+  },
+  "bySession": [
+   {
+    "key": "NY_AM",
+    "label": "NY_AM",
+    "operations": 2,
+    "contracts": 3,
+    "gross": 261.5,
+    "net": 258.5,
+    "perTrade": 129.25,
+    "ticksPerTrade": 139,
+    "wins": 2,
+    "winRate": 1,
+    "median": 129.25
+   },
+   {
+    "key": "OUTSIDE",
+    "label": "OUTSIDE",
+    "operations": 16,
+    "contracts": 24,
+    "gross": 27,
+    "net": 3,
+    "perTrade": 0.19,
+    "ticksPerTrade": 4.97,
+    "wins": 9,
+    "winRate": 0.5625,
+    "median": 2.75
+   }
+  ],
+  "byGap": [
+   {
+    "key": "5",
+    "label": "entre Londres y NY AM",
+    "operations": 13,
+    "contracts": 21,
+    "gross": 22.5,
+    "net": 1.5,
+    "perTrade": 0.12,
+    "ticksPerTrade": 5.42,
+    "wins": 7,
+    "winRate": 0.5385,
+    "median": 4.5
+   },
+   {
+    "key": "16",
+    "label": "entre NY PM y Asia",
+    "operations": 3,
+    "contracts": 3,
+    "gross": 4.5,
+    "net": 1.5,
+    "perTrade": 0.5,
+    "ticksPerTrade": 3,
+    "wins": 2,
+    "winRate": 0.6667,
+    "median": 2
+   }
+  ],
+  "worst": [
+   {
+    "id": 341884,
+    "date": "2026-10-30",
+    "session": "OUTSIDE",
+    "lots": 2,
+    "ticks": -60.5,
+    "net": -62.5,
+    "netPerContract": -31.25
+   },
+   {
+    "id": 343009,
+    "date": "2026-10-30",
+    "session": "OUTSIDE",
+    "lots": 2,
+    "ticks": -43.5,
+    "net": -45.5,
+    "netPerContract": -22.75
+   },
+   {
+    "id": 340761,
+    "date": "2026-10-30",
+    "session": "OUTSIDE",
+    "lots": 1,
+    "ticks": -78,
+    "net": -40,
+    "netPerContract": -40
+   },
+   {
+    "id": 339640,
+    "date": "2026-10-30",
+    "session": "OUTSIDE",
+    "lots": 1,
+    "ticks": -55,
+    "net": -28.5,
+    "netPerContract": -28.5
+   },
+   {
+    "id": 350943,
+    "date": "2026-10-30",
+    "session": "OUTSIDE",
+    "lots": 1,
+    "ticks": -39,
+    "net": -20.5,
+    "netPerContract": -20.5
+   }
+  ],
+  "best": [
+   {
+    "id": 354372,
+    "date": "2026-10-30",
+    "session": "NY_AM",
+    "lots": 2,
+    "ticks": 245,
+    "net": 243,
+    "netPerContract": 121.5
+   },
+   {
+    "id": 352084,
+    "date": "2026-10-30",
+    "session": "OUTSIDE",
+    "lots": 1,
+    "ticks": 171,
+    "net": 84.5,
+    "netPerContract": 84.5
+   },
+   {
+    "id": 338521,
+    "date": "2026-10-30",
+    "session": "OUTSIDE",
+    "lots": 1,
+    "ticks": 97,
+    "net": 47.5,
+    "netPerContract": 47.5
+   },
+   {
+    "id": 345265,
+    "date": "2026-10-30",
+    "session": "OUTSIDE",
+    "lots": 2,
+    "ticks": 34,
+    "net": 32,
+    "netPerContract": 16
+   },
+   {
+    "id": 353227,
+    "date": "2026-10-30",
+    "session": "NY_AM",
+    "lots": 1,
+    "ticks": 33,
+    "net": 15.5,
+    "netPerContract": 15.5
+   }
+  ],
+  "drawdown": {
+   "rows": [
+    {
+     "session": "NY_AM",
+     "days": 1,
+     "trades": 2,
+     "total": 258.5,
+     "perTrade": 129.25,
+     "drawdownMedian": 0,
+     "drawdownP75": 0,
+     "drawdownWorst": 0,
+     "drawdownWorstDay": null,
+     "chainedDrawdown": 0,
+     "greenDays": 1,
+     "worstStreak": 0,
+     "overLimit": null
+    },
+    {
+     "session": "OUTSIDE",
+     "days": 1,
+     "trades": 16,
+     "total": 3,
+     "perTrade": 0.19,
+     "drawdownMedian": 176.5,
+     "drawdownP75": 176.5,
+     "drawdownWorst": 176.5,
+     "drawdownWorstDay": "2026-10-30",
+     "chainedDrawdown": 176.5,
+     "greenDays": 1,
+     "worstStreak": 4,
+     "overLimit": null
+    }
+   ],
+   "gaps": [
+    {
+     "from": 5,
+     "to": 9.5,
+     "label": "entre Londres y NY AM",
+     "days": 1,
+     "trades": 13,
+     "total": 1.5,
+     "perTrade": 0.12,
+     "drawdownWorst": 176.5,
+     "greenDays": 1
+    },
+    {
+     "from": 16,
+     "to": 20,
+     "label": "entre NY PM y Asia",
+     "days": 1,
+     "trades": 3,
+     "total": 1.5,
+     "perTrade": 0.5,
+     "drawdownWorst": 4,
+     "greenDays": 1
+    }
+   ],
+   "thresholds": [
+    25,
+    50,
+    75,
+    100,
+    150,
+    200,
+    300
+   ],
+   "cells": [
+    {
+     "session": "OUTSIDE",
+     "threshold": 25,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 11,
+     "perTradeAfter": -1.59,
+     "baseline": 0.19,
+     "diff": -1.78,
+     "medianAfter": -17.5,
+     "p": 0.1735,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "OUTSIDE",
+     "threshold": 50,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 10,
+     "perTradeAfter": 2.25,
+     "baseline": 0.19,
+     "diff": 2.06,
+     "medianAfter": 22.5,
+     "p": 0.2359,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "OUTSIDE",
+     "threshold": 75,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 9,
+     "perTradeAfter": 9.44,
+     "baseline": 0.19,
+     "diff": 9.26,
+     "medianAfter": 85,
+     "p": null,
+     "survives": false,
+     "enough": false
+    },
+    {
+     "session": "OUTSIDE",
+     "threshold": 100,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 9,
+     "perTradeAfter": 9.44,
+     "baseline": 0.19,
+     "diff": 9.26,
+     "medianAfter": 85,
+     "p": null,
+     "survives": false,
+     "enough": false
+    },
+    {
+     "session": "OUTSIDE",
+     "threshold": 150,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 8,
+     "perTradeAfter": 16.31,
+     "baseline": 0.19,
+     "diff": 16.13,
+     "medianAfter": 130.5,
+     "p": null,
+     "survives": false,
+     "enough": false
+    }
+   ],
+   "permutations": 2000,
+   "minTradesAfter": 10,
+   "tested": 2,
+   "survivors": 0,
+   "fdr": 0.1,
+   "dailyLossLimit": 0
+  },
+  "breakeven": 0.4065,
+  "payoff": 1.46,
+  "sinAlineacion": null,
+  "revenge": {
+   "operations": 5,
+   "net": -133.5,
+   "perTrade": -26.7
+  }
+ },
+ "diario|": {
+  "periodo": "diario",
+  "days": [
+   "2026-10-30"
+  ],
+  "from": "2026-10-30",
+  "to": "2026-10-30",
+  "expectedDays": 1,
+  "prev": "2026-10-29",
+  "next": null,
+  "isLatest": true,
+  "calendar": [
+   {
+    "date": "2026-10-05",
+    "count": 12,
+    "pnl": -316
+   },
+   {
+    "date": "2026-10-08",
+    "count": 2,
+    "pnl": 141.5
+   },
+   {
+    "date": "2026-10-09",
+    "count": 20,
+    "pnl": -1259.5
+   },
+   {
+    "date": "2026-10-12",
+    "count": 3,
+    "pnl": -148
+   },
+   {
+    "date": "2026-10-13",
+    "count": 32,
+    "pnl": -161
+   },
+   {
+    "date": "2026-10-14",
+    "count": 54,
+    "pnl": 568
+   },
+   {
+    "date": "2026-10-15",
+    "count": 56,
+    "pnl": -264.5
+   },
+   {
+    "date": "2026-10-16",
+    "count": 15,
+    "pnl": -347.5
+   },
+   {
+    "date": "2026-10-19",
+    "count": 8,
+    "pnl": -11
+   },
+   {
+    "date": "2026-10-20",
+    "count": 48,
+    "pnl": 295.5
+   },
+   {
+    "date": "2026-10-21",
+    "count": 15,
+    "pnl": 191
+   },
+   {
+    "date": "2026-10-22",
+    "count": 40,
+    "pnl": 36
+   },
+   {
+    "date": "2026-10-23",
+    "count": 54,
+    "pnl": -195
+   },
+   {
+    "date": "2026-10-26",
+    "count": 38,
+    "pnl": 206
+   },
+   {
+    "date": "2026-10-27",
+    "count": 62,
+    "pnl": 302
+   },
+   {
+    "date": "2026-10-28",
+    "count": 55,
+    "pnl": -879.5
+   },
+   {
+    "date": "2026-10-29",
+    "count": 41,
+    "pnl": 560
+   },
+   {
+    "date": "2026-10-30",
+    "count": 18,
+    "pnl": 261.5
+   }
+  ],
+  "operations": 18,
+  "contracts": 27,
+  "gross": 288.5,
+  "commission": 27,
+  "net": 261.5,
+  "winRate": 0.6111,
+  "dailyLossLimit": 0,
+  "remaining": null,
+  "maxLot": 2,
+  "medianLot": 1.5,
+  "byLot": [
+   {
+    "key": "1",
+    "label": "1 lote",
+    "operations": 9,
+    "contracts": 9,
+    "gross": 69,
+    "net": 60,
+    "perTrade": 6.67,
+    "ticksPerTrade": 15.33,
+    "wins": 5,
+    "winRate": 0.5556,
+    "median": 2
+   },
+   {
+    "key": "2",
+    "label": "2 lotes",
+    "operations": 9,
+    "contracts": 18,
+    "gross": 219.5,
+    "net": 201.5,
+    "perTrade": 22.39,
+    "ticksPerTrade": 24.39,
+    "wins": 6,
+    "winRate": 0.6667,
+    "median": 6
+   }
+  ],
+  "bigLots": {
+   "key": "grandes",
+   "label": "mas de 1.5 lotes",
+   "operations": 9,
+   "contracts": 18,
+   "gross": 219.5,
+   "net": 201.5,
+   "perTrade": 22.39,
+   "ticksPerTrade": 24.39,
+   "wins": 6,
+   "winRate": 0.6667,
+   "median": 6
+  },
+  "smallLots": {
+   "key": "pequenias",
+   "label": "1.5 lotes o menos",
+   "operations": 9,
+   "contracts": 9,
+   "gross": 69,
+   "net": 60,
+   "perTrade": 6.67,
+   "ticksPerTrade": 15.33,
+   "wins": 5,
+   "winRate": 0.5556,
+   "median": 2
+  },
+  "ticksPerTrade": 19.86,
+  "ticksMedian": 7.25,
+  "previous": {
+   "from": "2026-10-29",
+   "to": "2026-10-29",
+   "days": 1,
+   "net": 560,
+   "ticksPerTrade": -3.4
+  },
+  "bySession": [
+   {
+    "key": "NY_AM",
+    "label": "NY_AM",
+    "operations": 2,
+    "contracts": 3,
+    "gross": 261.5,
+    "net": 258.5,
+    "perTrade": 129.25,
+    "ticksPerTrade": 139,
+    "wins": 2,
+    "winRate": 1,
+    "median": 129.25
+   },
+   {
+    "key": "OUTSIDE",
+    "label": "OUTSIDE",
+    "operations": 16,
+    "contracts": 24,
+    "gross": 27,
+    "net": 3,
+    "perTrade": 0.19,
+    "ticksPerTrade": 4.97,
+    "wins": 9,
+    "winRate": 0.5625,
+    "median": 2.75
+   }
+  ],
+  "byGap": [
+   {
+    "key": "5",
+    "label": "entre Londres y NY AM",
+    "operations": 13,
+    "contracts": 21,
+    "gross": 22.5,
+    "net": 1.5,
+    "perTrade": 0.12,
+    "ticksPerTrade": 5.42,
+    "wins": 7,
+    "winRate": 0.5385,
+    "median": 4.5
+   },
+   {
+    "key": "16",
+    "label": "entre NY PM y Asia",
+    "operations": 3,
+    "contracts": 3,
+    "gross": 4.5,
+    "net": 1.5,
+    "perTrade": 0.5,
+    "ticksPerTrade": 3,
+    "wins": 2,
+    "winRate": 0.6667,
+    "median": 2
+   }
+  ],
+  "worst": [
+   {
+    "id": 341884,
+    "date": "2026-10-30",
+    "session": "OUTSIDE",
+    "lots": 2,
+    "ticks": -60.5,
+    "net": -62.5,
+    "netPerContract": -31.25
+   },
+   {
+    "id": 343009,
+    "date": "2026-10-30",
+    "session": "OUTSIDE",
+    "lots": 2,
+    "ticks": -43.5,
+    "net": -45.5,
+    "netPerContract": -22.75
+   },
+   {
+    "id": 340761,
+    "date": "2026-10-30",
+    "session": "OUTSIDE",
+    "lots": 1,
+    "ticks": -78,
+    "net": -40,
+    "netPerContract": -40
+   },
+   {
+    "id": 339640,
+    "date": "2026-10-30",
+    "session": "OUTSIDE",
+    "lots": 1,
+    "ticks": -55,
+    "net": -28.5,
+    "netPerContract": -28.5
+   },
+   {
+    "id": 350943,
+    "date": "2026-10-30",
+    "session": "OUTSIDE",
+    "lots": 1,
+    "ticks": -39,
+    "net": -20.5,
+    "netPerContract": -20.5
+   }
+  ],
+  "best": [
+   {
+    "id": 354372,
+    "date": "2026-10-30",
+    "session": "NY_AM",
+    "lots": 2,
+    "ticks": 245,
+    "net": 243,
+    "netPerContract": 121.5
+   },
+   {
+    "id": 352084,
+    "date": "2026-10-30",
+    "session": "OUTSIDE",
+    "lots": 1,
+    "ticks": 171,
+    "net": 84.5,
+    "netPerContract": 84.5
+   },
+   {
+    "id": 338521,
+    "date": "2026-10-30",
+    "session": "OUTSIDE",
+    "lots": 1,
+    "ticks": 97,
+    "net": 47.5,
+    "netPerContract": 47.5
+   },
+   {
+    "id": 345265,
+    "date": "2026-10-30",
+    "session": "OUTSIDE",
+    "lots": 2,
+    "ticks": 34,
+    "net": 32,
+    "netPerContract": 16
+   },
+   {
+    "id": 353227,
+    "date": "2026-10-30",
+    "session": "NY_AM",
+    "lots": 1,
+    "ticks": 33,
+    "net": 15.5,
+    "netPerContract": 15.5
+   }
+  ],
+  "drawdown": {
+   "rows": [
+    {
+     "session": "NY_AM",
+     "days": 1,
+     "trades": 2,
+     "total": 258.5,
+     "perTrade": 129.25,
+     "drawdownMedian": 0,
+     "drawdownP75": 0,
+     "drawdownWorst": 0,
+     "drawdownWorstDay": null,
+     "chainedDrawdown": 0,
+     "greenDays": 1,
+     "worstStreak": 0,
+     "overLimit": null
+    },
+    {
+     "session": "OUTSIDE",
+     "days": 1,
+     "trades": 16,
+     "total": 3,
+     "perTrade": 0.19,
+     "drawdownMedian": 176.5,
+     "drawdownP75": 176.5,
+     "drawdownWorst": 176.5,
+     "drawdownWorstDay": "2026-10-30",
+     "chainedDrawdown": 176.5,
+     "greenDays": 1,
+     "worstStreak": 4,
+     "overLimit": null
+    }
+   ],
+   "gaps": [
+    {
+     "from": 5,
+     "to": 9.5,
+     "label": "entre Londres y NY AM",
+     "days": 1,
+     "trades": 13,
+     "total": 1.5,
+     "perTrade": 0.12,
+     "drawdownWorst": 176.5,
+     "greenDays": 1
+    },
+    {
+     "from": 16,
+     "to": 20,
+     "label": "entre NY PM y Asia",
+     "days": 1,
+     "trades": 3,
+     "total": 1.5,
+     "perTrade": 0.5,
+     "drawdownWorst": 4,
+     "greenDays": 1
+    }
+   ],
+   "thresholds": [
+    25,
+    50,
+    75,
+    100,
+    150,
+    200,
+    300
+   ],
+   "cells": [
+    {
+     "session": "OUTSIDE",
+     "threshold": 25,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 11,
+     "perTradeAfter": -1.59,
+     "baseline": 0.19,
+     "diff": -1.78,
+     "medianAfter": -17.5,
+     "p": 0.1735,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "OUTSIDE",
+     "threshold": 50,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 10,
+     "perTradeAfter": 2.25,
+     "baseline": 0.19,
+     "diff": 2.06,
+     "medianAfter": 22.5,
+     "p": 0.2359,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "OUTSIDE",
+     "threshold": 75,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 9,
+     "perTradeAfter": 9.44,
+     "baseline": 0.19,
+     "diff": 9.26,
+     "medianAfter": 85,
+     "p": null,
+     "survives": false,
+     "enough": false
+    },
+    {
+     "session": "OUTSIDE",
+     "threshold": 100,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 9,
+     "perTradeAfter": 9.44,
+     "baseline": 0.19,
+     "diff": 9.26,
+     "medianAfter": 85,
+     "p": null,
+     "survives": false,
+     "enough": false
+    },
+    {
+     "session": "OUTSIDE",
+     "threshold": 150,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 8,
+     "perTradeAfter": 16.31,
+     "baseline": 0.19,
+     "diff": 16.13,
+     "medianAfter": 130.5,
+     "p": null,
+     "survives": false,
+     "enough": false
+    }
+   ],
+   "permutations": 2000,
+   "minTradesAfter": 10,
+   "tested": 2,
+   "survivors": 0,
+   "fdr": 0.1,
+   "dailyLossLimit": 0
+  },
+  "breakeven": 0.4065,
+  "payoff": 1.46,
+  "sinAlineacion": null,
+  "revenge": {
+   "operations": 5,
+   "net": -133.5,
+   "perTrade": -26.7
+  }
+ },
+ "semanal|": {
+  "periodo": "semanal",
+  "days": [
+   "2026-10-26",
+   "2026-10-27",
+   "2026-10-28",
+   "2026-10-29",
+   "2026-10-30"
+  ],
+  "from": "2026-10-26",
+  "to": "2026-10-30",
+  "expectedDays": 5,
+  "prev": "2026-10-23",
+  "next": null,
+  "isLatest": true,
+  "calendar": [
+   {
+    "date": "2026-10-05",
+    "count": 12,
+    "pnl": -316
+   },
+   {
+    "date": "2026-10-08",
+    "count": 2,
+    "pnl": 141.5
+   },
+   {
+    "date": "2026-10-09",
+    "count": 20,
+    "pnl": -1259.5
+   },
+   {
+    "date": "2026-10-12",
+    "count": 3,
+    "pnl": -148
+   },
+   {
+    "date": "2026-10-13",
+    "count": 32,
+    "pnl": -161
+   },
+   {
+    "date": "2026-10-14",
+    "count": 54,
+    "pnl": 568
+   },
+   {
+    "date": "2026-10-15",
+    "count": 56,
+    "pnl": -264.5
+   },
+   {
+    "date": "2026-10-16",
+    "count": 15,
+    "pnl": -347.5
+   },
+   {
+    "date": "2026-10-19",
+    "count": 8,
+    "pnl": -11
+   },
+   {
+    "date": "2026-10-20",
+    "count": 48,
+    "pnl": 295.5
+   },
+   {
+    "date": "2026-10-21",
+    "count": 15,
+    "pnl": 191
+   },
+   {
+    "date": "2026-10-22",
+    "count": 40,
+    "pnl": 36
+   },
+   {
+    "date": "2026-10-23",
+    "count": 54,
+    "pnl": -195
+   },
+   {
+    "date": "2026-10-26",
+    "count": 38,
+    "pnl": 206
+   },
+   {
+    "date": "2026-10-27",
+    "count": 62,
+    "pnl": 302
+   },
+   {
+    "date": "2026-10-28",
+    "count": 55,
+    "pnl": -879.5
+   },
+   {
+    "date": "2026-10-29",
+    "count": 41,
+    "pnl": 560
+   },
+   {
+    "date": "2026-10-30",
+    "count": 18,
+    "pnl": 261.5
+   }
+  ],
+  "operations": 214,
+  "contracts": 537,
+  "gross": 987,
+  "commission": 537,
+  "net": 450,
+  "winRate": 0.3551,
+  "dailyLossLimit": 0,
+  "remaining": null,
+  "maxLot": 40,
+  "medianLot": 2,
+  "byLot": [
+   {
+    "key": "1",
+    "label": "1 lote",
+    "operations": 105,
+    "contracts": 105,
+    "gross": -325.5,
+    "net": -430.5,
+    "perTrade": -4.1,
+    "ticksPerTrade": -6.2,
+    "wins": 34,
+    "winRate": 0.3238,
+    "median": -7
+   },
+   {
+    "key": "2",
+    "label": "2 lotes",
+    "operations": 61,
+    "contracts": 122,
+    "gross": 83,
+    "net": -39,
+    "perTrade": -0.64,
+    "ticksPerTrade": 1.36,
+    "wins": 25,
+    "winRate": 0.4098,
+    "median": -1.5
+   },
+   {
+    "key": "3",
+    "label": "3 lotes",
+    "operations": 24,
+    "contracts": 72,
+    "gross": -24.5,
+    "net": -96.5,
+    "perTrade": -4.02,
+    "ticksPerTrade": -0.69,
+    "wins": 7,
+    "winRate": 0.2917,
+    "median": -2.25
+   },
+   {
+    "key": "4",
+    "label": "4 lotes",
+    "operations": 10,
+    "contracts": 40,
+    "gross": 516.5,
+    "net": 476.5,
+    "perTrade": 47.65,
+    "ticksPerTrade": 25.83,
+    "wins": 4,
+    "winRate": 0.4,
+    "median": -32.5
+   },
+   {
+    "key": "5",
+    "label": "5 lotes",
+    "operations": 3,
+    "contracts": 15,
+    "gross": 25,
+    "net": 10,
+    "perTrade": 3.33,
+    "ticksPerTrade": 3.33,
+    "wins": 1,
+    "winRate": 0.3333,
+    "median": 0
+   },
+   {
+    "key": "6",
+    "label": "6 lotes",
+    "operations": 4,
+    "contracts": 24,
+    "gross": -308,
+    "net": -332,
+    "perTrade": -83,
+    "ticksPerTrade": -25.65,
+    "wins": 0,
+    "winRate": 0,
+    "median": -73
+   },
+   {
+    "key": "8",
+    "label": "8 lotes",
+    "operations": 1,
+    "contracts": 8,
+    "gross": 36,
+    "net": 28,
+    "perTrade": 28,
+    "ticksPerTrade": 9,
+    "wins": 1,
+    "winRate": 1,
+    "median": 28
+   },
+   {
+    "key": "10",
+    "label": "10 lotes",
+    "operations": 2,
+    "contracts": 20,
+    "gross": 147,
+    "net": 127,
+    "perTrade": 63.5,
+    "ticksPerTrade": 14.7,
+    "wins": 2,
+    "winRate": 1,
+    "median": 63.5
+   },
+   {
+    "key": "20",
+    "label": "20 lotes",
+    "operations": 1,
+    "contracts": 20,
+    "gross": -589,
+    "net": -609,
+    "perTrade": -609,
+    "ticksPerTrade": -58.9,
+    "wins": 0,
+    "winRate": 0,
+    "median": -609
+   },
+   {
+    "key": "31",
+    "label": "31 lotes",
+    "operations": 1,
+    "contracts": 31,
+    "gross": 241,
+    "net": 210,
+    "perTrade": 210,
+    "ticksPerTrade": 15.5,
+    "wins": 1,
+    "winRate": 1,
+    "median": 210
+   },
+   {
+    "key": "40",
+    "label": "40 lotes",
+    "operations": 2,
+    "contracts": 80,
+    "gross": 1185.5,
+    "net": 1105.5,
+    "perTrade": 552.75,
+    "ticksPerTrade": 29.6,
+    "wins": 1,
+    "winRate": 0.5,
+    "median": 552.75
+   }
+  ],
+  "bigLots": {
+   "key": "grandes",
+   "label": "mas de 2 lotes",
+   "operations": 48,
+   "contracts": 310,
+   "gross": 1229.5,
+   "net": 919.5,
+   "perTrade": 19.16,
+   "ticksPerTrade": 4.24,
+   "wins": 17,
+   "winRate": 0.3542,
+   "median": -2.25
+  },
+  "smallLots": {
+   "key": "pequenias",
+   "label": "2 lotes o menos",
+   "operations": 166,
+   "contracts": 227,
+   "gross": -242.5,
+   "net": -469.5,
+   "perTrade": -2.83,
+   "ticksPerTrade": -3.42,
+   "wins": 59,
+   "winRate": 0.3554,
+   "median": -3.25
+  },
+  "ticksPerTrade": -1.7,
+  "ticksMedian": -0.35,
+  "previous": {
+   "from": "2026-10-19",
+   "to": "2026-10-23",
+   "days": 5,
+   "net": 316.5,
+   "ticksPerTrade": -0.75
+  },
+  "bySession": [
+   {
+    "key": "ASIA",
+    "label": "ASIA",
+    "operations": 93,
+    "contracts": 328,
+    "gross": 289.5,
+    "net": -38.5,
+    "perTrade": -0.41,
+    "ticksPerTrade": -5.78,
+    "wins": 32,
+    "winRate": 0.3441,
+    "median": -7
+   },
+   {
+    "key": "NY_AM",
+    "label": "NY_AM",
+    "operations": 9,
+    "contracts": 10,
+    "gross": 276.5,
+    "net": 266.5,
+    "perTrade": 29.61,
+    "ticksPerTrade": 34.22,
+    "wins": 4,
+    "winRate": 0.4444,
+    "median": -29.5
+   },
+   {
+    "key": "NY_LUNCH",
+    "label": "NY_LUNCH",
+    "operations": 15,
+    "contracts": 19,
+    "gross": -47,
+    "net": -66,
+    "perTrade": -4.4,
+    "ticksPerTrade": -21.3,
+    "wins": 2,
+    "winRate": 0.1333,
+    "median": -20
+   },
+   {
+    "key": "NY_PM",
+    "label": "NY_PM",
+    "operations": 17,
+    "contracts": 37,
+    "gross": 165,
+    "net": 128,
+    "perTrade": 7.53,
+    "ticksPerTrade": -6,
+    "wins": 3,
+    "winRate": 0.1765,
+    "median": -14
+   },
+   {
+    "key": "OUTSIDE",
+    "label": "OUTSIDE",
+    "operations": 80,
+    "contracts": 143,
+    "gross": 303,
+    "net": 160,
+    "perTrade": 2,
+    "ticksPerTrade": 3.58,
+    "wins": 35,
+    "winRate": 0.4375,
+    "median": -0.5
+   }
+  ],
+  "byGap": [
+   {
+    "key": "0",
+    "label": "tras cerrar Asia",
+    "operations": 24,
+    "contracts": 60,
+    "gross": -98.5,
+    "net": -158.5,
+    "perTrade": -6.6,
+    "ticksPerTrade": 1.3,
+    "wins": 8,
+    "winRate": 0.3333,
+    "median": -1
+   },
+   {
+    "key": "5",
+    "label": "entre Londres y NY AM",
+    "operations": 16,
+    "contracts": 24,
+    "gross": 94,
+    "net": 70,
+    "perTrade": 4.38,
+    "ticksPerTrade": 13.34,
+    "wins": 9,
+    "winRate": 0.5625,
+    "median": 5.25
+   },
+   {
+    "key": "11",
+    "label": "entre NY AM y el almuerzo",
+    "operations": 18,
+    "contracts": 25,
+    "gross": -4.5,
+    "net": -29.5,
+    "perTrade": -1.64,
+    "ticksPerTrade": -15.22,
+    "wins": 6,
+    "winRate": 0.3333,
+    "median": -21.75
+   },
+   {
+    "key": "13",
+    "label": "entre el almuerzo y NY PM",
+    "operations": 10,
+    "contracts": 20,
+    "gross": 132,
+    "net": 112,
+    "perTrade": 11.2,
+    "ticksPerTrade": -0.47,
+    "wins": 4,
+    "winRate": 0.4,
+    "median": -10.25
+   },
+   {
+    "key": "16",
+    "label": "entre NY PM y Asia",
+    "operations": 12,
+    "contracts": 14,
+    "gross": 180,
+    "net": 166,
+    "perTrade": 13.83,
+    "ticksPerTrade": 26.72,
+    "wins": 8,
+    "winRate": 0.6667,
+    "median": 3.5
+   }
+  ],
+  "worst": [
+   {
+    "id": 302991,
+    "date": "2026-10-29",
+    "session": "ASIA",
+    "lots": 40,
+    "ticks": -54,
+    "net": -1119,
+    "netPerContract": -27.98
+   },
+   {
+    "id": 301926,
+    "date": "2026-10-29",
+    "session": "ASIA",
+    "lots": 20,
+    "ticks": -58.9,
+    "net": -609,
+    "netPerContract": -30.45
+   },
+   {
+    "id": 313734,
+    "date": "2026-10-29",
+    "session": "ASIA",
+    "lots": 6,
+    "ticks": -59.7,
+    "net": -185,
+    "netPerContract": -30.83
+   },
+   {
+    "id": 234695,
+    "date": "2026-10-27",
+    "session": "OUTSIDE",
+    "lots": 3,
+    "ticks": -83.7,
+    "net": -128.5,
+    "netPerContract": -42.83
+   },
+   {
+    "id": 284672,
+    "date": "2026-10-28",
+    "session": "NY_PM",
+    "lots": 4,
+    "ticks": -59.5,
+    "net": -123,
+    "netPerContract": -30.75
+   }
+  ],
+  "best": [
+   {
+    "id": 303525,
+    "date": "2026-10-29",
+    "session": "ASIA",
+    "lots": 40,
+    "ticks": 113.2,
+    "net": 2224.5,
+    "netPerContract": 55.61
+   },
+   {
+    "id": 331281,
+    "date": "2026-10-29",
+    "session": "NY_PM",
+    "lots": 4,
+    "ticks": 289.5,
+    "net": 575,
+    "netPerContract": 143.75
+   },
+   {
+    "id": 181443,
+    "date": "2026-10-26",
+    "session": "OUTSIDE",
+    "lots": 3,
+    "ticks": 191,
+    "net": 283.5,
+    "netPerContract": 94.5
+   },
+   {
+    "id": 205642,
+    "date": "2026-10-27",
+    "session": "ASIA",
+    "lots": 4,
+    "ticks": 138.8,
+    "net": 273.5,
+    "netPerContract": 68.38
+   },
+   {
+    "id": 236070,
+    "date": "2026-10-27",
+    "session": "OUTSIDE",
+    "lots": 3,
+    "ticks": 177,
+    "net": 262.5,
+    "netPerContract": 87.5
+   }
+  ],
+  "drawdown": {
+   "rows": [
+    {
+     "session": "ASIA",
+     "days": 4,
+     "trades": 93,
+     "total": -38.5,
+     "perTrade": -0.41,
+     "drawdownMedian": 225.75,
+     "drawdownP75": 278,
+     "drawdownWorst": 2269,
+     "drawdownWorstDay": "2026-10-29",
+     "chainedDrawdown": 2530.5,
+     "greenDays": 2,
+     "worstStreak": 9,
+     "overLimit": null
+    },
+    {
+     "session": "NY_AM",
+     "days": 3,
+     "trades": 9,
+     "total": 266.5,
+     "perTrade": 29.61,
+     "drawdownMedian": 73.5,
+     "drawdownP75": 92,
+     "drawdownWorst": 92,
+     "drawdownWorstDay": "2026-10-27",
+     "chainedDrawdown": 165.5,
+     "greenDays": 2,
+     "worstStreak": 2,
+     "overLimit": null
+    },
+    {
+     "session": "NY_LUNCH",
+     "days": 3,
+     "trades": 15,
+     "total": -66,
+     "perTrade": -4.4,
+     "drawdownMedian": 42,
+     "drawdownP75": 162.5,
+     "drawdownWorst": 162.5,
+     "drawdownWorstDay": "2026-10-26",
+     "chainedDrawdown": 162.5,
+     "greenDays": 1,
+     "worstStreak": 7,
+     "overLimit": null
+    },
+    {
+     "session": "NY_PM",
+     "days": 2,
+     "trades": 17,
+     "total": 128,
+     "perTrade": 7.53,
+     "drawdownMedian": 223.5,
+     "drawdownP75": 405,
+     "drawdownWorst": 405,
+     "drawdownWorstDay": "2026-10-28",
+     "chainedDrawdown": 447,
+     "greenDays": 1,
+     "worstStreak": 11,
+     "overLimit": null
+    },
+    {
+     "session": "OUTSIDE",
+     "days": 5,
+     "trades": 80,
+     "total": 160,
+     "perTrade": 2,
+     "drawdownMedian": 181.5,
+     "drawdownP75": 201,
+     "drawdownWorst": 280,
+     "drawdownWorstDay": "2026-10-28",
+     "chainedDrawdown": 392,
+     "greenDays": 4,
+     "worstStreak": 6,
+     "overLimit": null
+    }
+   ],
+   "gaps": [
+    {
+     "from": 0,
+     "to": 2,
+     "label": "tras cerrar Asia",
+     "days": 3,
+     "trades": 24,
+     "total": -158.5,
+     "perTrade": -6.6,
+     "drawdownWorst": 277,
+     "greenDays": 1
+    },
+    {
+     "from": 5,
+     "to": 9.5,
+     "label": "entre Londres y NY AM",
+     "days": 3,
+     "trades": 16,
+     "total": 70,
+     "perTrade": 4.38,
+     "drawdownWorst": 176.5,
+     "greenDays": 3
+    },
+    {
+     "from": 11,
+     "to": 12,
+     "label": "entre NY AM y el almuerzo",
+     "days": 2,
+     "trades": 18,
+     "total": -29.5,
+     "perTrade": -1.64,
+     "drawdownWorst": 200,
+     "greenDays": 1
+    },
+    {
+     "from": 13,
+     "to": 13.5,
+     "label": "entre el almuerzo y NY PM",
+     "days": 3,
+     "trades": 10,
+     "total": 112,
+     "perTrade": 11.2,
+     "drawdownWorst": 145.5,
+     "greenDays": 1
+    },
+    {
+     "from": 16,
+     "to": 20,
+     "label": "entre NY PM y Asia",
+     "days": 3,
+     "trades": 12,
+     "total": 166,
+     "perTrade": 13.83,
+     "drawdownWorst": 4,
+     "greenDays": 3
+    }
+   ],
+   "thresholds": [
+    25,
+    50,
+    75,
+    100,
+    150,
+    200,
+    300
+   ],
+   "cells": [
+    {
+     "session": "ASIA",
+     "threshold": 25,
+     "days": 4,
+     "daysWithRest": 4,
+     "tradesAfter": 84,
+     "perTradeAfter": 1.3,
+     "baseline": -0.41,
+     "diff": 1.71,
+     "medianAfter": 45,
+     "p": 0.5557,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "ASIA",
+     "threshold": 50,
+     "days": 4,
+     "daysWithRest": 4,
+     "tradesAfter": 78,
+     "perTradeAfter": 3.35,
+     "baseline": -0.41,
+     "diff": 3.76,
+     "medianAfter": 96,
+     "p": 0.7941,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "ASIA",
+     "threshold": 75,
+     "days": 4,
+     "daysWithRest": 4,
+     "tradesAfter": 69,
+     "perTradeAfter": 4.99,
+     "baseline": -0.41,
+     "diff": 5.4,
+     "medianAfter": 116.25,
+     "p": 0.7991,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "ASIA",
+     "threshold": 100,
+     "days": 4,
+     "daysWithRest": 4,
+     "tradesAfter": 65,
+     "perTradeAfter": 6.78,
+     "baseline": -0.41,
+     "diff": 7.19,
+     "medianAfter": 130.5,
+     "p": 0.7496,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "ASIA",
+     "threshold": 150,
+     "days": 3,
+     "daysWithRest": 3,
+     "tradesAfter": 49,
+     "perTradeAfter": 8.07,
+     "baseline": -0.41,
+     "diff": 8.49,
+     "medianAfter": 172.5,
+     "p": 0.6132,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "ASIA",
+     "threshold": 200,
+     "days": 2,
+     "daysWithRest": 2,
+     "tradesAfter": 32,
+     "perTradeAfter": 15.69,
+     "baseline": -0.41,
+     "diff": 16.1,
+     "medianAfter": 251,
+     "p": 0.624,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "ASIA",
+     "threshold": 300,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 16,
+     "perTradeAfter": 30.06,
+     "baseline": -0.41,
+     "diff": 30.48,
+     "medianAfter": 481,
+     "p": 0.5751,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "NY_AM",
+     "threshold": 25,
+     "days": 2,
+     "daysWithRest": 2,
+     "tradesAfter": 5,
+     "perTradeAfter": 19.6,
+     "baseline": 29.61,
+     "diff": -10.01,
+     "medianAfter": 49,
+     "p": null,
+     "survives": false,
+     "enough": false
+    },
+    {
+     "session": "NY_AM",
+     "threshold": 50,
+     "days": 2,
+     "daysWithRest": 1,
+     "tradesAfter": 3,
+     "perTradeAfter": 57.83,
+     "baseline": 29.61,
+     "diff": 28.22,
+     "medianAfter": 173.5,
+     "p": null,
+     "survives": false,
+     "enough": false
+    },
+    {
+     "session": "NY_AM",
+     "threshold": 75,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 3,
+     "perTradeAfter": 57.83,
+     "baseline": 29.61,
+     "diff": 28.22,
+     "medianAfter": 173.5,
+     "p": null,
+     "survives": false,
+     "enough": false
+    },
+    {
+     "session": "NY_LUNCH",
+     "threshold": 25,
+     "days": 3,
+     "daysWithRest": 1,
+     "tradesAfter": 9,
+     "perTradeAfter": 4.33,
+     "baseline": -4.4,
+     "diff": 8.73,
+     "medianAfter": 39,
+     "p": null,
+     "survives": false,
+     "enough": false
+    },
+    {
+     "session": "NY_LUNCH",
+     "threshold": 50,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 7,
+     "perTradeAfter": 10.5,
+     "baseline": -4.4,
+     "diff": 14.9,
+     "medianAfter": 73.5,
+     "p": null,
+     "survives": false,
+     "enough": false
+    },
+    {
+     "session": "NY_LUNCH",
+     "threshold": 75,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 6,
+     "perTradeAfter": 17.42,
+     "baseline": -4.4,
+     "diff": 21.82,
+     "medianAfter": 104.5,
+     "p": null,
+     "survives": false,
+     "enough": false
+    },
+    {
+     "session": "NY_LUNCH",
+     "threshold": 100,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 5,
+     "perTradeAfter": 25.9,
+     "baseline": -4.4,
+     "diff": 30.3,
+     "medianAfter": 129.5,
+     "p": null,
+     "survives": false,
+     "enough": false
+    },
+    {
+     "session": "NY_LUNCH",
+     "threshold": 150,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 3,
+     "perTradeAfter": 56.83,
+     "baseline": -4.4,
+     "diff": 61.23,
+     "medianAfter": 170.5,
+     "p": null,
+     "survives": false,
+     "enough": false
+    },
+    {
+     "session": "NY_PM",
+     "threshold": 25,
+     "days": 2,
+     "daysWithRest": 2,
+     "tradesAfter": 13,
+     "perTradeAfter": 17.38,
+     "baseline": 7.53,
+     "diff": 9.86,
+     "medianAfter": 113,
+     "p": 0.8505,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "NY_PM",
+     "threshold": 50,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 12,
+     "perTradeAfter": -29.08,
+     "baseline": 7.53,
+     "diff": -36.61,
+     "medianAfter": -349,
+     "p": 0.2207,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "NY_PM",
+     "threshold": 75,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 11,
+     "perTradeAfter": -26.73,
+     "baseline": 7.53,
+     "diff": -34.26,
+     "medianAfter": -294,
+     "p": 0.3686,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "NY_PM",
+     "threshold": 100,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 11,
+     "perTradeAfter": -26.73,
+     "baseline": 7.53,
+     "diff": -34.26,
+     "medianAfter": -294,
+     "p": 0.2506,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "NY_PM",
+     "threshold": 150,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 9,
+     "perTradeAfter": -27.83,
+     "baseline": 7.53,
+     "diff": -35.36,
+     "medianAfter": -250.5,
+     "p": null,
+     "survives": false,
+     "enough": false
+    },
+    {
+     "session": "NY_PM",
+     "threshold": 200,
+     "days": 1,
+     "daysWithRest": 1,
+     "tradesAfter": 5,
+     "perTradeAfter": -32.2,
+     "baseline": 7.53,
+     "diff": -39.73,
+     "medianAfter": -161,
+     "p": null,
+     "survives": false,
+     "enough": false
+    },
+    {
+     "session": "NY_PM",
+     "threshold": 300,
+     "days": 1,
+     "daysWithRest": 0,
+     "tradesAfter": 0,
+     "perTradeAfter": null,
+     "baseline": 7.53,
+     "diff": null,
+     "medianAfter": null,
+     "p": null,
+     "survives": false,
+     "enough": false
+    },
+    {
+     "session": "OUTSIDE",
+     "threshold": 25,
+     "days": 5,
+     "daysWithRest": 5,
+     "tradesAfter": 55,
+     "perTradeAfter": 2.35,
+     "baseline": 2,
+     "diff": 0.35,
+     "medianAfter": -17.5,
+     "p": 0.3598,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "OUTSIDE",
+     "threshold": 50,
+     "days": 5,
+     "daysWithRest": 5,
+     "tradesAfter": 38,
+     "perTradeAfter": 6.07,
+     "baseline": 2,
+     "diff": 4.07,
+     "medianAfter": 22.5,
+     "p": 0.6667,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "OUTSIDE",
+     "threshold": 75,
+     "days": 5,
+     "daysWithRest": 5,
+     "tradesAfter": 35,
+     "perTradeAfter": 10.1,
+     "baseline": 2,
+     "diff": 8.1,
+     "medianAfter": 85,
+     "p": 0.8351,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "OUTSIDE",
+     "threshold": 100,
+     "days": 5,
+     "daysWithRest": 5,
+     "tradesAfter": 34,
+     "perTradeAfter": 11.31,
+     "baseline": 2,
+     "diff": 9.31,
+     "medianAfter": 85,
+     "p": 0.7767,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "OUTSIDE",
+     "threshold": 150,
+     "days": 4,
+     "daysWithRest": 4,
+     "tradesAfter": 21,
+     "perTradeAfter": 32.64,
+     "baseline": 2,
+     "diff": 30.64,
+     "medianAfter": 198.5,
+     "p": 0.99,
+     "survives": false,
+     "enough": true
+    },
+    {
+     "session": "OUTSIDE",
+     "threshold": 200,
+     "days": 2,
+     "daysWithRest": 2,
+     "tradesAfter": 10,
+     "perTradeAfter": 33.6,
+     "baseline": 2,
+     "diff": 31.6,
+     "medianAfter": 168,
+     "p": 0.9783,
+     "survives": false,
+     "enough": true
+    }
+   ],
+   "permutations": 2000,
+   "minTradesAfter": 10,
+   "tested": 17,
+   "survivors": 0,
+   "fdr": 0.1,
+   "dailyLossLimit": 0
+  },
+  "breakeven": 0.3378,
+  "payoff": 1.96,
+  "sinAlineacion": {
+   "operations": 126,
+   "net": -639.5,
+   "perTrade": -5.08
+  },
+  "revenge": {
+   "operations": 103,
+   "net": -420,
+   "perTrade": -4.08
+  }
+ }
+}

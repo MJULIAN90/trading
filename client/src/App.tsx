@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { api, qs, type Dashboard, type Filters } from './api';
 import { Breakdown } from './components/Breakdown';
 import { BarsChart, EquityChart, RecentBarsChart } from './components/Charts';
@@ -18,13 +18,14 @@ import { Operations } from './components/Operations';
 import { PatternPanel } from './components/PatternPanel';
 import { ScratchPanel } from './components/ScratchPanel';
 import { SettingsPanel } from './components/SettingsPanel';
-import { date, dateTime, num, pct, sessionLabel, setClock, setMarketOffset, signClass, signedUsd, ticks, usd, zonaLarga } from './format';
+import { date, dateTime, num, pct, sessionLabel, setClock, setMarketOffset, signClass, signedUsd, ticks, usd } from './format';
 import { TodayBand } from './components/TodayBand';
 import { useSort } from './sortable';
 import { AlignmentPanel } from './components/AlignmentPanel';
 import { Boundary } from './components/Boundary';
 import { EarningsStrip } from './components/EarningsStrip';
 import { ScalperPanel } from './components/ScalperPanel';
+import { ReportPanel } from './components/ReportPanel';
 import { SessionDrawdownPanel } from './components/SessionDrawdownPanel';
 import { GlobalPanel } from './components/GlobalPanel';
 
@@ -113,34 +114,204 @@ function CommissionSetting({ value, onChange }: { value: number; onChange: (v: n
 }
 
 /**
- * Las pestanas, agrupadas por la PREGUNTA que contestan y no por el tipo de
- * grafico que pintan.
+ * El selector de cuentas de la barra de arriba, con casillas.
  *
- *   resumen      como voy
- *   cuando       a que horas y que dias voy bien o mal
- *   conducta     que me cuesta dinero
- *   operaciones  una operacion concreta
- *   mercado      que hace el mercado, me meta yo o no
- *   costes       comisiones y recorrido
- *   noticias     el calendario
+ * Era un desplegable de una sola cuenta. Con dos cuentas daba igual -o una, o
+ * la otra, o todas- pero con tres ya no: "las dos de verdad y la de pruebas
+ * no" no se puede pedir con un desplegable. El dominio ya lo admitia desde el
+ * cambio anterior (`Filter.accounts` es una lista y la consulta usa
+ * `account_id IN (...)`); lo unico que faltaba era el mando.
  *
- * Antes "resumen" llevaba nueve paneles: las cifras, la curva, cuatro repartos
- * por tiempo, la tabla por jornada, el desglose por grupo, las aperturas de
- * killzone y el patron de la vela de 15m. Los dos ultimos ni siquiera miran
- * tus operaciones -son estudio de mercado puro- y estaban en la pantalla
- * personal; ahora viven en Mercado, que es su sitio.
+ * Los tres estados son los mismos que entiende el servidor, y conviene no
+ * perderlos de vista porque el del medio es el que no es obvio:
+ *
+ *   no se manda `accounts`  ->  decide la marca de Ajustes
+ *   se manda la lista vacia ->  TODAS, y le gana al ajuste
+ *   se manda una lista      ->  esas cuentas
+ *
+ * Por eso "todas" manda `[]` y no `undefined`: con `undefined` el servidor
+ * volveria a aplicar el ajuste y el mando pareceria no hacer nada.
+ *
+ * Esto es el filtro de ahora mismo, de usar y tirar. La marca permanente -la
+ * que se aplica sola cada vez que abres la app- sigue estando en
+ * Ajustes -> Grafico, justo debajo del Reloj; son dos cosas distintas a
+ * proposito: aqui se prueba, alli se decide.
+ */
+function SelectorCuentas({
+  cuentas,
+  elegidas,
+  porDefecto,
+  onChange,
+}: {
+  cuentas: Dashboard['accounts'];
+  elegidas: string[] | undefined;
+  porDefecto: string[];
+  onChange: (v: string[]) => void;
+}) {
+  const [abierto, setAbierto] = useState(false);
+  const caja = useRef<HTMLDivElement>(null);
+
+  // Lo que el servidor esta aplicando AHORA. Si el filtro no se ha tocado,
+  // eso es lo que diga Ajustes, no "todas": el rotulo tiene que decir la
+  // verdad desde el primer render o el usuario lee mal todas las cifras.
+  const activas = elegidas ?? porDefecto;
+  const todas = activas.length === 0 || activas.length === cuentas.length;
+
+  useEffect(() => {
+    if (!abierto) return;
+    const fuera = (e: MouseEvent) => {
+      if (caja.current !== null && !caja.current.contains(e.target as Node)) setAbierto(false);
+    };
+    const tecla = (e: KeyboardEvent) => { if (e.key === 'Escape') setAbierto(false); };
+    document.addEventListener('mousedown', fuera);
+    document.addEventListener('keydown', tecla);
+    return () => {
+      document.removeEventListener('mousedown', fuera);
+      document.removeEventListener('keydown', tecla);
+    };
+  }, [abierto]);
+
+  const marcar = (id: string) => {
+    // Partiendo de "todas", desmarcar una significa "las demas": hay que
+    // materializar la lista completa antes de quitar nada, porque `[]` no
+    // es "ninguna" sino justamente "todas".
+    const base = todas ? cuentas.map((c) => c.id) : activas;
+    const nueva = base.includes(id) ? base.filter((x) => x !== id) : [...base, id];
+    // Quedarse sin ninguna marcada no es un filtro que devuelva cero
+    // operaciones: es lo que uno hace para volver a empezar. Se entiende
+    // como "todas", igual que marcarlas todas.
+    onChange(nueva.length === cuentas.length ? [] : nueva);
+  };
+
+  const total = cuentas.reduce((a, c) => a + c.operations, 0);
+  const ops = todas
+    ? total
+    : cuentas.filter((c) => activas.includes(c.id)).reduce((a, c) => a + c.operations, 0);
+  const rotulo = todas
+    ? `todas (${total})`
+    : activas.length === 1
+      ? `${activas[0]} (${ops})`
+      : `${activas.length} cuentas (${ops})`;
+
+  return (
+    <div className="selector-cuentas" ref={caja}>
+      <span className="k">Cuenta</span>
+      <button type="button" className="abrir" aria-expanded={abierto} onClick={() => setAbierto((v) => !v)}>
+        {rotulo} <span className="flecha">▾</span>
+      </button>
+
+      {abierto && (
+        <div className="lista">
+          <label className="cuenta-todas">
+            <input type="checkbox" checked={todas} onChange={() => onChange([])} />
+            <span>todas</span>
+            <span className="n">{total} ops</span>
+          </label>
+          {cuentas.map((c) => (
+            <label key={c.id}>
+              <input
+                type="checkbox"
+                checked={todas || activas.includes(c.id)}
+                onChange={() => marcar(c.id)}
+              />
+              <span>{c.id}</span>
+              <span className="n">{c.operations} ops · desde {date(c.from)}</span>
+            </label>
+          ))}
+          <div className="pie">
+            La marca permanente esta en <b>Ajustes → Grafico</b>. Esto es solo
+            para esta sesion.
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+/**
+ * Las secciones del lateral, agrupadas por la PREGUNTA que contestan.
+ *
+ * La agrupacion no es nueva -la fila de pestanas ya estaba ordenada asi- pero
+ * vivia en el orden de los botones y no se veia. El lateral la hace explicita.
+ *
+ * El corte que importa es el de los dos ultimos grupos:
+ *
+ *   MI OPERATIVA  lo que PASO. Informe y Operaciones.
+ *   ANALISIS      que habria pasado SI. Horarios, Disciplina, Scalper, Costes.
+ *
+ * Scalper y Costes son simulaciones sobre las mismas entradas, no resultados.
+ * Mezclarlas con el informe invita a leer una simulacion como si fuera lo que
+ * ocurrio, y todo el metodo del proyecto va de mantener eso separado.
+ *
+ * "Mercado" pasa a llamarse ESTUDIO y se va con News y Calendario: ese panel
+ * no mira tus operaciones, es estudio de mercado puro. Estaba entre Scalper y
+ * Costes, donde nadie podia adivinarlo.
  */
 type Tab =
   | 'resumen'
+  | 'global'
+  | 'calendario'
+  | 'mercado'
+  | 'informe'
+  | 'operaciones'
   | 'cuando'
   | 'conducta'
-  | 'operaciones'
   | 'scalper'
-  | 'mercado'
   | 'costes'
-  | 'calendario'
-  | 'global'
   | 'ajustes';
+
+interface Seccion {
+  /** null = va suelta, sin titulo de grupo. */
+  grupo: string | null;
+  items: Array<{ id: Tab; label: string }>;
+}
+
+const SECCIONES: Seccion[] = [
+  { grupo: null, items: [{ id: 'resumen', label: 'Resumen' }] },
+  {
+    grupo: 'Mercado',
+    items: [
+      { id: 'global', label: 'News' },
+      { id: 'calendario', label: 'Calendario' },
+      { id: 'mercado', label: 'Estudio' },
+    ],
+  },
+  {
+    grupo: 'Mi operativa',
+    items: [
+      { id: 'informe', label: 'Informe' },
+      { id: 'operaciones', label: 'Operaciones' },
+    ],
+  },
+  {
+    grupo: 'Analisis',
+    items: [
+      { id: 'cuando', label: 'Horarios' },
+      { id: 'conducta', label: 'Disciplina' },
+      { id: 'scalper', label: 'Scalper' },
+      { id: 'costes', label: 'Costes y recorrido' },
+    ],
+  },
+  { grupo: null, items: [{ id: 'ajustes', label: 'Ajustes' }] },
+];
+
+const TABS: Tab[] = SECCIONES.flatMap((s) => s.items.map((i) => i.id));
+
+/**
+ * Secciones donde la barra de filtros tiene sentido.
+ *
+ * News, Calendario y Estudio no miran tus operaciones, y Ajustes tampoco: la
+ * barra estaba ahi igualmente, invitando a poner un filtro que no hacia nada.
+ */
+const CON_FILTROS = new Set<Tab>([
+  'resumen', 'informe', 'operaciones', 'cuando', 'conducta', 'scalper', 'costes',
+]);
+
+/** La seccion que pide la URL (`#informe`), si es una de las que existen. */
+function tabDeLaUrl(): Tab | null {
+  const h = location.hash.replace(/^#\/?/, '');
+  return (TABS as string[]).includes(h) ? (h as Tab) : null;
+}
 
 /** "Que cuesta dinero", ordenable. Componente aparte porque lleva un hook y
  *  dentro del JSX de App no cabe. Arranca por P&L de menor a mayor: lo que mas
@@ -183,7 +354,9 @@ export default function App() {
   // sueltos en el calendario, y ninguna mesa de fondeo cuenta asi: lo que abre
   // el domingo por la tarde y cierra el lunes es la sesion del lunes.
   const [filters, setFilters] = useState<Filters>({ basis: 'gross' });
-  const [tab, setTab] = useState<Tab>('resumen');
+  // La seccion vive tambien en la URL (`#informe`): recargar devuelve donde
+  // estabas en vez de a Resumen, y se puede guardar un marcador.
+  const [tab, setTab] = useState<Tab>(() => tabDeLaUrl() ?? 'resumen');
   const [data, setData] = useState<Dashboard | null>(null);
   const [live, setLive] = useState<string>('');
   const [error, setError] = useState<string | null>(null);
@@ -264,6 +437,18 @@ export default function App() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const chartPrefs = useMemo(() => data?.chartPrefs ?? null, [prefsKey]);
 
+  // Los dos sentidos: al cambiar de seccion se escribe en la URL, y al usar
+  // las flechas del navegador se lee de ella.
+  useEffect(() => {
+    if (location.hash.replace(/^#\/?/, '') !== tab) history.replaceState(null, '', `#${tab}`);
+  }, [tab]);
+
+  useEffect(() => {
+    const alCambiar = () => setTab(tabDeLaUrl() ?? 'resumen');
+    window.addEventListener('hashchange', alCambiar);
+    return () => window.removeEventListener('hashchange', alCambiar);
+  }, []);
+
   const set = (patch: Partial<Filters>) => setFilters((f) => ({ ...f, ...patch }));
 
   function saveCommission(v: number) {
@@ -271,16 +456,52 @@ export default function App() {
   }
 
   return (
-    <>
-      <h1>Diario de trading</h1>
-      <div className="sub">
-        {data
-          ? `${data.count} operaciones${data.count && data.equity.length ? ` · hasta ${date(data.equity[data.equity.length - 1]!.ts)}` : ''} · ` +
-            `cifras en ${data.basis === 'net' ? 'NETO, con comisiones' : 'BRUTO'} · jornada de mercado (corte 18:00 NY) · ${zonaLarga()}`
-          : 'cargando...'}
-      </div>
+    <div className="app">
+      <aside className="barra-lateral">
+        {/* El logo es la cabecera: ocupa el sitio del antiguo h1 "Diario de
+            trading". Lleva `alt` con el nombre por si la imagen no carga. */}
+        <img className="logo" src="/greenspot.png" alt="Greenspot" />
 
-      <div className="filters">
+        <nav>
+          {SECCIONES.map((sec, i) => (
+            <div className="grupo" key={sec.grupo ?? `suelto-${i}`}>
+              {sec.grupo && <div className="grupo-k">{sec.grupo}</div>}
+              {sec.items.map((item) => (
+                <button
+                  key={item.id}
+                  className={tab === item.id ? 'on' : ''}
+                  onClick={() => setTab(item.id)}
+                >
+                  {item.label}
+                  {item.id === 'operaciones' && data && <span className="n">{data.count}</span>}
+                  {item.id === 'calendario' && data && data.calendar.activeNow.length > 0 && (
+                    <span className="aviso" title="Hay una noticia activa ahora mismo">●</span>
+                  )}
+                </button>
+              ))}
+            </div>
+          ))}
+        </nav>
+      </aside>
+
+      <main>
+      {/* Solo queda el aviso de carga.
+          Aqui habia una linea de resumen —numero de operaciones, hasta que
+          fecha, bruto o neto, el corte de las 18:00 y el reloj— y se quito a
+          peticion suya: las dos cosas que mas se miraban ya las dice la barra
+          de filtros, que esta justo debajo. El recuento esta en el selector de
+          cuentas y la base, en el desplegable "Base". Repetirlas arriba era
+          una fila de texto que ya nadie leia.
+
+          Lo que si desaparecio de la pantalla es el corte de jornada y que
+          reloj se esta usando. El reloj se cambia en Ajustes -> Grafico; si
+          alguna vez una hora no cuadra con Quantower, ahi es donde mirar. */}
+      {data === null && <div className="sub">cargando...</div>}
+
+      {/* `principal` distingue esta barra de las que usan los paneles por
+          dentro: la clase `filters` esta en catorce sitios mas. */}
+      {CON_FILTROS.has(tab) && (
+      <div className="filters principal">
         <label>Desde <input type="date" value={filters.from ?? ''} onChange={(e) => set({ from: e.target.value || undefined })} /></label>
         <label>Hasta <input type="date" value={filters.to ?? ''} onChange={(e) => set({ to: e.target.value || undefined })} /></label>
         <label>
@@ -296,17 +517,12 @@ export default function App() {
             cambia lo que ves, porque dos cuentas distintas son dos historiales
             distintos y mezclarlos no tiene ningun sentido. */}
         {data && data.accounts.length > 0 && (
-          <label>
-            Cuenta
-            <select value={filters.account ?? ''} onChange={(e) => set({ account: e.target.value || undefined })}>
-              <option value="">todas ({data.accounts.reduce((a, c) => a + c.operations, 0)})</option>
-              {data.accounts.map((a) => (
-                <option key={a.id} value={a.id}>
-                  {a.id} · {a.operations} ops · desde {date(a.from)}
-                </option>
-              ))}
-            </select>
-          </label>
+          <SelectorCuentas
+            cuentas={data.accounts}
+            elegidas={filters.accounts}
+            porDefecto={data.chartPrefs.metricAccounts}
+            onChange={(v) => set({ accounts: v })}
+          />
         )}
         <label>
           Base
@@ -319,8 +535,9 @@ export default function App() {
         <button onClick={() => { load(); setRefresco((r) => r + 1); }}>Actualizar</button>
         <span className="live"><b>en vivo</b> · {live}</span>
       </div>
+      )}
 
-      {/* Pegada a la barra y FUERA de las pestanas: un informe que sale dentro
+      {/* Pegada a la barra y FUERA de las secciones: un informe que sale dentro
           de catorce minutos tiene que verse estes donde estes, y las alarmas
           con sonido no pueden depender de que tengas abierta la pestana News.
           Con su propio limite de errores, porque es lo ultimo que puede
@@ -334,7 +551,7 @@ export default function App() {
       {/* Elegir una cuenta y ver cero operaciones solo puede pasar ya por el
           filtro de fechas o el de sesion, no por el de pruebas: la cuenta
           siempre se ensena entera. */}
-      {data && data.count === 0 && filters.account && (filters.from || filters.to || filters.session) && (
+      {data && data.count === 0 && filters.accounts?.length && (filters.from || filters.to || filters.session) && (
         <div className="news-alert">
           <b>Nada que mostrar</b>
           <span>
@@ -348,38 +565,6 @@ export default function App() {
 
       {data && (
         <>
-          <div className="tabs main">
-            {/* News va la SEGUNDA a proposito: es lo que se mira antes de
-                abrir, no un apendice al final de la fila. */}
-            {(['resumen', 'global', 'cuando', 'conducta', 'operaciones', 'scalper', 'mercado', 'costes', 'calendario', 'ajustes'] as const).map((t) => (
-              <button key={t} className={tab === t ? 'on' : ''} onClick={() => setTab(t)}>
-                {/* Los nombres dicen QUE HAY DENTRO, no como se llama por
-                    dentro la variable. Dos que no lo hacian:
-
-                    "Cuando" -> "Horarios". "Cuando" obliga a abrirla para
-                    saber de que va; lo que hay son cuatro cortes del mismo
-                    dato por tiempo (sesion, hora, dia de la semana, jornada).
-
-                    "Que cuesta dinero" -> "Disciplina". Ese nombre se quedo
-                    corto cuando entro la alineacion con las medias, que no
-                    cuesta dinero: mide si entraste donde te habias dicho. Y
-                    estaba repetido como titulo de un panel de dentro, asi que
-                    la pestaña y su contenido se llamaban igual. El panel
-                    conserva el nombre bueno. */}
-                {t === 'resumen' ? 'Resumen'
-                  : t === 'cuando' ? 'Horarios'
-                  : t === 'conducta' ? 'Disciplina'
-                  : t === 'operaciones' ? `Operaciones (${data.count})`
-                  : t === 'scalper' ? 'Scalper'
-                  : t === 'mercado' ? 'Mercado'
-                  : t === 'costes' ? 'Costes y recorrido'
-                  : t === 'global' ? 'News'
-                  : t === 'ajustes' ? 'Ajustes'
-                  : `Calendario${data.calendar.activeNow.length ? ' ●' : ''}`}
-              </button>
-            ))}
-          </div>
-
           {/* Lo que llevas hoy contra tu limite. Por el mismo motivo que el
               aviso de noticias: si hay que parar, tiene que verse estes donde
               estes. Se pinta sola solo cuando hay limite puesto y operaciones
@@ -435,6 +620,7 @@ export default function App() {
           {tab === 'ajustes' && (
             <SettingsPanel
               prefs={chartPrefs ?? data.chartPrefs}
+              accounts={data.accounts}
               commission={data.costSettings.commissionPerContract}
               dailyLimit={data.costSettings.dailyLossLimit}
               onSaved={load}
@@ -534,6 +720,11 @@ export default function App() {
             />
           )}
 
+          {/* El informe se refresca solo al cambiar de periodo o de filtro: no
+              entra en el auto-refresco porque tiene su propio selector y
+              recargarlo debajo mientras se lee no aporta nada. */}
+          {tab === 'informe' && <ReportPanel query={qs(filters)} />}
+
           {tab === 'scalper' && <ScalperPanel filters={filters} />}
 
           {tab === 'costes' && (
@@ -546,6 +737,7 @@ export default function App() {
           </Boundary>
         </>
       )}
-    </>
+      </main>
+    </div>
   );
 }

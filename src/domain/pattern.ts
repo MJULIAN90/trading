@@ -1,5 +1,5 @@
 import { db } from '../db/index.js';
-import { normalizeSymbol } from './bars.js';
+import { normalizeSymbol, barsVersion } from './bars.js';
 import { marketOffsetAt } from './clock.js';
 import { excursionOf } from './excursion.js';
 import type { Operation } from './metrics.js';
@@ -105,11 +105,10 @@ const cache = new Map<string, Series>();
 function seriesFor(symbol: string): Series {
   const sym = normalizeSymbol(symbol);
 
-  const s = db()
-    .prepare('SELECT COUNT(*) AS n, MAX(ts) AS m FROM bars WHERE symbol = ?')
-    .get(sym) as { n: number; m: number | null };
-
-  const stamp = `${s.n}:${s.m ?? 0}`;
+  // `barsVersion` y no un COUNT(*): la marca vieja costaba 6,72 ms por
+  // llamada y esta funcion se llama una vez por operacion. Ver el comentario
+  // de `barsVersion` en `bars.ts`.
+  const stamp = barsVersion(sym);
   const hit = cache.get(sym);
   if (hit && hit.stamp === stamp) return hit;
 

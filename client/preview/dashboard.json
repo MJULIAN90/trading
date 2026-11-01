@@ -1,0 +1,6310 @@
+{
+ "basis": "gross",
+ "costSettings": {
+  "commissionPerContract": 1,
+  "dailyLossLimit": 0
+ },
+ "costs": {
+  "operations": 573,
+  "contracts": 1178,
+  "grossPnl": 157.5,
+  "commission": 1178,
+  "netPnl": -1020.5,
+  "commissionShare": 7.479365079365079,
+  "ticksWon": 30047,
+  "ticksLost": -29736.7,
+  "avgTicksPerTrade": -4,
+  "breakevenTicks": 2
+ },
+ "excursion": {
+  "analyzed": 573,
+  "skipped": 0,
+  "wins": {
+   "count": 189,
+   "avgMae": 49.2,
+   "avgMfe": 123.1
+  },
+  "losses": {
+   "count": 384,
+   "avgMae": 76.7,
+   "avgMfe": 44.4
+  },
+  "givenBack": 44.4
+ },
+ "scratch": {
+  "config": {
+   "maxTicks": 4,
+   "horizonMinutes": 30,
+   "targetTicks": 20
+  },
+  "total": 82,
+  "analyzed": 82,
+  "wouldHaveWorked": 48,
+  "wouldHaveFailed": 34,
+  "unresolved": 0,
+  "avgAfterFavourable": 159.3,
+  "avgAfterAdverse": 156.2,
+  "symmetricTicks": 280,
+  "cases": [
+   {
+    "id": 348097,
+    "openedAt": 1793354700000,
+    "direction": "LONG",
+    "quantity": 2,
+    "ticks": 0.5,
+    "session": "OUTSIDE",
+    "afterFavourable": 49,
+    "afterAdverse": 152,
+    "resolved": -1
+   },
+   {
+    "id": 327960,
+    "openedAt": 1793294378000,
+    "direction": "LONG",
+    "quantity": 2,
+    "ticks": 2.5,
+    "session": "OUTSIDE",
+    "afterFavourable": 122,
+    "afterAdverse": 201,
+    "resolved": -1
+   },
+   {
+    "id": 321368,
+    "openedAt": 1793291561000,
+    "direction": "SHORT",
+    "quantity": 1,
+    "ticks": 0,
+    "session": "NY_LUNCH",
+    "afterFavourable": 18,
+    "afterAdverse": 270,
+    "resolved": -1
+   },
+   {
+    "id": 291917,
+    "openedAt": 1793231312000,
+    "direction": "SHORT",
+    "quantity": 1,
+    "ticks": 0,
+    "session": "OUTSIDE",
+    "afterFavourable": 158,
+    "afterAdverse": 257,
+    "resolved": 1
+   },
+   {
+    "id": 287765,
+    "openedAt": 1793229109000,
+    "direction": "SHORT",
+    "quantity": 1,
+    "ticks": 0,
+    "session": "OUTSIDE",
+    "afterFavourable": 451,
+    "afterAdverse": 18,
+    "resolved": 1
+   },
+   {
+    "id": 286732,
+    "openedAt": 1793227020000,
+    "direction": "SHORT",
+    "quantity": 1,
+    "ticks": 1,
+    "session": "OUTSIDE",
+    "afterFavourable": 97,
+    "afterAdverse": 381,
+    "resolved": 1
+   },
+   {
+    "id": 283645,
+    "openedAt": 1793211446000,
+    "direction": "LONG",
+    "quantity": 3,
+    "ticks": 1.7,
+    "session": "NY_PM",
+    "afterFavourable": 815,
+    "afterAdverse": 37,
+    "resolved": 1
+   },
+   {
+    "id": 280069,
+    "openedAt": 1793210752000,
+    "direction": "SHORT",
+    "quantity": 2,
+    "ticks": -1,
+    "session": "NY_PM",
+    "afterFavourable": 198,
+    "afterAdverse": 680,
+    "resolved": 1
+   },
+   {
+    "id": 279561,
+    "openedAt": 1793210699000,
+    "direction": "LONG",
+    "quantity": 1,
+    "ticks": -1,
+    "session": "NY_PM",
+    "afterFavourable": 409,
+    "afterAdverse": 220,
+    "resolved": -1
+   },
+   {
+    "id": 277032,
+    "openedAt": 1793209875000,
+    "direction": "LONG",
+    "quantity": 3,
+    "ticks": 1.3,
+    "session": "NY_PM",
+    "afterFavourable": 251,
+    "afterAdverse": 279,
+    "resolved": -1
+   },
+   {
+    "id": 268041,
+    "openedAt": 1793206669000,
+    "direction": "LONG",
+    "quantity": 1,
+    "ticks": 0,
+    "session": "NY_LUNCH",
+    "afterFavourable": 44,
+    "afterAdverse": 281,
+    "resolved": 1
+   },
+   {
+    "id": 263110,
+    "openedAt": 1793161482000,
+    "direction": "SHORT",
+    "quantity": 4,
+    "ticks": 3.8,
+    "session": "OUTSIDE",
+    "afterFavourable": 149,
+    "afterAdverse": 0,
+    "resolved": 1
+   },
+   {
+    "id": 262619,
+    "openedAt": 1793161258000,
+    "direction": "SHORT",
+    "quantity": 6,
+    "ticks": 1.7,
+    "session": "OUTSIDE",
+    "afterFavourable": 166,
+    "afterAdverse": 0,
+    "resolved": 1
+   },
+   {
+    "id": 261640,
+    "openedAt": 1793160988000,
+    "direction": "SHORT",
+    "quantity": 4,
+    "ticks": 0,
+    "session": "OUTSIDE",
+    "afterFavourable": 156,
+    "afterAdverse": 6,
+    "resolved": 1
+   },
+   {
+    "id": 260663,
+    "openedAt": 1793160901000,
+    "direction": "SHORT",
+    "quantity": 3,
+    "ticks": -0.7,
+    "session": "OUTSIDE",
+    "afterFavourable": 162,
+    "afterAdverse": 17,
+    "resolved": 1
+   },
+   {
+    "id": 259688,
+    "openedAt": 1793160222000,
+    "direction": "SHORT",
+    "quantity": 5,
+    "ticks": 2,
+    "session": "OUTSIDE",
+    "afterFavourable": 107,
+    "afterAdverse": 17,
+    "resolved": 1
+   },
+   {
+    "id": 256779,
+    "openedAt": 1793159578000,
+    "direction": "LONG",
+    "quantity": 3,
+    "ticks": 3.3,
+    "session": "ASIA",
+    "afterFavourable": 11,
+    "afterAdverse": 106,
+    "resolved": -1
+   },
+   {
+    "id": 256296,
+    "openedAt": 1793159197000,
+    "direction": "LONG",
+    "quantity": 3,
+    "ticks": 1,
+    "session": "ASIA",
+    "afterFavourable": 33,
+    "afterAdverse": 107,
+    "resolved": 1
+   },
+   {
+    "id": 255814,
+    "openedAt": 1793159112000,
+    "direction": "LONG",
+    "quantity": 5,
+    "ticks": 0,
+    "session": "ASIA",
+    "afterFavourable": 100,
+    "afterAdverse": 58,
+    "resolved": 1
+   },
+   {
+    "id": 251987,
+    "openedAt": 1793157462000,
+    "direction": "LONG",
+    "quantity": 3,
+    "ticks": 0,
+    "session": "ASIA",
+    "afterFavourable": 211,
+    "afterAdverse": 4,
+    "resolved": 1
+   },
+   {
+    "id": 250086,
+    "openedAt": 1793156862000,
+    "direction": "LONG",
+    "quantity": 3,
+    "ticks": 3.3,
+    "session": "ASIA",
+    "afterFavourable": 163,
+    "afterAdverse": 0,
+    "resolved": 1
+   },
+   {
+    "id": 248190,
+    "openedAt": 1793156528000,
+    "direction": "LONG",
+    "quantity": 2,
+    "ticks": -1.5,
+    "session": "ASIA",
+    "afterFavourable": 155,
+    "afterAdverse": 0,
+    "resolved": 1
+   },
+   {
+    "id": 233782,
+    "openedAt": 1793115160000,
+    "direction": "SHORT",
+    "quantity": 1,
+    "ticks": 1,
+    "session": "OUTSIDE",
+    "afterFavourable": 57,
+    "afterAdverse": 483,
+    "resolved": 1
+   },
+   {
+    "id": 228354,
+    "openedAt": 1793113208000,
+    "direction": "LONG",
+    "quantity": 1,
+    "ticks": -3,
+    "session": "OUTSIDE",
+    "afterFavourable": 210,
+    "afterAdverse": 51,
+    "resolved": -1
+   },
+   {
+    "id": 222998,
+    "openedAt": 1793106884000,
+    "direction": "SHORT",
+    "quantity": 1,
+    "ticks": 1,
+    "session": "OUTSIDE",
+    "afterFavourable": 76,
+    "afterAdverse": 545,
+    "resolved": -1
+   },
+   {
+    "id": 215533,
+    "openedAt": 1793076012000,
+    "direction": "SHORT",
+    "quantity": 1,
+    "ticks": 1,
+    "session": "OUTSIDE",
+    "afterFavourable": 85,
+    "afterAdverse": 110,
+    "resolved": 1
+   },
+   {
+    "id": 212930,
+    "openedAt": 1793075426000,
+    "direction": "LONG",
+    "quantity": 1,
+    "ticks": 2,
+    "session": "OUTSIDE",
+    "afterFavourable": 44,
+    "afterAdverse": 168,
+    "resolved": -1
+   },
+   {
+    "id": 210341,
+    "openedAt": 1793073906000,
+    "direction": "LONG",
+    "quantity": 1,
+    "ticks": 3,
+    "session": "OUTSIDE",
+    "afterFavourable": 59,
+    "afterAdverse": 77,
+    "resolved": 1
+   },
+   {
+    "id": 209482,
+    "openedAt": 1793073868000,
+    "direction": "SHORT",
+    "quantity": 2,
+    "ticks": 1,
+    "session": "OUTSIDE",
+    "afterFavourable": 66,
+    "afterAdverse": 70,
+    "resolved": -1
+   },
+   {
+    "id": 209053,
+    "openedAt": 1793073806000,
+    "direction": "LONG",
+    "quantity": 1,
+    "ticks": 0,
+    "session": "OUTSIDE",
+    "afterFavourable": 25,
+    "afterAdverse": 111,
+    "resolved": -1
+   },
+   {
+    "id": 204793,
+    "openedAt": 1793071559000,
+    "direction": "SHORT",
+    "quantity": 3,
+    "ticks": 1.7,
+    "session": "ASIA",
+    "afterFavourable": 0,
+    "afterAdverse": 261,
+    "resolved": -1
+   },
+   {
+    "id": 201837,
+    "openedAt": 1793070126000,
+    "direction": "SHORT",
+    "quantity": 2,
+    "ticks": 0.5,
+    "session": "ASIA",
+    "afterFavourable": 183,
+    "afterAdverse": 45,
+    "resolved": -1
+   },
+   {
+    "id": 199320,
+    "openedAt": 1793069614000,
+    "direction": "SHORT",
+    "quantity": 2,
+    "ticks": 1,
+    "session": "ASIA",
+    "afterFavourable": 158,
+    "afterAdverse": 15,
+    "resolved": 1
+   },
+   {
+    "id": 197652,
+    "openedAt": 1793069060000,
+    "direction": "SHORT",
+    "quantity": 2,
+    "ticks": 1.5,
+    "session": "ASIA",
+    "afterFavourable": 188,
+    "afterAdverse": 73,
+    "resolved": -1
+   },
+   {
+    "id": 194338,
+    "openedAt": 1793068184000,
+    "direction": "LONG",
+    "quantity": 2,
+    "ticks": 1.5,
+    "session": "ASIA",
+    "afterFavourable": 9,
+    "afterAdverse": 266,
+    "resolved": -1
+   },
+   {
+    "id": 193515,
+    "openedAt": 1793068016000,
+    "direction": "LONG",
+    "quantity": 2,
+    "ticks": 2,
+    "session": "ASIA",
+    "afterFavourable": 109,
+    "afterAdverse": 227,
+    "resolved": 1
+   },
+   {
+    "id": 187020,
+    "openedAt": 1793066091000,
+    "direction": "LONG",
+    "quantity": 1,
+    "ticks": 2,
+    "session": "ASIA",
+    "afterFavourable": 4,
+    "afterAdverse": 133,
+    "resolved": -1
+   },
+   {
+    "id": 185420,
+    "openedAt": 1793065110000,
+    "direction": "LONG",
+    "quantity": 1,
+    "ticks": 1,
+    "session": "ASIA",
+    "afterFavourable": 42,
+    "afterAdverse": 179,
+    "resolved": -1
+   },
+   {
+    "id": 179463,
+    "openedAt": 1793034033000,
+    "direction": "LONG",
+    "quantity": 3,
+    "ticks": 1.3,
+    "session": "OUTSIDE",
+    "afterFavourable": 269,
+    "afterAdverse": 50,
+    "resolved": -1
+   },
+   {
+    "id": 165593,
+    "openedAt": 1792987280000,
+    "direction": "LONG",
+    "quantity": 1,
+    "ticks": 0,
+    "session": "OUTSIDE",
+    "afterFavourable": 179,
+    "afterAdverse": 60,
+    "resolved": 1
+   },
+   {
+    "id": 157838,
+    "openedAt": 1792978254000,
+    "direction": "SHORT",
+    "quantity": 1,
+    "ticks": 1,
+    "session": "ASIA",
+    "afterFavourable": 388,
+    "afterAdverse": 233,
+    "resolved": -1
+   },
+   {
+    "id": 135205,
+    "openedAt": 1792775450000,
+    "direction": "LONG",
+    "quantity": 2,
+    "ticks": 0,
+    "session": "OUTSIDE",
+    "afterFavourable": 132,
+    "afterAdverse": 95,
+    "resolved": 1
+   },
+   {
+    "id": 119876,
+    "openedAt": 1792764005000,
+    "direction": "SHORT",
+    "quantity": 1,
+    "ticks": 3,
+    "session": "NY_AM",
+    "afterFavourable": 360,
+    "afterAdverse": 137,
+    "resolved": -1
+   },
+   {
+    "id": 107112,
+    "openedAt": 1792710540000,
+    "direction": "LONG",
+    "quantity": 2,
+    "ticks": 4,
+    "session": "OUTSIDE",
+    "afterFavourable": 0,
+    "afterAdverse": 294,
+    "resolved": -1
+   },
+   {
+    "id": 106475,
+    "openedAt": 1792710467000,
+    "direction": "LONG",
+    "quantity": 2,
+    "ticks": 2.5,
+    "session": "OUTSIDE",
+    "afterFavourable": 0,
+    "afterAdverse": 336,
+    "resolved": -1
+   },
+   {
+    "id": 105840,
+    "openedAt": 1792710004000,
+    "direction": "SHORT",
+    "quantity": 2,
+    "ticks": 0.5,
+    "session": "OUTSIDE",
+    "afterFavourable": 281,
+    "afterAdverse": 73,
+    "resolved": 1
+   },
+   {
+    "id": 105207,
+    "openedAt": 1792709255000,
+    "direction": "SHORT",
+    "quantity": 2,
+    "ticks": 0,
+    "session": "OUTSIDE",
+    "afterFavourable": 167,
+    "afterAdverse": 96,
+    "resolved": -1
+   },
+   {
+    "id": 103320,
+    "openedAt": 1792708266000,
+    "direction": "SHORT",
+    "quantity": 1,
+    "ticks": 0,
+    "session": "OUTSIDE",
+    "afterFavourable": 179,
+    "afterAdverse": 44,
+    "resolved": 1
+   },
+   {
+    "id": 101761,
+    "openedAt": 1792707764000,
+    "direction": "LONG",
+    "quantity": 1,
+    "ticks": 3,
+    "session": "OUTSIDE",
+    "afterFavourable": 34,
+    "afterAdverse": 169,
+    "resolved": 1
+   },
+   {
+    "id": 93289,
+    "openedAt": 1792679036000,
+    "direction": "SHORT",
+    "quantity": 1,
+    "ticks": -3,
+    "session": "NY_AM",
+    "afterFavourable": 650,
+    "afterAdverse": 34,
+    "resolved": -1
+   },
+   {
+    "id": 82987,
+    "openedAt": 1792641400000,
+    "direction": "LONG",
+    "quantity": 1,
+    "ticks": 2,
+    "session": "ASIA",
+    "afterFavourable": 32,
+    "afterAdverse": 90,
+    "resolved": 1
+   },
+   {
+    "id": 82432,
+    "openedAt": 1792639965000,
+    "direction": "SHORT",
+    "quantity": 2,
+    "ticks": 1,
+    "session": "ASIA",
+    "afterFavourable": 147,
+    "afterAdverse": 24,
+    "resolved": -1
+   },
+   {
+    "id": 81879,
+    "openedAt": 1792638899000,
+    "direction": "LONG",
+    "quantity": 1,
+    "ticks": 1,
+    "session": "ASIA",
+    "afterFavourable": 143,
+    "afterAdverse": 156,
+    "resolved": 1
+   },
+   {
+    "id": 78065,
+    "openedAt": 1792632838000,
+    "direction": "SHORT",
+    "quantity": 1,
+    "ticks": -1,
+    "session": "ASIA",
+    "afterFavourable": 154,
+    "afterAdverse": 8,
+    "resolved": 1
+   },
+   {
+    "id": 61318,
+    "openedAt": 1792504802000,
+    "direction": "SHORT",
+    "quantity": 1,
+    "ticks": 0,
+    "session": "NY_AM",
+    "afterFavourable": 0,
+    "afterAdverse": 1126,
+    "resolved": -1
+   },
+   {
+    "id": 60835,
+    "openedAt": 1792503874000,
+    "direction": "SHORT",
+    "quantity": 1,
+    "ticks": 0,
+    "session": "NY_AM",
+    "afterFavourable": 0,
+    "afterAdverse": 1381,
+    "resolved": -1
+   },
+   {
+    "id": 53313,
+    "openedAt": 1792467065000,
+    "direction": "SHORT",
+    "quantity": 1,
+    "ticks": 1,
+    "session": "ASIA",
+    "afterFavourable": 229,
+    "afterAdverse": 110,
+    "resolved": -1
+   },
+   {
+    "id": 52860,
+    "openedAt": 1792467004000,
+    "direction": "LONG",
+    "quantity": 1,
+    "ticks": -2,
+    "session": "ASIA",
+    "afterFavourable": 110,
+    "afterAdverse": 179,
+    "resolved": 1
+   },
+   {
+    "id": 50846,
+    "openedAt": 1792465710000,
+    "direction": "SHORT",
+    "quantity": 1,
+    "ticks": -1,
+    "session": "ASIA",
+    "afterFavourable": 175,
+    "afterAdverse": 10,
+    "resolved": 1
+   },
+   {
+    "id": 49089,
+    "openedAt": 1792464364000,
+    "direction": "LONG",
+    "quantity": 2,
+    "ticks": 2,
+    "session": "ASIA",
+    "afterFavourable": 185,
+    "afterAdverse": 0,
+    "resolved": 1
+   },
+   {
+    "id": 43646,
+    "openedAt": 1792430669000,
+    "direction": "LONG",
+    "quantity": 1,
+    "ticks": 1,
+    "session": "OUTSIDE",
+    "afterFavourable": 81,
+    "afterAdverse": 193,
+    "resolved": 1
+   },
+   {
+    "id": 32186,
+    "openedAt": 1792119140000,
+    "direction": "SHORT",
+    "quantity": 6,
+    "ticks": -1.7,
+    "session": "ASIA",
+    "afterFavourable": 72,
+    "afterAdverse": 105,
+    "resolved": -1
+   },
+   {
+    "id": 27918,
+    "openedAt": 1792087269000,
+    "direction": "SHORT",
+    "quantity": 2,
+    "ticks": 0,
+    "session": "NY_PM",
+    "afterFavourable": 404,
+    "afterAdverse": 0,
+    "resolved": 1
+   },
+   {
+    "id": 4332,
+    "openedAt": 1791996363000,
+    "direction": "SHORT",
+    "quantity": 2,
+    "ticks": 2,
+    "session": "NY_LUNCH",
+    "afterFavourable": 457,
+    "afterAdverse": 111,
+    "resolved": -1
+   },
+   {
+    "id": 151,
+    "openedAt": 1791937559000,
+    "direction": "SHORT",
+    "quantity": 2,
+    "ticks": 2.5,
+    "session": "ASIA",
+    "afterFavourable": 34,
+    "afterAdverse": 147,
+    "resolved": -1
+   },
+   {
+    "id": 150,
+    "openedAt": 1791937117000,
+    "direction": "LONG",
+    "quantity": 2,
+    "ticks": 1,
+    "session": "ASIA",
+    "afterFavourable": 215,
+    "afterAdverse": 0,
+    "resolved": 1
+   },
+   {
+    "id": 68,
+    "openedAt": 1791919948000,
+    "direction": "LONG",
+    "quantity": 2,
+    "ticks": 2,
+    "session": "NY_PM",
+    "afterFavourable": 68,
+    "afterAdverse": 118,
+    "resolved": 1
+   },
+   {
+    "id": 65,
+    "openedAt": 1791914774000,
+    "direction": "LONG",
+    "quantity": 1,
+    "ticks": 1,
+    "session": "NY_PM",
+    "afterFavourable": 85,
+    "afterAdverse": 146,
+    "resolved": -1
+   },
+   {
+    "id": 63,
+    "openedAt": 1791913042000,
+    "direction": "LONG",
+    "quantity": 1,
+    "ticks": 0,
+    "session": "NY_PM",
+    "afterFavourable": 203,
+    "afterAdverse": 169,
+    "resolved": 1
+   },
+   {
+    "id": 57,
+    "openedAt": 1791901774000,
+    "direction": "SHORT",
+    "quantity": 1,
+    "ticks": 1,
+    "session": "NY_AM",
+    "afterFavourable": 249,
+    "afterAdverse": 160,
+    "resolved": 1
+   },
+   {
+    "id": 56,
+    "openedAt": 1791901259000,
+    "direction": "LONG",
+    "quantity": 1,
+    "ticks": 1,
+    "session": "NY_AM",
+    "afterFavourable": 150,
+    "afterAdverse": 259,
+    "resolved": -1
+   },
+   {
+    "id": 52,
+    "openedAt": 1791900072000,
+    "direction": "SHORT",
+    "quantity": 1,
+    "ticks": 1,
+    "session": "NY_AM",
+    "afterFavourable": 283,
+    "afterAdverse": 49,
+    "resolved": 1
+   },
+   {
+    "id": 43,
+    "openedAt": 1791871421000,
+    "direction": "SHORT",
+    "quantity": 1,
+    "ticks": 0,
+    "session": "LONDON",
+    "afterFavourable": 115,
+    "afterAdverse": 57,
+    "resolved": 1
+   },
+   {
+    "id": 41,
+    "openedAt": 1791865693000,
+    "direction": "SHORT",
+    "quantity": 1,
+    "ticks": 3,
+    "session": "OUTSIDE",
+    "afterFavourable": 91,
+    "afterAdverse": 87,
+    "resolved": 1
+   },
+   {
+    "id": 35,
+    "openedAt": 1791814012000,
+    "direction": "SHORT",
+    "quantity": 1,
+    "ticks": 1,
+    "session": "NY_AM",
+    "afterFavourable": 283,
+    "afterAdverse": 18,
+    "resolved": 1
+   },
+   {
+    "id": 31,
+    "openedAt": 1791571695000,
+    "direction": "LONG",
+    "quantity": 2,
+    "ticks": 4,
+    "session": "NY_PM",
+    "afterFavourable": 136,
+    "afterAdverse": 41,
+    "resolved": 1
+   },
+   {
+    "id": 28,
+    "openedAt": 1791565559000,
+    "direction": "SHORT",
+    "quantity": 10,
+    "ticks": 2.6,
+    "session": "OUTSIDE",
+    "afterFavourable": 83,
+    "afterAdverse": 60,
+    "resolved": 1
+   },
+   {
+    "id": 26,
+    "openedAt": 1791564780000,
+    "direction": "SHORT",
+    "quantity": 10,
+    "ticks": 0.3,
+    "session": "NY_LUNCH",
+    "afterFavourable": 187,
+    "afterAdverse": 0,
+    "resolved": 1
+   },
+   {
+    "id": 25,
+    "openedAt": 1791563868000,
+    "direction": "SHORT",
+    "quantity": 10,
+    "ticks": -0.3,
+    "session": "NY_LUNCH",
+    "afterFavourable": 82,
+    "afterAdverse": 144,
+    "resolved": -1
+   },
+   {
+    "id": 16,
+    "openedAt": 1791558423000,
+    "direction": "SHORT",
+    "quantity": 1,
+    "ticks": 0,
+    "session": "OUTSIDE",
+    "afterFavourable": 111,
+    "afterAdverse": 113,
+    "resolved": 1
+   },
+   {
+    "id": 15,
+    "openedAt": 1791552974000,
+    "direction": "SHORT",
+    "quantity": 1,
+    "ticks": 2,
+    "session": "NY_AM",
+    "afterFavourable": 445,
+    "afterAdverse": 101,
+    "resolved": 1
+   },
+   {
+    "id": 2,
+    "openedAt": 1791185199000,
+    "direction": "SHORT",
+    "quantity": 1,
+    "ticks": -3,
+    "session": "LONDON",
+    "afterFavourable": 71,
+    "afterAdverse": 121,
+    "resolved": 1
+   }
+  ]
+ },
+ "calendar": {
+  "total": 45,
+  "coverTo": 1798657200000,
+  "upcoming": [
+   {
+    "id": "1793971800000|t1 · u.s. employment report",
+    "ts": 1793971800000,
+    "title": "T1 · U.S. Employment Report",
+    "impact": "high",
+    "currency": "USD",
+    "source": "t1-2026.csv",
+    "detail": null,
+    "forecast": null,
+    "previous": null,
+    "actual": null,
+    "unit": null,
+    "precision_digits": null,
+    "preliminary": null,
+    "reference_period": null,
+    "previous_revised_from": null,
+    "revision": null,
+    "event_key": null
+   },
+   {
+    "id": "1794317400000|t1 · cpi",
+    "ts": 1794317400000,
+    "title": "T1 · CPI",
+    "impact": "high",
+    "currency": "USD",
+    "source": "t1-2026.csv",
+    "detail": null,
+    "forecast": null,
+    "previous": null,
+    "actual": null,
+    "unit": null,
+    "precision_digits": null,
+    "preliminary": null,
+    "reference_period": null,
+    "previous_revised_from": null,
+    "revision": null,
+    "event_key": null
+   },
+   {
+    "id": "1795028400000|t1 · fomc minutes (reunion de octubre)",
+    "ts": 1795028400000,
+    "title": "T1 · FOMC Minutes (reunion de octubre)",
+    "impact": "high",
+    "currency": "USD",
+    "source": "t1-2026.csv",
+    "detail": null,
+    "forecast": null,
+    "previous": null,
+    "actual": null,
+    "unit": null,
+    "precision_digits": null,
+    "preliminary": null,
+    "reference_period": null,
+    "previous_revised_from": null,
+    "revision": null,
+    "event_key": null
+   },
+   {
+    "id": "1796391000000|t1 · u.s. employment report",
+    "ts": 1796391000000,
+    "title": "T1 · U.S. Employment Report",
+    "impact": "high",
+    "currency": "USD",
+    "source": "t1-2026.csv",
+    "detail": null,
+    "forecast": null,
+    "previous": null,
+    "actual": null,
+    "unit": null,
+    "precision_digits": null,
+    "preliminary": null,
+    "reference_period": null,
+    "previous_revised_from": null,
+    "revision": null,
+    "event_key": null
+   },
+   {
+    "id": "1796842800000|t1 · fomc meeting",
+    "ts": 1796842800000,
+    "title": "T1 · FOMC Meeting",
+    "impact": "high",
+    "currency": "USD",
+    "source": "t1-2026.csv",
+    "detail": null,
+    "forecast": null,
+    "previous": null,
+    "actual": null,
+    "unit": null,
+    "precision_digits": null,
+    "preliminary": null,
+    "reference_period": null,
+    "previous_revised_from": null,
+    "revision": null,
+    "event_key": null
+   },
+   {
+    "id": "1796909400000|t1 · cpi",
+    "ts": 1796909400000,
+    "title": "T1 · CPI",
+    "impact": "high",
+    "currency": "USD",
+    "source": "t1-2026.csv",
+    "detail": null,
+    "forecast": null,
+    "previous": null,
+    "actual": null,
+    "unit": null,
+    "precision_digits": null,
+    "preliminary": null,
+    "reference_period": null,
+    "previous_revised_from": null,
+    "revision": null,
+    "event_key": null
+   },
+   {
+    "id": "1798657200000|t1 · fomc minutes (reunion de diciembre)",
+    "ts": 1798657200000,
+    "title": "T1 · FOMC Minutes (reunion de diciembre)",
+    "impact": "high",
+    "currency": "USD",
+    "source": "t1-2026.csv",
+    "detail": null,
+    "forecast": null,
+    "previous": null,
+    "actual": null,
+    "unit": null,
+    "precision_digits": null,
+    "preliminary": null,
+    "reference_period": null,
+    "previous_revised_from": null,
+    "revision": null,
+    "event_key": null
+   }
+  ],
+  "activeNow": [],
+  "blackout": {
+   "beforeMin": 5,
+   "afterMin": 10
+  }
+ },
+ "news": {
+  "inside": {
+   "count": 0,
+   "pnl": 0,
+   "median": null
+  },
+  "outside": {
+   "count": 573,
+   "pnl": -1020.5,
+   "median": -15.5
+  }
+ },
+ "marketOffsetHours": -4,
+ "summary": {
+  "operations": 573,
+  "wins": 189,
+  "losses": 384,
+  "longs": 262,
+  "shorts": 311,
+  "longWins": 84,
+  "shortWins": 105,
+  "winRate": 0.3298429319371728,
+  "grossPnl": -1020.5,
+  "avgWin": 76.94973544973546,
+  "avgLoss": -40.53125,
+  "payoff": 1.8985285538870738,
+  "breakevenPayoff": 2.0317460317460316,
+  "profitFactor": 0.93,
+  "expectancy": -1.780977312390925,
+  "best": 2224.5,
+  "worst": -1119,
+  "avgWinMinutes": 5.097795414462081,
+  "avgLossMinutes": 2.661848958333333,
+  "maxWinStreak": 6,
+  "maxLossStreak": 15,
+  "maxDrawdown": 3992,
+  "drawdownPeak": 33,
+  "drawdownFrom": "2026-10-05",
+  "drawdownTo": "2026-10-28",
+  "tradedDays": 18,
+  "greenDays": 10,
+  "redDays": 8,
+  "dayWinRate": 0.5556,
+  "bestDayPnl": 748.5,
+  "worstDayPnl": -1259.5
+ },
+ "bySession": [
+  {
+   "key": "ASIA",
+   "summary": {
+    "operations": 184,
+    "wins": 59,
+    "losses": 125,
+    "longs": 96,
+    "shorts": 88,
+    "longWins": 31,
+    "shortWins": 28,
+    "winRate": 0.32065217391304346,
+    "grossPnl": -475.5,
+    "avgWin": 87.05084745762711,
+    "avgLoss": -44.892,
+    "payoff": 1.939117158015395,
+    "breakevenPayoff": 2.1186440677966103,
+    "profitFactor": 0.92,
+    "expectancy": -2.5842391304347827,
+    "best": 2224.5,
+    "worst": -1119,
+    "avgWinMinutes": 4.400847457627119,
+    "avgLossMinutes": 2.2331999999999996
+   }
+  },
+  {
+   "key": "NY_LUNCH",
+   "summary": {
+    "operations": 53,
+    "wins": 12,
+    "losses": 41,
+    "longs": 25,
+    "shorts": 28,
+    "longWins": 4,
+    "shortWins": 8,
+    "winRate": 0.22641509433962265,
+    "grossPnl": -378,
+    "avgWin": 125.5,
+    "avgLoss": -45.951219512195124,
+    "payoff": 2.7311571125265393,
+    "breakevenPayoff": 3.416666666666667,
+    "profitFactor": 0.8,
+    "expectancy": -7.132075471698113,
+    "best": 692,
+    "worst": -310,
+    "avgWinMinutes": 5.211111111111111,
+    "avgLossMinutes": 3.4764227642276424
+   }
+  },
+  {
+   "key": "NY_AM",
+   "summary": {
+    "operations": 96,
+    "wins": 26,
+    "losses": 70,
+    "longs": 32,
+    "shorts": 64,
+    "longWins": 11,
+    "shortWins": 15,
+    "winRate": 0.2708333333333333,
+    "grossPnl": -329.5,
+    "avgWin": 100.13461538461539,
+    "avgLoss": -41.9,
+    "payoff": 2.38984762254452,
+    "breakevenPayoff": 2.692307692307693,
+    "profitFactor": 0.89,
+    "expectancy": -3.4322916666666665,
+    "best": 359.5,
+    "worst": -125,
+    "avgWinMinutes": 4.299358974358975,
+    "avgLossMinutes": 1.6995238095238097
+   }
+  },
+  {
+   "key": "NY_PM",
+   "summary": {
+    "operations": 43,
+    "wins": 12,
+    "losses": 31,
+    "longs": 27,
+    "shorts": 16,
+    "longWins": 6,
+    "shortWins": 6,
+    "winRate": 0.27906976744186046,
+    "grossPnl": -166.5,
+    "avgWin": 83.83333333333333,
+    "avgLoss": -37.82258064516129,
+    "payoff": 2.216488983653163,
+    "breakevenPayoff": 2.583333333333333,
+    "profitFactor": 0.86,
+    "expectancy": -3.872093023255814,
+    "best": 575,
+    "worst": -300,
+    "avgWinMinutes": 6.995833333333334,
+    "avgLossMinutes": 3.459139784946237
+   }
+  },
+  {
+   "key": "LONDON",
+   "summary": {
+    "operations": 4,
+    "wins": 2,
+    "losses": 2,
+    "longs": 2,
+    "shorts": 2,
+    "longWins": 2,
+    "shortWins": 0,
+    "winRate": 0.5,
+    "grossPnl": 32,
+    "avgWin": 17.75,
+    "avgLoss": -1.75,
+    "payoff": 10.142857142857142,
+    "breakevenPayoff": 1,
+    "profitFactor": 10.14,
+    "expectancy": 8,
+    "best": 32.5,
+    "worst": -2.5,
+    "avgWinMinutes": 1.7333333333333334,
+    "avgLossMinutes": 5.283333333333333
+   }
+  },
+  {
+   "key": "OUTSIDE",
+   "summary": {
+    "operations": 193,
+    "wins": 78,
+    "losses": 115,
+    "longs": 80,
+    "shorts": 113,
+    "longWins": 30,
+    "shortWins": 48,
+    "winRate": 0.40414507772020725,
+    "grossPnl": 297,
+    "avgWin": 54.57051282051282,
+    "avgLoss": -34.43043478260869,
+    "payoff": 1.5849498609316768,
+    "breakevenPayoff": 1.4743589743589745,
+    "profitFactor": 1.08,
+    "expectancy": 1.538860103626943,
+    "best": 662,
+    "worst": -252.5,
+    "avgWinMinutes": 5.667948717948718,
+    "avgLossMinutes": 3.162608695652174
+   }
+  }
+ ],
+ "sessionDrawdown": {
+  "rows": [
+   {
+    "session": "ASIA",
+    "days": 12,
+    "trades": 184,
+    "total": -475.5,
+    "perTrade": -2.58,
+    "drawdownMedian": 148.25,
+    "drawdownP75": 242.5,
+    "drawdownWorst": 2269,
+    "drawdownWorstDay": "2026-10-29",
+    "chainedDrawdown": 2858,
+    "greenDays": 4,
+    "worstStreak": 13,
+    "overLimit": null
+   },
+   {
+    "session": "LONDON",
+    "days": 2,
+    "trades": 4,
+    "total": 32,
+    "perTrade": 8,
+    "drawdownMedian": 1.75,
+    "drawdownP75": 2.5,
+    "drawdownWorst": 2.5,
+    "drawdownWorstDay": "2026-10-05",
+    "chainedDrawdown": 2.5,
+    "greenDays": 1,
+    "worstStreak": 1,
+    "overLimit": null
+   },
+   {
+    "session": "NY_AM",
+    "days": 14,
+    "trades": 96,
+    "total": -329.5,
+    "perTrade": -3.43,
+    "drawdownMedian": 82.75,
+    "drawdownP75": 219,
+    "drawdownWorst": 827.5,
+    "drawdownWorstDay": "2026-10-15",
+    "chainedDrawdown": 1207,
+    "greenDays": 7,
+    "worstStreak": 9,
+    "overLimit": null
+   },
+   {
+    "session": "NY_LUNCH",
+    "days": 11,
+    "trades": 53,
+    "total": -378,
+    "perTrade": -7.13,
+    "drawdownMedian": 70,
+    "drawdownP75": 162.5,
+    "drawdownWorst": 807.5,
+    "drawdownWorstDay": "2026-10-09",
+    "chainedDrawdown": 871.5,
+    "greenDays": 5,
+    "worstStreak": 7,
+    "overLimit": null
+   },
+   {
+    "session": "NY_PM",
+    "days": 7,
+    "trades": 43,
+    "total": -166.5,
+    "perTrade": -3.87,
+    "drawdownMedian": 95.5,
+    "drawdownP75": 305.5,
+    "drawdownWorst": 405,
+    "drawdownWorstDay": "2026-10-28",
+    "chainedDrawdown": 825.5,
+    "greenDays": 3,
+    "worstStreak": 11,
+    "overLimit": null
+   },
+   {
+    "session": "OUTSIDE",
+    "days": 16,
+    "trades": 193,
+    "total": 297,
+    "perTrade": 1.54,
+    "drawdownMedian": 171.5,
+    "drawdownP75": 233.5,
+    "drawdownWorst": 670.5,
+    "drawdownWorstDay": "2026-10-14",
+    "chainedDrawdown": 897.5,
+    "greenDays": 9,
+    "worstStreak": 10,
+    "overLimit": null
+   }
+  ],
+  "gaps": [
+   {
+    "from": 0,
+    "to": 2,
+    "label": "tras cerrar Asia",
+    "days": 7,
+    "trades": 37,
+    "total": 421,
+    "perTrade": 11.38,
+    "drawdownWorst": 277,
+    "greenDays": 4
+   },
+   {
+    "from": 5,
+    "to": 9.5,
+    "label": "entre Londres y NY AM",
+    "days": 6,
+    "trades": 27,
+    "total": 105,
+    "perTrade": 3.89,
+    "drawdownWorst": 176.5,
+    "greenDays": 5
+   },
+   {
+    "from": 11,
+    "to": 12,
+    "label": "entre NY AM y el almuerzo",
+    "days": 11,
+    "trades": 50,
+    "total": -586,
+    "perTrade": -11.72,
+    "drawdownWorst": 366,
+    "greenDays": 3
+   },
+   {
+    "from": 13,
+    "to": 13.5,
+    "label": "entre el almuerzo y NY PM",
+    "days": 10,
+    "trades": 30,
+    "total": 12.5,
+    "perTrade": 0.42,
+    "drawdownWorst": 304.5,
+    "greenDays": 4
+   },
+   {
+    "from": 16,
+    "to": 20,
+    "label": "entre NY PM y Asia",
+    "days": 9,
+    "trades": 49,
+    "total": 344.5,
+    "perTrade": 7.03,
+    "drawdownWorst": 208,
+    "greenDays": 8
+   }
+  ],
+  "thresholds": [
+   25,
+   50,
+   75,
+   100,
+   150,
+   200,
+   300
+  ],
+  "cells": [
+   {
+    "session": "ASIA",
+    "threshold": 25,
+    "days": 11,
+    "daysWithRest": 11,
+    "tradesAfter": 155,
+    "perTradeAfter": -1.3,
+    "baseline": -2.58,
+    "diff": 1.29,
+    "medianAfter": -7,
+    "p": 0.7006,
+    "survives": false,
+    "enough": true
+   },
+   {
+    "session": "ASIA",
+    "threshold": 50,
+    "days": 10,
+    "daysWithRest": 10,
+    "tradesAfter": 137,
+    "perTradeAfter": -0.87,
+    "baseline": -2.58,
+    "diff": 1.71,
+    "medianAfter": -3.25,
+    "p": 0.7626,
+    "survives": false,
+    "enough": true
+   },
+   {
+    "session": "ASIA",
+    "threshold": 75,
+    "days": 9,
+    "daysWithRest": 8,
+    "tradesAfter": 119,
+    "perTradeAfter": 1.04,
+    "baseline": -2.58,
+    "diff": 3.63,
+    "medianAfter": 33,
+    "p": 0.8321,
+    "survives": false,
+    "enough": true
+   },
+   {
+    "session": "ASIA",
+    "threshold": 100,
+    "days": 7,
+    "daysWithRest": 7,
+    "tradesAfter": 111,
+    "perTradeAfter": 1.92,
+    "baseline": -2.58,
+    "diff": 4.51,
+    "medianAfter": 41,
+    "p": 0.7631,
+    "survives": false,
+    "enough": true
+   },
+   {
+    "session": "ASIA",
+    "threshold": 150,
+    "days": 6,
+    "daysWithRest": 6,
+    "tradesAfter": 87,
+    "perTradeAfter": 3.55,
+    "baseline": -2.58,
+    "diff": 6.13,
+    "medianAfter": 50.5,
+    "p": 0.6852,
+    "survives": false,
+    "enough": true
+   },
+   {
+    "session": "ASIA",
+    "threshold": 200,
+    "days": 5,
+    "daysWithRest": 5,
+    "tradesAfter": 65,
+    "perTradeAfter": 9.42,
+    "baseline": -2.58,
+    "diff": 12,
+    "medianAfter": 172.5,
+    "p": 0.6822,
+    "survives": false,
+    "enough": true
+   },
+   {
+    "session": "ASIA",
+    "threshold": 300,
+    "days": 2,
+    "daysWithRest": 2,
+    "tradesAfter": 21,
+    "perTradeAfter": 24.57,
+    "baseline": -2.58,
+    "diff": 27.16,
+    "medianAfter": 258,
+    "p": 0.6702,
+    "survives": false,
+    "enough": true
+   },
+   {
+    "session": "NY_AM",
+    "threshold": 25,
+    "days": 10,
+    "daysWithRest": 9,
+    "tradesAfter": 75,
+    "perTradeAfter": -3.13,
+    "baseline": -3.43,
+    "diff": 0.31,
+    "medianAfter": -7,
+    "p": 0.9885,
+    "survives": false,
+    "enough": true
+   },
+   {
+    "session": "NY_AM",
+    "threshold": 50,
+    "days": 9,
+    "daysWithRest": 7,
+    "tradesAfter": 67,
+    "perTradeAfter": -2.14,
+    "baseline": -3.43,
+    "diff": 1.29,
+    "medianAfter": 38.5,
+    "p": 0.976,
+    "survives": false,
+    "enough": true
+   },
+   {
+    "session": "NY_AM",
+    "threshold": 75,
+    "days": 7,
+    "daysWithRest": 7,
+    "tradesAfter": 58,
+    "perTradeAfter": -2.28,
+    "baseline": -3.43,
+    "diff": 1.15,
+    "medianAfter": 38.5,
+    "p": 0.9215,
+    "survives": false,
+    "enough": true
+   },
+   {
+    "session": "NY_AM",
+    "threshold": 100,
+    "days": 6,
+    "daysWithRest": 6,
+    "tradesAfter": 49,
+    "perTradeAfter": -5.6,
+    "baseline": -3.43,
+    "diff": -2.17,
+    "medianAfter": -8.5,
+    "p": 0.7641,
+    "survives": false,
+    "enough": true
+   },
+   {
+    "session": "NY_AM",
+    "threshold": 150,
+    "days": 6,
+    "daysWithRest": 6,
+    "tradesAfter": 41,
+    "perTradeAfter": -0.13,
+    "baseline": -3.43,
+    "diff": 3.3,
+    "medianAfter": 39.75,
+    "p": 0.9525,
+    "survives": false,
+    "enough": true
+   },
+   {
+    "session": "NY_AM",
+    "threshold": 200,
+    "days": 5,
+    "daysWithRest": 5,
+    "tradesAfter": 33,
+    "perTradeAfter": -2.61,
+    "baseline": -3.43,
+    "diff": 0.83,
+    "medianAfter": 35.5,
+    "p": 0.9315,
+    "survives": false,
+    "enough": true
+   },
+   {
+    "session": "NY_AM",
+    "threshold": 300,
+    "days": 1,
+    "daysWithRest": 1,
+    "tradesAfter": 13,
+    "perTradeAfter": -32.46,
+    "baseline": -3.43,
+    "diff": -29.03,
+    "medianAfter": -422,
+    "p": 0.161,
+    "survives": false,
+    "enough": true
+   },
+   {
+    "session": "NY_LUNCH",
+    "threshold": 25,
+    "days": 9,
+    "daysWithRest": 7,
+    "tradesAfter": 38,
+    "perTradeAfter": -1.05,
+    "baseline": -7.13,
+    "diff": 6.08,
+    "medianAfter": -29,
+    "p": 0.8326,
+    "survives": false,
+    "enough": true
+   },
+   {
+    "session": "NY_LUNCH",
+    "threshold": 50,
+    "days": 7,
+    "daysWithRest": 7,
+    "tradesAfter": 33,
+    "perTradeAfter": 2.29,
+    "baseline": -7.13,
+    "diff": 9.42,
+    "medianAfter": 4,
+    "p": 0.92,
+    "survives": false,
+    "enough": true
+   },
+   {
+    "session": "NY_LUNCH",
+    "threshold": 75,
+    "days": 5,
+    "daysWithRest": 5,
+    "tradesAfter": 25,
+    "perTradeAfter": -3.12,
+    "baseline": -7.13,
+    "diff": 4.01,
+    "medianAfter": -16,
+    "p": 0.6782,
+    "survives": false,
+    "enough": true
+   },
+   {
+    "session": "NY_LUNCH",
+    "threshold": 100,
+    "days": 5,
+    "daysWithRest": 5,
+    "tradesAfter": 22,
+    "perTradeAfter": -1.09,
+    "baseline": -7.13,
+    "diff": 6.04,
+    "medianAfter": 13,
+    "p": 0.6782,
+    "survives": false,
+    "enough": true
+   },
+   {
+    "session": "NY_LUNCH",
+    "threshold": 150,
+    "days": 3,
+    "daysWithRest": 3,
+    "tradesAfter": 11,
+    "perTradeAfter": -48.14,
+    "baseline": -7.13,
+    "diff": -41,
+    "medianAfter": -69.5,
+    "p": 0.3274,
+    "survives": false,
+    "enough": true
+   },
+   {
+    "session": "NY_LUNCH",
+    "threshold": 200,
+    "days": 2,
+    "daysWithRest": 2,
+    "tradesAfter": 6,
+    "perTradeAfter": -54.5,
+    "baseline": -7.13,
+    "diff": -47.37,
+    "medianAfter": -163.5,
+    "p": null,
+    "survives": false,
+    "enough": false
+   },
+   {
+    "session": "NY_LUNCH",
+    "threshold": 300,
+    "days": 2,
+    "daysWithRest": 2,
+    "tradesAfter": 5,
+    "perTradeAfter": -53.2,
+    "baseline": -7.13,
+    "diff": -46.07,
+    "medianAfter": -133,
+    "p": null,
+    "survives": false,
+    "enough": false
+   },
+   {
+    "session": "NY_PM",
+    "threshold": 25,
+    "days": 6,
+    "daysWithRest": 5,
+    "tradesAfter": 24,
+    "perTradeAfter": 6.1,
+    "baseline": -3.87,
+    "diff": 9.98,
+    "medianAfter": -11.5,
+    "p": 0.6012,
+    "survives": false,
+    "enough": true
+   },
+   {
+    "session": "NY_PM",
+    "threshold": 50,
+    "days": 5,
+    "daysWithRest": 3,
+    "tradesAfter": 18,
+    "perTradeAfter": -18.06,
+    "baseline": -3.87,
+    "diff": -14.18,
+    "medianAfter": -2,
+    "p": 0.098,
+    "survives": false,
+    "enough": true
+   },
+   {
+    "session": "NY_PM",
+    "threshold": 75,
+    "days": 4,
+    "daysWithRest": 2,
+    "tradesAfter": 13,
+    "perTradeAfter": -18.88,
+    "baseline": -3.87,
+    "diff": -15.01,
+    "medianAfter": -122.75,
+    "p": 0.1736,
+    "survives": false,
+    "enough": true
+   },
+   {
+    "session": "NY_PM",
+    "threshold": 100,
+    "days": 3,
+    "daysWithRest": 2,
+    "tradesAfter": 13,
+    "perTradeAfter": -18.88,
+    "baseline": -3.87,
+    "diff": -15.01,
+    "medianAfter": -122.75,
+    "p": 0.2069,
+    "survives": false,
+    "enough": true
+   },
+   {
+    "session": "NY_PM",
+    "threshold": 150,
+    "days": 2,
+    "daysWithRest": 1,
+    "tradesAfter": 9,
+    "perTradeAfter": -27.83,
+    "baseline": -3.87,
+    "diff": -23.96,
+    "medianAfter": -250.5,
+    "p": null,
+    "survives": false,
+    "enough": false
+   },
+   {
+    "session": "NY_PM",
+    "threshold": 200,
+    "days": 2,
+    "daysWithRest": 1,
+    "tradesAfter": 5,
+    "perTradeAfter": -32.2,
+    "baseline": -3.87,
+    "diff": -28.33,
+    "medianAfter": -161,
+    "p": null,
+    "survives": false,
+    "enough": false
+   },
+   {
+    "session": "NY_PM",
+    "threshold": 300,
+    "days": 2,
+    "daysWithRest": 0,
+    "tradesAfter": 0,
+    "perTradeAfter": null,
+    "baseline": -3.87,
+    "diff": null,
+    "medianAfter": null,
+    "p": null,
+    "survives": false,
+    "enough": false
+   },
+   {
+    "session": "OUTSIDE",
+    "threshold": 25,
+    "days": 16,
+    "daysWithRest": 15,
+    "tradesAfter": 150,
+    "perTradeAfter": 4.04,
+    "baseline": 1.54,
+    "diff": 2.5,
+    "medianAfter": -39,
+    "p": 0.5877,
+    "survives": false,
+    "enough": true
+   },
+   {
+    "session": "OUTSIDE",
+    "threshold": 50,
+    "days": 16,
+    "daysWithRest": 14,
+    "tradesAfter": 104,
+    "perTradeAfter": -2.74,
+    "baseline": 1.54,
+    "diff": -4.27,
+    "medianAfter": -22.5,
+    "p": 0.06,
+    "survives": false,
+    "enough": true
+   },
+   {
+    "session": "OUTSIDE",
+    "threshold": 75,
+    "days": 13,
+    "daysWithRest": 12,
+    "tradesAfter": 77,
+    "perTradeAfter": -1.51,
+    "baseline": 1.54,
+    "diff": -3.05,
+    "medianAfter": 2,
+    "p": 0.1234,
+    "survives": false,
+    "enough": true
+   },
+   {
+    "session": "OUTSIDE",
+    "threshold": 100,
+    "days": 11,
+    "daysWithRest": 11,
+    "tradesAfter": 71,
+    "perTradeAfter": 2.47,
+    "baseline": 1.54,
+    "diff": 0.93,
+    "medianAfter": 1,
+    "p": 0.4573,
+    "survives": false,
+    "enough": true
+   },
+   {
+    "session": "OUTSIDE",
+    "threshold": 150,
+    "days": 9,
+    "daysWithRest": 8,
+    "tradesAfter": 48,
+    "perTradeAfter": 13.74,
+    "baseline": 1.54,
+    "diff": 12.2,
+    "medianAfter": 81.75,
+    "p": 0.967,
+    "survives": false,
+    "enough": true
+   },
+   {
+    "session": "OUTSIDE",
+    "threshold": 200,
+    "days": 6,
+    "daysWithRest": 6,
+    "tradesAfter": 36,
+    "perTradeAfter": 10.39,
+    "baseline": 1.54,
+    "diff": 8.85,
+    "medianAfter": 18,
+    "p": 0.8445,
+    "survives": false,
+    "enough": true
+   },
+   {
+    "session": "OUTSIDE",
+    "threshold": 300,
+    "days": 3,
+    "daysWithRest": 3,
+    "tradesAfter": 16,
+    "perTradeAfter": 11.25,
+    "baseline": 1.54,
+    "diff": 9.71,
+    "medianAfter": 33,
+    "p": 0.4468,
+    "survives": false,
+    "enough": true
+   }
+  ],
+  "permutations": 2000,
+  "minTradesAfter": 10,
+  "tested": 30,
+  "survivors": 0,
+  "fdr": 0.1,
+  "dailyLossLimit": 0
+ },
+ "byDay": [
+  {
+   "key": "2026-10-05",
+   "summary": {
+    "operations": 12,
+    "wins": 5,
+    "losses": 7,
+    "longs": 4,
+    "shorts": 8,
+    "longWins": 3,
+    "shortWins": 2,
+    "winRate": 0.4166666666666667,
+    "grossPnl": -316,
+    "avgWin": 16.3,
+    "avgLoss": -56.785714285714285,
+    "payoff": 0.2870440251572327,
+    "breakevenPayoff": 1.3999999999999997,
+    "profitFactor": 0.21,
+    "expectancy": -26.333333333333332,
+    "best": 32.5,
+    "worst": -252.5,
+    "avgWinMinutes": 2.9,
+    "avgLossMinutes": 5.252380952380952
+   }
+  },
+  {
+   "key": "2026-10-08",
+   "summary": {
+    "operations": 2,
+    "wins": 2,
+    "losses": 0,
+    "longs": 1,
+    "shorts": 1,
+    "longWins": 1,
+    "shortWins": 1,
+    "winRate": 1,
+    "grossPnl": 141.5,
+    "avgWin": 70.75,
+    "avgLoss": 0,
+    "payoff": 0,
+    "breakevenPayoff": 0,
+    "profitFactor": null,
+    "expectancy": 70.75,
+    "best": 130,
+    "worst": 11.5,
+    "avgWinMinutes": 9.95,
+    "avgLossMinutes": 0
+   }
+  },
+  {
+   "key": "2026-10-09",
+   "summary": {
+    "operations": 20,
+    "wins": 4,
+    "losses": 16,
+    "longs": 9,
+    "shorts": 11,
+    "longWins": 3,
+    "shortWins": 1,
+    "winRate": 0.2,
+    "grossPnl": -1259.5,
+    "avgWin": 24.25,
+    "avgLoss": -84.78125,
+    "payoff": 0.28603022484334684,
+    "breakevenPayoff": 4,
+    "profitFactor": 0.07,
+    "expectancy": -62.975,
+    "best": 46.5,
+    "worst": -310,
+    "avgWinMinutes": 4.354166666666667,
+    "avgLossMinutes": 3.459375
+   }
+  },
+  {
+   "key": "2026-10-12",
+   "summary": {
+    "operations": 6,
+    "wins": 3,
+    "losses": 3,
+    "longs": 1,
+    "shorts": 5,
+    "longWins": 1,
+    "shortWins": 2,
+    "winRate": 0.5,
+    "grossPnl": -64,
+    "avgWin": 28,
+    "avgLoss": -49.333333333333336,
+    "payoff": 0.5675675675675675,
+    "breakevenPayoff": 1,
+    "profitFactor": 0.57,
+    "expectancy": -10.666666666666666,
+    "best": 45,
+    "worst": -86.5,
+    "avgWinMinutes": 13.327777777777778,
+    "avgLossMinutes": 8.53888888888889
+   }
+  },
+  {
+   "key": "2026-10-13",
+   "summary": {
+    "operations": 49,
+    "wins": 13,
+    "losses": 36,
+    "longs": 23,
+    "shorts": 26,
+    "longWins": 7,
+    "shortWins": 6,
+    "winRate": 0.2653061224489796,
+    "grossPnl": -413,
+    "avgWin": 42.46153846153846,
+    "avgLoss": -26.805555555555557,
+    "payoff": 1.584057393383818,
+    "breakevenPayoff": 2.7692307692307687,
+    "profitFactor": 0.57,
+    "expectancy": -8.428571428571429,
+    "best": 100,
+    "worst": -52,
+    "avgWinMinutes": 6.3589743589743595,
+    "avgLossMinutes": 3.3759259259259258
+   }
+  },
+  {
+   "key": "2026-10-14",
+   "summary": {
+    "operations": 45,
+    "wins": 17,
+    "losses": 28,
+    "longs": 24,
+    "shorts": 21,
+    "longWins": 4,
+    "shortWins": 13,
+    "winRate": 0.37777777777777777,
+    "grossPnl": 748.5,
+    "avgWin": 127.91176470588235,
+    "avgLoss": -50.92857142857143,
+    "payoff": 2.511591452850425,
+    "breakevenPayoff": 1.647058823529412,
+    "profitFactor": 1.52,
+    "expectancy": 16.633333333333333,
+    "best": 692,
+    "worst": -182,
+    "avgWinMinutes": 6.057843137254903,
+    "avgLossMinutes": 4.039880952380952
+   }
+  },
+  {
+   "key": "2026-10-15",
+   "summary": {
+    "operations": 60,
+    "wins": 14,
+    "losses": 46,
+    "longs": 17,
+    "shorts": 43,
+    "longWins": 4,
+    "shortWins": 10,
+    "winRate": 0.23333333333333334,
+    "grossPnl": -624.5,
+    "avgWin": 128.57142857142858,
+    "avgLoss": -52.70652173913044,
+    "payoff": 2.4393836726276406,
+    "breakevenPayoff": 3.2857142857142856,
+    "profitFactor": 0.74,
+    "expectancy": -10.408333333333333,
+    "best": 662,
+    "worst": -125,
+    "avgWinMinutes": 2.748809523809524,
+    "avgLossMinutes": 1.425
+   }
+  },
+  {
+   "key": "2026-10-19",
+   "summary": {
+    "operations": 39,
+    "wins": 12,
+    "losses": 27,
+    "longs": 23,
+    "shorts": 16,
+    "longWins": 5,
+    "shortWins": 7,
+    "winRate": 0.3076923076923077,
+    "grossPnl": -50,
+    "avgWin": 42.666666666666664,
+    "avgLoss": -20.814814814814813,
+    "payoff": 2.0498220640569396,
+    "breakevenPayoff": 2.25,
+    "profitFactor": 0.91,
+    "expectancy": -1.2820512820512822,
+    "best": 174,
+    "worst": -46.5,
+    "avgWinMinutes": 8.341666666666667,
+    "avgLossMinutes": 1.7067901234567902
+   }
+  },
+  {
+   "key": "2026-10-20",
+   "summary": {
+    "operations": 27,
+    "wins": 8,
+    "losses": 19,
+    "longs": 4,
+    "shorts": 23,
+    "longWins": 1,
+    "shortWins": 7,
+    "winRate": 0.2962962962962963,
+    "grossPnl": 504.5,
+    "avgWin": 111.375,
+    "avgLoss": -20.342105263157894,
+    "payoff": 5.4750970245795605,
+    "breakevenPayoff": 2.375,
+    "profitFactor": 2.31,
+    "expectancy": 18.685185185185187,
+    "best": 359.5,
+    "worst": -51.5,
+    "avgWinMinutes": 6.479166666666667,
+    "avgLossMinutes": 3.5938596491228068
+   }
+  },
+  {
+   "key": "2026-10-21",
+   "summary": {
+    "operations": 18,
+    "wins": 6,
+    "losses": 12,
+    "longs": 11,
+    "shorts": 7,
+    "longWins": 4,
+    "shortWins": 2,
+    "winRate": 0.3333333333333333,
+    "grossPnl": 13.5,
+    "avgWin": 45,
+    "avgLoss": -21.375,
+    "payoff": 2.1052631578947367,
+    "breakevenPayoff": 2.0000000000000004,
+    "profitFactor": 1.05,
+    "expectancy": 0.75,
+    "best": 100,
+    "worst": -53,
+    "avgWinMinutes": 6.938888888888888,
+    "avgLossMinutes": 2.5152777777777775
+   }
+  },
+  {
+   "key": "2026-10-22",
+   "summary": {
+    "operations": 50,
+    "wins": 21,
+    "losses": 29,
+    "longs": 26,
+    "shorts": 24,
+    "longWins": 13,
+    "shortWins": 8,
+    "winRate": 0.42,
+    "grossPnl": 26,
+    "avgWin": 48.976190476190474,
+    "avgLoss": -34.56896551724138,
+    "payoff": 1.41676760479753,
+    "breakevenPayoff": 1.3809523809523812,
+    "profitFactor": 1.03,
+    "expectancy": 0.52,
+    "best": 187.5,
+    "worst": -89,
+    "avgWinMinutes": 2.821428571428571,
+    "avgLossMinutes": 2.112068965517241
+   }
+  },
+  {
+   "key": "2026-10-23",
+   "summary": {
+    "operations": 31,
+    "wins": 8,
+    "losses": 23,
+    "longs": 12,
+    "shorts": 19,
+    "longWins": 2,
+    "shortWins": 6,
+    "winRate": 0.25806451612903225,
+    "grossPnl": -177.5,
+    "avgWin": 74.25,
+    "avgLoss": -33.54347826086956,
+    "payoff": 2.2135450421257294,
+    "breakevenPayoff": 2.875,
+    "profitFactor": 0.77,
+    "expectancy": -5.725806451612903,
+    "best": 178,
+    "worst": -73.5,
+    "avgWinMinutes": 2.6958333333333333,
+    "avgLossMinutes": 1.258695652173913
+   }
+  },
+  {
+   "key": "2026-10-25",
+   "summary": {
+    "operations": 15,
+    "wins": 6,
+    "losses": 9,
+    "longs": 9,
+    "shorts": 6,
+    "longWins": 4,
+    "shortWins": 2,
+    "winRate": 0.4,
+    "grossPnl": 104,
+    "avgWin": 53.5,
+    "avgLoss": -24.11111111111111,
+    "payoff": 2.21889400921659,
+    "breakevenPayoff": 1.4999999999999998,
+    "profitFactor": 1.48,
+    "expectancy": 6.933333333333334,
+    "best": 103,
+    "worst": -32.5,
+    "avgWinMinutes": 3.775,
+    "avgLossMinutes": 1.6222222222222222
+   }
+  },
+  {
+   "key": "2026-10-26",
+   "summary": {
+    "operations": 53,
+    "wins": 15,
+    "losses": 38,
+    "longs": 31,
+    "shorts": 22,
+    "longWins": 8,
+    "shortWins": 7,
+    "winRate": 0.2830188679245283,
+    "grossPnl": 81,
+    "avgWin": 66.23333333333333,
+    "avgLoss": -24.013157894736842,
+    "payoff": 2.7582100456621004,
+    "breakevenPayoff": 2.5333333333333337,
+    "profitFactor": 1.09,
+    "expectancy": 1.528301886792453,
+    "best": 283.5,
+    "worst": -72,
+    "avgWinMinutes": 5.923333333333333,
+    "avgLossMinutes": 3.730263157894737
+   }
+  },
+  {
+   "key": "2026-10-27",
+   "summary": {
+    "operations": 57,
+    "wins": 23,
+    "losses": 34,
+    "longs": 39,
+    "shorts": 18,
+    "longWins": 17,
+    "shortWins": 6,
+    "winRate": 0.40350877192982454,
+    "grossPnl": 151.5,
+    "avgWin": 41.95652173913044,
+    "avgLoss": -23.926470588235293,
+    "payoff": 1.7535608348253655,
+    "breakevenPayoff": 1.4782608695652177,
+    "profitFactor": 1.19,
+    "expectancy": 2.6578947368421053,
+    "best": 262.5,
+    "worst": -128.5,
+    "avgWinMinutes": 5.643478260869566,
+    "avgLossMinutes": 2.466666666666667
+   }
+  },
+  {
+   "key": "2026-10-28",
+   "summary": {
+    "operations": 62,
+    "wins": 19,
+    "losses": 43,
+    "longs": 24,
+    "shorts": 38,
+    "longWins": 4,
+    "shortWins": 15,
+    "winRate": 0.3064516129032258,
+    "grossPnl": -493.5,
+    "avgWin": 157.81578947368422,
+    "avgLoss": -81.20930232558139,
+    "payoff": 1.9433215771387233,
+    "breakevenPayoff": 2.263157894736842,
+    "profitFactor": 0.86,
+    "expectancy": -7.959677419354839,
+    "best": 2224.5,
+    "worst": -1119,
+    "avgWinMinutes": 3.2438596491228067,
+    "avgLossMinutes": 2.575581395348837
+   }
+  },
+  {
+   "key": "2026-10-29",
+   "summary": {
+    "operations": 12,
+    "wins": 4,
+    "losses": 8,
+    "longs": 2,
+    "shorts": 10,
+    "longWins": 2,
+    "shortWins": 2,
+    "winRate": 0.3333333333333333,
+    "grossPnl": 347,
+    "avgWin": 145.25,
+    "avgLoss": -29.25,
+    "payoff": 4.965811965811966,
+    "breakevenPayoff": 2.0000000000000004,
+    "profitFactor": 2.48,
+    "expectancy": 28.916666666666668,
+    "best": 575,
+    "worst": -61.5,
+    "avgWinMinutes": 6.2875,
+    "avgLossMinutes": 0.9791666666666666
+   }
+  },
+  {
+   "key": "2026-10-30",
+   "summary": {
+    "operations": 15,
+    "wins": 9,
+    "losses": 6,
+    "longs": 2,
+    "shorts": 13,
+    "longWins": 1,
+    "shortWins": 8,
+    "winRate": 0.6,
+    "grossPnl": 260,
+    "avgWin": 50.94444444444444,
+    "avgLoss": -33.083333333333336,
+    "payoff": 1.5398824517212424,
+    "breakevenPayoff": 0.6666666666666667,
+    "profitFactor": 2.31,
+    "expectancy": 17.333333333333332,
+    "best": 243,
+    "worst": -62.5,
+    "avgWinMinutes": 5.009259259259259,
+    "avgLossMinutes": 1.777777777777778
+   }
+  }
+ ],
+ "byWeekday": [
+  {
+   "key": 0,
+   "summary": {
+    "operations": 15,
+    "wins": 6,
+    "losses": 9,
+    "longs": 9,
+    "shorts": 6,
+    "longWins": 4,
+    "shortWins": 2,
+    "winRate": 0.4,
+    "grossPnl": 104,
+    "avgWin": 53.5,
+    "avgLoss": -24.11111111111111,
+    "payoff": 2.21889400921659,
+    "breakevenPayoff": 1.4999999999999998,
+    "profitFactor": 1.48,
+    "expectancy": 6.933333333333334,
+    "best": 103,
+    "worst": -32.5,
+    "avgWinMinutes": 3.775,
+    "avgLossMinutes": 1.6222222222222222
+   }
+  },
+  {
+   "key": 1,
+   "summary": {
+    "operations": 110,
+    "wins": 35,
+    "losses": 75,
+    "longs": 59,
+    "shorts": 51,
+    "longWins": 17,
+    "shortWins": 18,
+    "winRate": 0.3181818181818182,
+    "grossPnl": -349,
+    "avgWin": 47.74285714285714,
+    "avgLoss": -26.933333333333334,
+    "payoff": 1.7726308345120225,
+    "breakevenPayoff": 2.1428571428571432,
+    "profitFactor": 0.83,
+    "expectancy": -3.172727272727273,
+    "best": 283.5,
+    "worst": -252.5,
+    "avgWinMinutes": 6.955238095238095,
+    "avgLossMinutes": 3.3362222222222226
+   }
+  },
+  {
+   "key": 2,
+   "summary": {
+    "operations": 133,
+    "wins": 44,
+    "losses": 89,
+    "longs": 66,
+    "shorts": 67,
+    "longWins": 25,
+    "shortWins": 19,
+    "winRate": 0.3308270676691729,
+    "grossPnl": 243,
+    "avgWin": 54.72727272727273,
+    "avgLoss": -24.325842696629213,
+    "payoff": 2.2497585555322277,
+    "breakevenPayoff": 2.022727272727273,
+    "profitFactor": 1.11,
+    "expectancy": 1.8270676691729324,
+    "best": 359.5,
+    "worst": -128.5,
+    "avgWinMinutes": 6.006818181818182,
+    "avgLossMinutes": 3.0750936329588017
+   }
+  },
+  {
+   "key": 3,
+   "summary": {
+    "operations": 125,
+    "wins": 42,
+    "losses": 83,
+    "longs": 59,
+    "shorts": 66,
+    "longWins": 12,
+    "shortWins": 30,
+    "winRate": 0.336,
+    "grossPnl": 268.5,
+    "avgWin": 129.5952380952381,
+    "avgLoss": -62.3433734939759,
+    "payoff": 2.0787331649250675,
+    "breakevenPayoff": 1.9761904761904758,
+    "profitFactor": 1.05,
+    "expectancy": 2.148,
+    "best": 2224.5,
+    "worst": -1119,
+    "avgWinMinutes": 4.9107142857142865,
+    "avgLossMinutes": 3.060843373493976
+   }
+  },
+  {
+   "key": 4,
+   "summary": {
+    "operations": 124,
+    "wins": 41,
+    "losses": 83,
+    "longs": 46,
+    "shorts": 78,
+    "longWins": 20,
+    "shortWins": 21,
+    "winRate": 0.33064516129032256,
+    "grossPnl": -110,
+    "avgWin": 86.60975609756098,
+    "avgLoss": -44.10843373493976,
+    "payoff": 1.9635645332143024,
+    "breakevenPayoff": 2.0243902439024395,
+    "profitFactor": 0.97,
+    "expectancy": -0.8870967741935484,
+    "best": 662,
+    "worst": -125,
+    "avgWinMinutes": 3.482520325203252,
+    "avgLossMinutes": 1.6220883534136548
+   }
+  },
+  {
+   "key": 5,
+   "summary": {
+    "operations": 66,
+    "wins": 21,
+    "losses": 45,
+    "longs": 23,
+    "shorts": 43,
+    "longWins": 6,
+    "shortWins": 15,
+    "winRate": 0.3181818181818182,
+    "grossPnl": -1177,
+    "avgWin": 54.73809523809524,
+    "avgLoss": -51.7,
+    "payoff": 1.0587639311043566,
+    "breakevenPayoff": 2.1428571428571432,
+    "profitFactor": 0.49,
+    "expectancy": -17.833333333333332,
+    "best": 243,
+    "worst": -310,
+    "avgWinMinutes": 4.003174603174603,
+    "avgLossMinutes": 2.1103703703703705
+   }
+  }
+ ],
+ "byHour": [
+  {
+   "key": 0,
+   "summary": {
+    "operations": 31,
+    "wins": 11,
+    "losses": 20,
+    "longs": 10,
+    "shorts": 21,
+    "longWins": 4,
+    "shortWins": 7,
+    "winRate": 0.3548387096774194,
+    "grossPnl": 272.5,
+    "avgWin": 62.63636363636363,
+    "avgLoss": -20.825,
+    "payoff": 3.0077485539670414,
+    "breakevenPayoff": 1.8181818181818181,
+    "profitFactor": 1.65,
+    "expectancy": 8.790322580645162,
+    "best": 352,
+    "worst": -107.5,
+    "avgWinMinutes": 5.543939393939394,
+    "avgLossMinutes": 1.7716666666666667
+   }
+  },
+  {
+   "key": 1,
+   "summary": {
+    "operations": 6,
+    "wins": 5,
+    "losses": 1,
+    "longs": 3,
+    "shorts": 3,
+    "longWins": 2,
+    "shortWins": 3,
+    "winRate": 0.8333333333333334,
+    "grossPnl": 148.5,
+    "avgWin": 37,
+    "avgLoss": -36.5,
+    "payoff": 1.0136986301369864,
+    "breakevenPayoff": 0.19999999999999996,
+    "profitFactor": 5.07,
+    "expectancy": 24.75,
+    "best": 74.5,
+    "worst": -36.5,
+    "avgWinMinutes": 4.093333333333333,
+    "avgLossMinutes": 13.6
+   }
+  },
+  {
+   "key": 2,
+   "summary": {
+    "operations": 2,
+    "wins": 1,
+    "losses": 1,
+    "longs": 1,
+    "shorts": 1,
+    "longWins": 1,
+    "shortWins": 0,
+    "winRate": 0.5,
+    "grossPnl": 31.5,
+    "avgWin": 32.5,
+    "avgLoss": -1,
+    "payoff": 32.5,
+    "breakevenPayoff": 1,
+    "profitFactor": 32.5,
+    "expectancy": 15.75,
+    "best": 32.5,
+    "worst": -1,
+    "avgWinMinutes": 3.25,
+    "avgLossMinutes": 10.183333333333334
+   }
+  },
+  {
+   "key": 3,
+   "summary": {
+    "operations": 2,
+    "wins": 1,
+    "losses": 1,
+    "longs": 1,
+    "shorts": 1,
+    "longWins": 1,
+    "shortWins": 0,
+    "winRate": 0.5,
+    "grossPnl": 0.5,
+    "avgWin": 3,
+    "avgLoss": -2.5,
+    "payoff": 1.2,
+    "breakevenPayoff": 1,
+    "profitFactor": 1.2,
+    "expectancy": 0.25,
+    "best": 3,
+    "worst": -2.5,
+    "avgWinMinutes": 0.21666666666666667,
+    "avgLossMinutes": 0.38333333333333336
+   }
+  },
+  {
+   "key": 5,
+   "summary": {
+    "operations": 8,
+    "wins": 4,
+    "losses": 4,
+    "longs": 0,
+    "shorts": 8,
+    "longWins": 0,
+    "shortWins": 4,
+    "winRate": 0.5,
+    "grossPnl": -86.5,
+    "avgWin": 22.5,
+    "avgLoss": -44.125,
+    "payoff": 0.509915014164306,
+    "breakevenPayoff": 1,
+    "profitFactor": 0.51,
+    "expectancy": -10.8125,
+    "best": 47.5,
+    "worst": -62.5,
+    "avgWinMinutes": 2.879166666666667,
+    "avgLossMinutes": 2.4166666666666665
+   }
+  },
+  {
+   "key": 6,
+   "summary": {
+    "operations": 3,
+    "wins": 2,
+    "losses": 1,
+    "longs": 2,
+    "shorts": 1,
+    "longWins": 1,
+    "shortWins": 1,
+    "winRate": 0.6666666666666666,
+    "grossPnl": 24,
+    "avgWin": 12.75,
+    "avgLoss": -1.5,
+    "payoff": 8.5,
+    "breakevenPayoff": 0.5000000000000001,
+    "profitFactor": 17,
+    "expectancy": 8,
+    "best": 14.5,
+    "worst": -1.5,
+    "avgWinMinutes": 2.55,
+    "avgLossMinutes": 0.6833333333333333
+   }
+  },
+  {
+   "key": 8,
+   "summary": {
+    "operations": 6,
+    "wins": 3,
+    "losses": 3,
+    "longs": 4,
+    "shorts": 2,
+    "longWins": 2,
+    "shortWins": 1,
+    "winRate": 0.5,
+    "grossPnl": 8,
+    "avgWin": 24.5,
+    "avgLoss": -21.833333333333332,
+    "payoff": 1.1221374045801527,
+    "breakevenPayoff": 1,
+    "profitFactor": 1.12,
+    "expectancy": 1.3333333333333333,
+    "best": 41,
+    "worst": -27.5,
+    "avgWinMinutes": 4.377777777777778,
+    "avgLossMinutes": 1.4
+   }
+  },
+  {
+   "key": 9,
+   "summary": {
+    "operations": 47,
+    "wins": 12,
+    "losses": 35,
+    "longs": 11,
+    "shorts": 36,
+    "longWins": 2,
+    "shortWins": 10,
+    "winRate": 0.2553191489361702,
+    "grossPnl": -347.5,
+    "avgWin": 72.625,
+    "avgLoss": -34.82857142857143,
+    "payoff": 2.0852132895816244,
+    "breakevenPayoff": 2.9166666666666674,
+    "profitFactor": 0.71,
+    "expectancy": -7.3936170212765955,
+    "best": 161.5,
+    "worst": -89,
+    "avgWinMinutes": 4.272222222222222,
+    "avgLossMinutes": 0.8590476190476191
+   }
+  },
+  {
+   "key": 10,
+   "summary": {
+    "operations": 59,
+    "wins": 19,
+    "losses": 40,
+    "longs": 21,
+    "shorts": 38,
+    "longWins": 9,
+    "shortWins": 10,
+    "winRate": 0.3220338983050847,
+    "grossPnl": 177.5,
+    "avgWin": 103.05263157894737,
+    "avgLoss": -44.5125,
+    "payoff": 2.315139153697217,
+    "breakevenPayoff": 2.1052631578947367,
+    "profitFactor": 1.1,
+    "expectancy": 3.0084745762711864,
+    "best": 359.5,
+    "worst": -125,
+    "avgWinMinutes": 5.534210526315789,
+    "avgLossMinutes": 2.5566666666666666
+   }
+  },
+  {
+   "key": 11,
+   "summary": {
+    "operations": 50,
+    "wins": 14,
+    "losses": 36,
+    "longs": 24,
+    "shorts": 26,
+    "longWins": 9,
+    "shortWins": 5,
+    "winRate": 0.28,
+    "grossPnl": -586,
+    "avgWin": 95.39285714285714,
+    "avgLoss": -53.375,
+    "payoff": 1.787219805955169,
+    "breakevenPayoff": 2.571428571428571,
+    "profitFactor": 0.7,
+    "expectancy": -11.72,
+    "best": 662,
+    "worst": -252.5,
+    "avgWinMinutes": 4.626190476190476,
+    "avgLossMinutes": 4.156018518518518
+   }
+  },
+  {
+   "key": 12,
+   "summary": {
+    "operations": 53,
+    "wins": 12,
+    "losses": 41,
+    "longs": 25,
+    "shorts": 28,
+    "longWins": 4,
+    "shortWins": 8,
+    "winRate": 0.22641509433962265,
+    "grossPnl": -378,
+    "avgWin": 125.5,
+    "avgLoss": -45.951219512195124,
+    "payoff": 2.7311571125265393,
+    "breakevenPayoff": 3.416666666666667,
+    "profitFactor": 0.8,
+    "expectancy": -7.132075471698113,
+    "best": 692,
+    "worst": -310,
+    "avgWinMinutes": 5.211111111111111,
+    "avgLossMinutes": 3.4764227642276424
+   }
+  },
+  {
+   "key": 13,
+   "summary": {
+    "operations": 47,
+    "wins": 13,
+    "losses": 34,
+    "longs": 25,
+    "shorts": 22,
+    "longWins": 4,
+    "shortWins": 9,
+    "winRate": 0.2765957446808511,
+    "grossPnl": 511,
+    "avgWin": 126.07692307692308,
+    "avgLoss": -33.1764705882353,
+    "payoff": 3.800190943807965,
+    "breakevenPayoff": 2.615384615384615,
+    "profitFactor": 1.45,
+    "expectancy": 10.872340425531915,
+    "best": 575,
+    "worst": -80.5,
+    "avgWinMinutes": 9.055128205128204,
+    "avgLossMinutes": 3.131372549019608
+   }
+  },
+  {
+   "key": 14,
+   "summary": {
+    "operations": 22,
+    "wins": 6,
+    "losses": 16,
+    "longs": 17,
+    "shorts": 5,
+    "longWins": 5,
+    "shortWins": 1,
+    "winRate": 0.2727272727272727,
+    "grossPnl": -299,
+    "avgWin": 34.833333333333336,
+    "avgLoss": -31.75,
+    "payoff": 1.0971128608923886,
+    "breakevenPayoff": 2.666666666666667,
+    "profitFactor": 0.41,
+    "expectancy": -13.590909090909092,
+    "best": 108,
+    "worst": -123,
+    "avgWinMinutes": 3.85,
+    "avgLossMinutes": 2.564583333333333
+   }
+  },
+  {
+   "key": 15,
+   "summary": {
+    "operations": 4,
+    "wins": 0,
+    "losses": 4,
+    "longs": 3,
+    "shorts": 1,
+    "longWins": 0,
+    "shortWins": 0,
+    "winRate": 0,
+    "grossPnl": -366,
+    "avgWin": 0,
+    "avgLoss": -91.5,
+    "payoff": 0,
+    "breakevenPayoff": 0,
+    "profitFactor": 0,
+    "expectancy": -91.5,
+    "best": 0,
+    "worst": -300,
+    "avgWinMinutes": 0,
+    "avgLossMinutes": 3.245833333333333
+   }
+  },
+  {
+   "key": 16,
+   "summary": {
+    "operations": 2,
+    "wins": 2,
+    "losses": 0,
+    "longs": 0,
+    "shorts": 2,
+    "longWins": 0,
+    "shortWins": 2,
+    "winRate": 1,
+    "grossPnl": 54.5,
+    "avgWin": 27.25,
+    "avgLoss": 0,
+    "payoff": 0,
+    "breakevenPayoff": 0,
+    "profitFactor": null,
+    "expectancy": 27.25,
+    "best": 51.5,
+    "worst": 3,
+    "avgWinMinutes": 5.141666666666667,
+    "avgLossMinutes": 0
+   }
+  },
+  {
+   "key": 18,
+   "summary": {
+    "operations": 30,
+    "wins": 14,
+    "losses": 16,
+    "longs": 17,
+    "shorts": 13,
+    "longWins": 7,
+    "shortWins": 7,
+    "winRate": 0.4666666666666667,
+    "grossPnl": 169.5,
+    "avgWin": 34.607142857142854,
+    "avgLoss": -19.6875,
+    "payoff": 1.7578231292517006,
+    "breakevenPayoff": 1.1428571428571428,
+    "profitFactor": 1.54,
+    "expectancy": 5.65,
+    "best": 224,
+    "worst": -60.5,
+    "avgWinMinutes": 5.688095238095238,
+    "avgLossMinutes": 3.5989583333333335
+   }
+  },
+  {
+   "key": 19,
+   "summary": {
+    "operations": 17,
+    "wins": 11,
+    "losses": 6,
+    "longs": 2,
+    "shorts": 15,
+    "longWins": 2,
+    "shortWins": 9,
+    "winRate": 0.6470588235294118,
+    "grossPnl": 120.5,
+    "avgWin": 22.818181818181817,
+    "avgLoss": -21.75,
+    "payoff": 1.0491118077324972,
+    "breakevenPayoff": 0.5454545454545454,
+    "profitFactor": 1.92,
+    "expectancy": 7.088235294117647,
+    "best": 93.5,
+    "worst": -74,
+    "avgWinMinutes": 6.792424242424243,
+    "avgLossMinutes": 4.383333333333334
+   }
+  },
+  {
+   "key": 20,
+   "summary": {
+    "operations": 31,
+    "wins": 14,
+    "losses": 17,
+    "longs": 17,
+    "shorts": 14,
+    "longWins": 10,
+    "shortWins": 4,
+    "winRate": 0.45161290322580644,
+    "grossPnl": -967.5,
+    "avgWin": 33.07142857142857,
+    "avgLoss": -84.1470588235294,
+    "payoff": 0.39301942377789983,
+    "breakevenPayoff": 1.2142857142857142,
+    "profitFactor": 0.32,
+    "expectancy": -31.20967741935484,
+    "best": 138,
+    "worst": -609,
+    "avgWinMinutes": 2.0297619047619047,
+    "avgLossMinutes": 2.8107843137254904
+   }
+  },
+  {
+   "key": 21,
+   "summary": {
+    "operations": 37,
+    "wins": 11,
+    "losses": 26,
+    "longs": 18,
+    "shorts": 19,
+    "longWins": 5,
+    "shortWins": 6,
+    "winRate": 0.2972972972972973,
+    "grossPnl": 1010,
+    "avgWin": 244.5,
+    "avgLoss": -64.59615384615384,
+    "payoff": 3.7850550759154515,
+    "breakevenPayoff": 2.3636363636363633,
+    "profitFactor": 1.6,
+    "expectancy": 27.2972972972973,
+    "best": 2224.5,
+    "worst": -1119,
+    "avgWinMinutes": 3.6348484848484848,
+    "avgLossMinutes": 2.41025641025641
+   }
+  },
+  {
+   "key": 22,
+   "summary": {
+    "operations": 68,
+    "wins": 22,
+    "losses": 46,
+    "longs": 30,
+    "shorts": 38,
+    "longWins": 9,
+    "shortWins": 13,
+    "winRate": 0.3235294117647059,
+    "grossPnl": -519,
+    "avgWin": 56.31818181818182,
+    "avgLoss": -38.21739130434783,
+    "payoff": 1.4736270555383184,
+    "breakevenPayoff": 2.090909090909091,
+    "profitFactor": 0.7,
+    "expectancy": -7.632352941176471,
+    "best": 319,
+    "worst": -185,
+    "avgWinMinutes": 5.699242424242424,
+    "avgLossMinutes": 1.4666666666666666
+   }
+  },
+  {
+   "key": 23,
+   "summary": {
+    "operations": 48,
+    "wins": 12,
+    "losses": 36,
+    "longs": 31,
+    "shorts": 17,
+    "longWins": 7,
+    "shortWins": 5,
+    "winRate": 0.25,
+    "grossPnl": 1,
+    "avgWin": 62.041666666666664,
+    "avgLoss": -20.65277777777778,
+    "payoff": 3.004034969737727,
+    "breakevenPayoff": 3,
+    "profitFactor": 1,
+    "expectancy": 0.020833333333333332,
+    "best": 273.5,
+    "worst": -80,
+    "avgWinMinutes": 5.488888888888889,
+    "avgLossMinutes": 2.812037037037037
+   }
+  }
+ ],
+ "byDirection": [
+  {
+   "key": "LONG",
+   "summary": {
+    "operations": 262,
+    "wins": 84,
+    "losses": 178,
+    "longs": 262,
+    "shorts": 0,
+    "longWins": 84,
+    "shortWins": 0,
+    "winRate": 0.32061068702290074,
+    "grossPnl": -2737,
+    "avgWin": 60.208333333333336,
+    "avgLoss": -43.78932584269663,
+    "payoff": 1.3749545619774628,
+    "breakevenPayoff": 2.119047619047619,
+    "profitFactor": 0.65,
+    "expectancy": -10.446564885496183,
+    "best": 662,
+    "worst": -1119,
+    "avgWinMinutes": 4.40079365079365,
+    "avgLossMinutes": 2.879681647940075
+   }
+  },
+  {
+   "key": "SHORT",
+   "summary": {
+    "operations": 311,
+    "wins": 105,
+    "losses": 206,
+    "longs": 0,
+    "shorts": 311,
+    "longWins": 0,
+    "shortWins": 105,
+    "winRate": 0.33762057877813506,
+    "grossPnl": 1716.5,
+    "avgWin": 90.34285714285714,
+    "avgLoss": -37.71601941747573,
+    "payoff": 2.395344432901547,
+    "breakevenPayoff": 1.961904761904762,
+    "profitFactor": 1.22,
+    "expectancy": 5.519292604501608,
+    "best": 2224.5,
+    "worst": -609,
+    "avgWinMinutes": 5.655396825396825,
+    "avgLossMinutes": 2.4736245954692557
+   }
+  }
+ ],
+ "equity": [
+  {
+   "ts": 1791181502000,
+   "pnl": 32.5,
+   "equity": 32.5
+  },
+  {
+   "ts": 1791185222000,
+   "pnl": -2.5,
+   "equity": 30
+  },
+  {
+   "ts": 1791185686000,
+   "pnl": 3,
+   "equity": 33
+  },
+  {
+   "ts": 1791213269000,
+   "pnl": -26.5,
+   "equity": 6.5
+  },
+  {
+   "ts": 1791214238000,
+   "pnl": -37,
+   "equity": -30.5
+  },
+  {
+   "ts": 1791215000000,
+   "pnl": -252.5,
+   "equity": -283
+  },
+  {
+   "ts": 1791215136000,
+   "pnl": 24.5,
+   "equity": -258.5
+  },
+  {
+   "ts": 1791215174000,
+   "pnl": -9,
+   "equity": -267.5
+  },
+  {
+   "ts": 1791216057000,
+   "pnl": 17.5,
+   "equity": -250
+  },
+  {
+   "ts": 1791217447000,
+   "pnl": -37,
+   "equity": -287
+  },
+  {
+   "ts": 1791218590000,
+   "pnl": -33,
+   "equity": -320
+  },
+  {
+   "ts": 1791218611000,
+   "pnl": 4,
+   "equity": -316
+  },
+  {
+   "ts": 1791470022000,
+   "pnl": 130,
+   "equity": -186
+  },
+  {
+   "ts": 1791477783000,
+   "pnl": 11.5,
+   "equity": -174.5
+  },
+  {
+   "ts": 1791553070000,
+   "pnl": 0,
+   "equity": -174.5
+  },
+  {
+   "ts": 1791558725000,
+   "pnl": -1,
+   "equity": -175.5
+  },
+  {
+   "ts": 1791560296000,
+   "pnl": -75,
+   "equity": -250.5
+  },
+  {
+   "ts": 1791560450000,
+   "pnl": -41,
+   "equity": -291.5
+  },
+  {
+   "ts": 1791560536000,
+   "pnl": -52.5,
+   "equity": -344
+  },
+  {
+   "ts": 1791560747000,
+   "pnl": -64,
+   "equity": -408
+  },
+  {
+   "ts": 1791562212000,
+   "pnl": -62,
+   "equity": -470
+  },
+  {
+   "ts": 1791562560000,
+   "pnl": -56,
+   "equity": -526
+  },
+  {
+   "ts": 1791562769000,
+   "pnl": -59,
+   "equity": -585
+  },
+  {
+   "ts": 1791563805000,
+   "pnl": -310,
+   "equity": -895
+  },
+  {
+   "ts": 1791564361000,
+   "pnl": -11.5,
+   "equity": -906.5
+  },
+  {
+   "ts": 1791564785000,
+   "pnl": -8.5,
+   "equity": -915
+  },
+  {
+   "ts": 1791564907000,
+   "pnl": -300.5,
+   "equity": -1215.5
+  },
+  {
+   "ts": 1791566233000,
+   "pnl": 3,
+   "equity": -1212.5
+  },
+  {
+   "ts": 1791571355000,
+   "pnl": -10,
+   "equity": -1222.5
+  },
+  {
+   "ts": 1791571611000,
+   "pnl": 45.5,
+   "equity": -1177
+  },
+  {
+   "ts": 1791571747000,
+   "pnl": 2,
+   "equity": -1175
+  },
+  {
+   "ts": 1791571843000,
+   "pnl": 46.5,
+   "equity": -1128.5
+  },
+  {
+   "ts": 1791572183000,
+   "pnl": -5.5,
+   "equity": -1134
+  },
+  {
+   "ts": 1791573296000,
+   "pnl": -300,
+   "equity": -1434
+  },
+  {
+   "ts": 1791814821000,
+   "pnl": -0.5,
+   "equity": -1434.5
+  },
+  {
+   "ts": 1791815309000,
+   "pnl": -61,
+   "equity": -1495.5
+  },
+  {
+   "ts": 1791819778000,
+   "pnl": -86.5,
+   "equity": -1582
+  },
+  {
+   "ts": 1791849037000,
+   "pnl": 45,
+   "equity": -1537
+  },
+  {
+   "ts": 1791849759000,
+   "pnl": 8.5,
+   "equity": -1528.5
+  },
+  {
+   "ts": 1791850219000,
+   "pnl": 30.5,
+   "equity": -1498
+  },
+  {
+   "ts": 1791866339000,
+   "pnl": 0.5,
+   "equity": -1497.5
+  },
+  {
+   "ts": 1791868529000,
+   "pnl": 53,
+   "equity": -1444.5
+  },
+  {
+   "ts": 1791872032000,
+   "pnl": -1,
+   "equity": -1445.5
+  },
+  {
+   "ts": 1791898361000,
+   "pnl": -31,
+   "equity": -1476.5
+  },
+  {
+   "ts": 1791898411000,
+   "pnl": -31,
+   "equity": -1507.5
+  },
+  {
+   "ts": 1791898462000,
+   "pnl": -29,
+   "equity": -1536.5
+  },
+  {
+   "ts": 1791898630000,
+   "pnl": -31,
+   "equity": -1567.5
+  },
+  {
+   "ts": 1791899339000,
+   "pnl": -31,
+   "equity": -1598.5
+  },
+  {
+   "ts": 1791899584000,
+   "pnl": -49,
+   "equity": -1647.5
+  },
+  {
+   "ts": 1791899624000,
+   "pnl": -31,
+   "equity": -1678.5
+  },
+  {
+   "ts": 1791899726000,
+   "pnl": -39,
+   "equity": -1717.5
+  },
+  {
+   "ts": 1791900165000,
+   "pnl": -0.5,
+   "equity": -1718
+  },
+  {
+   "ts": 1791900484000,
+   "pnl": 55.5,
+   "equity": -1662.5
+  },
+  {
+   "ts": 1791900961000,
+   "pnl": 29,
+   "equity": -1633.5
+  },
+  {
+   "ts": 1791901104000,
+   "pnl": -31,
+   "equity": -1664.5
+  },
+  {
+   "ts": 1791901670000,
+   "pnl": -0.5,
+   "equity": -1665
+  },
+  {
+   "ts": 1791902015000,
+   "pnl": -0.5,
+   "equity": -1665.5
+  },
+  {
+   "ts": 1791904608000,
+   "pnl": -30.5,
+   "equity": -1696
+  },
+  {
+   "ts": 1791905823000,
+   "pnl": -16.5,
+   "equity": -1712.5
+  },
+  {
+   "ts": 1791906268000,
+   "pnl": -33,
+   "equity": -1745.5
+  },
+  {
+   "ts": 1791909054000,
+   "pnl": 94.5,
+   "equity": -1651
+  },
+  {
+   "ts": 1791913011000,
+   "pnl": 3.5,
+   "equity": -1647.5
+  },
+  {
+   "ts": 1791913616000,
+   "pnl": -1,
+   "equity": -1648.5
+  },
+  {
+   "ts": 1791914360000,
+   "pnl": -20,
+   "equity": -1668.5
+  },
+  {
+   "ts": 1791915391000,
+   "pnl": -0.5,
+   "equity": -1669
+  },
+  {
+   "ts": 1791916367000,
+   "pnl": -8,
+   "equity": -1677
+  },
+  {
+   "ts": 1791918982000,
+   "pnl": -15,
+   "equity": -1692
+  },
+  {
+   "ts": 1791920018000,
+   "pnl": 0,
+   "equity": -1692
+  },
+  {
+   "ts": 1791920269000,
+   "pnl": -51,
+   "equity": -1743
+  },
+  {
+   "ts": 1791932402000,
+   "pnl": -23,
+   "equity": -1766
+  },
+  {
+   "ts": 1791933243000,
+   "pnl": -29.5,
+   "equity": -1795.5
+  },
+  {
+   "ts": 1791933695000,
+   "pnl": 53,
+   "equity": -1742.5
+  },
+  {
+   "ts": 1791934260000,
+   "pnl": 3,
+   "equity": -1739.5
+  },
+  {
+   "ts": 1791934597000,
+   "pnl": -23.5,
+   "equity": -1763
+  },
+  {
+   "ts": 1791936167000,
+   "pnl": -50,
+   "equity": -1813
+  },
+  {
+   "ts": 1791936445000,
+   "pnl": -50,
+   "equity": -1863
+  },
+  {
+   "ts": 1791936553000,
+   "pnl": -50,
+   "equity": -1913
+  },
+  {
+   "ts": 1791936622000,
+   "pnl": -52,
+   "equity": -1965
+  },
+  {
+   "ts": 1791936842000,
+   "pnl": 51.5,
+   "equity": -1913.5
+  },
+  {
+   "ts": 1791937053000,
+   "pnl": 23,
+   "equity": -1890.5
+  },
+  {
+   "ts": 1791937504000,
+   "pnl": -1,
+   "equity": -1891.5
+  },
+  {
+   "ts": 1791937665000,
+   "pnl": 0.5,
+   "equity": -1891
+  },
+  {
+   "ts": 1791938402000,
+   "pnl": 100,
+   "equity": -1791
+  },
+  {
+   "ts": 1791940940000,
+   "pnl": -45,
+   "equity": -1836
+  },
+  {
+   "ts": 1791941077000,
+   "pnl": 85,
+   "equity": -1751
+  },
+  {
+   "ts": 1791943251000,
+   "pnl": -49,
+   "equity": -1800
+  },
+  {
+   "ts": 1791943360000,
+   "pnl": -14,
+   "equity": -1814
+  },
+  {
+   "ts": 1791943699000,
+   "pnl": -45.5,
+   "equity": -1859.5
+  },
+  {
+   "ts": 1791944781000,
+   "pnl": -51.5,
+   "equity": -1911
+  },
+  {
+   "ts": 1791950968000,
+   "pnl": -23,
+   "equity": -1934
+  },
+  {
+   "ts": 1791954121000,
+   "pnl": 352,
+   "equity": -1582
+  },
+  {
+   "ts": 1791954511000,
+   "pnl": 42,
+   "equity": -1540
+  },
+  {
+   "ts": 1791985697000,
+   "pnl": -48,
+   "equity": -1588
+  },
+  {
+   "ts": 1791985758000,
+   "pnl": -54.5,
+   "equity": -1642.5
+  },
+  {
+   "ts": 1791985803000,
+   "pnl": -51,
+   "equity": -1693.5
+  },
+  {
+   "ts": 1791985884000,
+   "pnl": -53,
+   "equity": -1746.5
+  },
+  {
+   "ts": 1791986622000,
+   "pnl": 142.5,
+   "equity": -1604
+  },
+  {
+   "ts": 1791990471000,
+   "pnl": -85,
+   "equity": -1689
+  },
+  {
+   "ts": 1791992223000,
+   "pnl": -182,
+   "equity": -1871
+  },
+  {
+   "ts": 1791992423000,
+   "pnl": -48,
+   "equity": -1919
+  },
+  {
+   "ts": 1791993725000,
+   "pnl": -51,
+   "equity": -1970
+  },
+  {
+   "ts": 1791993974000,
+   "pnl": -104,
+   "equity": -2074
+  },
+  {
+   "ts": 1791994113000,
+   "pnl": 15.5,
+   "equity": -2058.5
+  },
+  {
+   "ts": 1791994450000,
+   "pnl": 692,
+   "equity": -1366.5
+  },
+  {
+   "ts": 1791996230000,
+   "pnl": -53,
+   "equity": -1419.5
+  },
+  {
+   "ts": 1791997082000,
+   "pnl": 0,
+   "equity": -1419.5
+  },
+  {
+   "ts": 1791997337000,
+   "pnl": -50,
+   "equity": -1469.5
+  },
+  {
+   "ts": 1791997536000,
+   "pnl": -51,
+   "equity": -1520.5
+  },
+  {
+   "ts": 1791997617000,
+   "pnl": -49,
+   "equity": -1569.5
+  },
+  {
+   "ts": 1791998126000,
+   "pnl": -80.5,
+   "equity": -1650
+  },
+  {
+   "ts": 1791998303000,
+   "pnl": -23,
+   "equity": -1673
+  },
+  {
+   "ts": 1791998512000,
+   "pnl": -51,
+   "equity": -1724
+  },
+  {
+   "ts": 1791998869000,
+   "pnl": 534,
+   "equity": -1190
+  },
+  {
+   "ts": 1791999469000,
+   "pnl": -28,
+   "equity": -1218
+  },
+  {
+   "ts": 1791999816000,
+   "pnl": 7,
+   "equity": -1211
+  },
+  {
+   "ts": 1792000222000,
+   "pnl": -44.5,
+   "equity": -1255.5
+  },
+  {
+   "ts": 1792000937000,
+   "pnl": 100,
+   "equity": -1155.5
+  },
+  {
+   "ts": 1792001161000,
+   "pnl": -61,
+   "equity": -1216.5
+  },
+  {
+   "ts": 1792001356000,
+   "pnl": -61.5,
+   "equity": -1278
+  },
+  {
+   "ts": 1792002239000,
+   "pnl": 108,
+   "equity": -1170
+  },
+  {
+   "ts": 1792002365000,
+   "pnl": -59.5,
+   "equity": -1229.5
+  },
+  {
+   "ts": 1792008907000,
+   "pnl": 51.5,
+   "equity": -1178
+  },
+  {
+   "ts": 1792009728000,
+   "pnl": 3,
+   "equity": -1175
+  },
+  {
+   "ts": 1792016041000,
+   "pnl": -26,
+   "equity": -1201
+  },
+  {
+   "ts": 1792016777000,
+   "pnl": 82,
+   "equity": -1119
+  },
+  {
+   "ts": 1792016945000,
+   "pnl": 13,
+   "equity": -1106
+  },
+  {
+   "ts": 1792017247000,
+   "pnl": 4.5,
+   "equity": -1101.5
+  },
+  {
+   "ts": 1792018426000,
+   "pnl": 2,
+   "equity": -1099.5
+  },
+  {
+   "ts": 1792029506000,
+   "pnl": 6,
+   "equity": -1093.5
+  },
+  {
+   "ts": 1792031339000,
+   "pnl": 19.5,
+   "equity": -1074
+  },
+  {
+   "ts": 1792031661000,
+   "pnl": -30.5,
+   "equity": -1104.5
+  },
+  {
+   "ts": 1792035628000,
+   "pnl": -31,
+   "equity": -1135.5
+  },
+  {
+   "ts": 1792035797000,
+   "pnl": -11.5,
+   "equity": -1147
+  },
+  {
+   "ts": 1792036429000,
+   "pnl": -15.5,
+   "equity": -1162.5
+  },
+  {
+   "ts": 1792069677000,
+   "pnl": 13,
+   "equity": -1149.5
+  },
+  {
+   "ts": 1792071116000,
+   "pnl": -21,
+   "equity": -1170.5
+  },
+  {
+   "ts": 1792071210000,
+   "pnl": -42,
+   "equity": -1212.5
+  },
+  {
+   "ts": 1792071297000,
+   "pnl": 73,
+   "equity": -1139.5
+  },
+  {
+   "ts": 1792071580000,
+   "pnl": -51,
+   "equity": -1190.5
+  },
+  {
+   "ts": 1792071870000,
+   "pnl": 74,
+   "equity": -1116.5
+  },
+  {
+   "ts": 1792072003000,
+   "pnl": 74,
+   "equity": -1042.5
+  },
+  {
+   "ts": 1792072471000,
+   "pnl": -26.5,
+   "equity": -1069
+  },
+  {
+   "ts": 1792072598000,
+   "pnl": -35.5,
+   "equity": -1104.5
+  },
+  {
+   "ts": 1792072757000,
+   "pnl": -51,
+   "equity": -1155.5
+  },
+  {
+   "ts": 1792073133000,
+   "pnl": -30,
+   "equity": -1185.5
+  },
+  {
+   "ts": 1792073234000,
+   "pnl": -30,
+   "equity": -1215.5
+  },
+  {
+   "ts": 1792073335000,
+   "pnl": -61,
+   "equity": -1276.5
+  },
+  {
+   "ts": 1792073400000,
+   "pnl": -61,
+   "equity": -1337.5
+  },
+  {
+   "ts": 1792073447000,
+   "pnl": -110.5,
+   "equity": -1448
+  },
+  {
+   "ts": 1792074044000,
+   "pnl": 14.5,
+   "equity": -1433.5
+  },
+  {
+   "ts": 1792074204000,
+   "pnl": -62,
+   "equity": -1495.5
+  },
+  {
+   "ts": 1792074411000,
+   "pnl": -62.5,
+   "equity": -1558
+  },
+  {
+   "ts": 1792074445000,
+   "pnl": -59,
+   "equity": -1617
+  },
+  {
+   "ts": 1792074759000,
+   "pnl": -62.5,
+   "equity": -1679.5
+  },
+  {
+   "ts": 1792074795000,
+   "pnl": -125,
+   "equity": -1804.5
+  },
+  {
+   "ts": 1792075046000,
+   "pnl": 217,
+   "equity": -1587.5
+  },
+  {
+   "ts": 1792075090000,
+   "pnl": -62,
+   "equity": -1649.5
+  },
+  {
+   "ts": 1792075553000,
+   "pnl": -62,
+   "equity": -1711.5
+  },
+  {
+   "ts": 1792075619000,
+   "pnl": -62,
+   "equity": -1773.5
+  },
+  {
+   "ts": 1792075919000,
+   "pnl": -45.5,
+   "equity": -1819
+  },
+  {
+   "ts": 1792075998000,
+   "pnl": 10,
+   "equity": -1809
+  },
+  {
+   "ts": 1792076627000,
+   "pnl": -61,
+   "equity": -1870
+  },
+  {
+   "ts": 1792076833000,
+   "pnl": 33.5,
+   "equity": -1836.5
+  },
+  {
+   "ts": 1792076893000,
+   "pnl": 68,
+   "equity": -1768.5
+  },
+  {
+   "ts": 1792077331000,
+   "pnl": 662,
+   "equity": -1106.5
+  },
+  {
+   "ts": 1792079245000,
+   "pnl": -62,
+   "equity": -1168.5
+  },
+  {
+   "ts": 1792079336000,
+   "pnl": -62,
+   "equity": -1230.5
+  },
+  {
+   "ts": 1792079796000,
+   "pnl": 29,
+   "equity": -1201.5
+  },
+  {
+   "ts": 1792080171000,
+   "pnl": -62,
+   "equity": -1263.5
+  },
+  {
+   "ts": 1792080260000,
+   "pnl": -61.5,
+   "equity": -1325
+  },
+  {
+   "ts": 1792080747000,
+   "pnl": -62,
+   "equity": -1387
+  },
+  {
+   "ts": 1792080866000,
+   "pnl": -63,
+   "equity": -1450
+  },
+  {
+   "ts": 1792081049000,
+   "pnl": -61,
+   "equity": -1511
+  },
+  {
+   "ts": 1792081303000,
+   "pnl": -60.5,
+   "equity": -1571.5
+  },
+  {
+   "ts": 1792081820000,
+   "pnl": 115,
+   "equity": -1456.5
+  },
+  {
+   "ts": 1792084235000,
+   "pnl": -28,
+   "equity": -1484.5
+  },
+  {
+   "ts": 1792086120000,
+   "pnl": 98,
+   "equity": -1386.5
+  },
+  {
+   "ts": 1792086825000,
+   "pnl": -51,
+   "equity": -1437.5
+  },
+  {
+   "ts": 1792087312000,
+   "pnl": -2,
+   "equity": -1439.5
+  },
+  {
+   "ts": 1792112279000,
+   "pnl": -15.5,
+   "equity": -1455
+  },
+  {
+   "ts": 1792114258000,
+   "pnl": -14,
+   "equity": -1469
+  },
+  {
+   "ts": 1792115154000,
+   "pnl": -21,
+   "equity": -1490
+  },
+  {
+   "ts": 1792115530000,
+   "pnl": -42.5,
+   "equity": -1532.5
+  },
+  {
+   "ts": 1792115710000,
+   "pnl": -34.5,
+   "equity": -1567
+  },
+  {
+   "ts": 1792115972000,
+   "pnl": -32,
+   "equity": -1599
+  },
+  {
+   "ts": 1792116204000,
+   "pnl": -66.5,
+   "equity": -1665.5
+  },
+  {
+   "ts": 1792117128000,
+   "pnl": -32,
+   "equity": -1697.5
+  },
+  {
+   "ts": 1792117284000,
+   "pnl": -29.5,
+   "equity": -1727
+  },
+  {
+   "ts": 1792118187000,
+   "pnl": -95,
+   "equity": -1822
+  },
+  {
+   "ts": 1792119021000,
+   "pnl": -69,
+   "equity": -1891
+  },
+  {
+   "ts": 1792119192000,
+   "pnl": -11,
+   "equity": -1902
+  },
+  {
+   "ts": 1792119297000,
+   "pnl": -124,
+   "equity": -2026
+  },
+  {
+   "ts": 1792119622000,
+   "pnl": 319,
+   "equity": -1707
+  },
+  {
+   "ts": 1792120962000,
+   "pnl": -80,
+   "equity": -1787
+  },
+  {
+   "ts": 1792420782000,
+   "pnl": -10,
+   "equity": -1797
+  },
+  {
+   "ts": 1792420837000,
+   "pnl": 26.5,
+   "equity": -1770.5
+  },
+  {
+   "ts": 1792422538000,
+   "pnl": 25.5,
+   "equity": -1745
+  },
+  {
+   "ts": 1792429628000,
+   "pnl": -31,
+   "equity": -1776
+  },
+  {
+   "ts": 1792430415000,
+   "pnl": -38.5,
+   "equity": -1814.5
+  },
+  {
+   "ts": 1792431014000,
+   "pnl": -0.5,
+   "equity": -1815
+  },
+  {
+   "ts": 1792431786000,
+   "pnl": 10.5,
+   "equity": -1804.5
+  },
+  {
+   "ts": 1792432406000,
+   "pnl": 6.5,
+   "equity": -1798
+  },
+  {
+   "ts": 1792447343000,
+   "pnl": -17.5,
+   "equity": -1815.5
+  },
+  {
+   "ts": 1792447749000,
+   "pnl": -19,
+   "equity": -1834.5
+  },
+  {
+   "ts": 1792449347000,
+   "pnl": 62.5,
+   "equity": -1772
+  },
+  {
+   "ts": 1792459462000,
+   "pnl": -21,
+   "equity": -1793
+  },
+  {
+   "ts": 1792460264000,
+   "pnl": -22.5,
+   "equity": -1815.5
+  },
+  {
+   "ts": 1792460308000,
+   "pnl": -16.5,
+   "equity": -1832
+  },
+  {
+   "ts": 1792460652000,
+   "pnl": -20.5,
+   "equity": -1852.5
+  },
+  {
+   "ts": 1792460761000,
+   "pnl": -25.5,
+   "equity": -1878
+  },
+  {
+   "ts": 1792461567000,
+   "pnl": -20.5,
+   "equity": -1898.5
+  },
+  {
+   "ts": 1792462599000,
+   "pnl": 13.5,
+   "equity": -1885
+  },
+  {
+   "ts": 1792462791000,
+   "pnl": -9.5,
+   "equity": -1894.5
+  },
+  {
+   "ts": 1792463665000,
+   "pnl": 20.5,
+   "equity": -1874
+  },
+  {
+   "ts": 1792463772000,
+   "pnl": -32,
+   "equity": -1906
+  },
+  {
+   "ts": 1792464100000,
+   "pnl": -30,
+   "equity": -1936
+  },
+  {
+   "ts": 1792464201000,
+   "pnl": -32,
+   "equity": -1968
+  },
+  {
+   "ts": 1792464577000,
+   "pnl": 0,
+   "equity": -1968
+  },
+  {
+   "ts": 1792464742000,
+   "pnl": -46.5,
+   "equity": -2014.5
+  },
+  {
+   "ts": 1792465117000,
+   "pnl": 76.5,
+   "equity": -1938
+  },
+  {
+   "ts": 1792465691000,
+   "pnl": 19,
+   "equity": -1919
+  },
+  {
+   "ts": 1792465779000,
+   "pnl": -1.5,
+   "equity": -1920.5
+  },
+  {
+   "ts": 1792466001000,
+   "pnl": 2.5,
+   "equity": -1918
+  },
+  {
+   "ts": 1792466121000,
+   "pnl": -30,
+   "equity": -1948
+  },
+  {
+   "ts": 1792466503000,
+   "pnl": 174,
+   "equity": -1774
+  },
+  {
+   "ts": 1792467050000,
+   "pnl": -2,
+   "equity": -1776
+  },
+  {
+   "ts": 1792467122000,
+   "pnl": -0.5,
+   "equity": -1776.5
+  },
+  {
+   "ts": 1792467407000,
+   "pnl": -10.5,
+   "equity": -1787
+  },
+  {
+   "ts": 1792467511000,
+   "pnl": -29,
+   "equity": -1816
+  },
+  {
+   "ts": 1792467590000,
+   "pnl": -32,
+   "equity": -1848
+  },
+  {
+   "ts": 1792467886000,
+   "pnl": -31.5,
+   "equity": -1879.5
+  },
+  {
+   "ts": 1792468189000,
+   "pnl": -32,
+   "equity": -1911.5
+  },
+  {
+   "ts": 1792468745000,
+   "pnl": 74.5,
+   "equity": -1837
+  },
+  {
+   "ts": 1792469033000,
+   "pnl": 31,
+   "equity": -1806
+  },
+  {
+   "ts": 1792469178000,
+   "pnl": 9,
+   "equity": -1797
+  },
+  {
+   "ts": 1792469745000,
+   "pnl": -16,
+   "equity": -1813
+  },
+  {
+   "ts": 1792470010000,
+   "pnl": -15,
+   "equity": -1828
+  },
+  {
+   "ts": 1792470559000,
+   "pnl": 133,
+   "equity": -1695
+  },
+  {
+   "ts": 1792470667000,
+   "pnl": -5,
+   "equity": -1700
+  },
+  {
+   "ts": 1792471043000,
+   "pnl": 54.5,
+   "equity": -1645.5
+  },
+  {
+   "ts": 1792503913000,
+   "pnl": -1,
+   "equity": -1646.5
+  },
+  {
+   "ts": 1792504848000,
+   "pnl": -1,
+   "equity": -1647.5
+  },
+  {
+   "ts": 1792505626000,
+   "pnl": -19,
+   "equity": -1666.5
+  },
+  {
+   "ts": 1792505853000,
+   "pnl": -51.5,
+   "equity": -1718
+  },
+  {
+   "ts": 1792506279000,
+   "pnl": -39,
+   "equity": -1757
+  },
+  {
+   "ts": 1792506619000,
+   "pnl": -29,
+   "equity": -1786
+  },
+  {
+   "ts": 1792508228000,
+   "pnl": -17,
+   "equity": -1803
+  },
+  {
+   "ts": 1792509245000,
+   "pnl": 359.5,
+   "equity": -1443.5
+  },
+  {
+   "ts": 1792516317000,
+   "pnl": -37,
+   "equity": -1480.5
+  },
+  {
+   "ts": 1792516504000,
+   "pnl": -22,
+   "equity": -1502.5
+  },
+  {
+   "ts": 1792533633000,
+   "pnl": -31,
+   "equity": -1533.5
+  },
+  {
+   "ts": 1792533819000,
+   "pnl": 3,
+   "equity": -1530.5
+  },
+  {
+   "ts": 1792535033000,
+   "pnl": -10,
+   "equity": -1540.5
+  },
+  {
+   "ts": 1792536208000,
+   "pnl": 224,
+   "equity": -1316.5
+  },
+  {
+   "ts": 1792548277000,
+   "pnl": -27,
+   "equity": -1343.5
+  },
+  {
+   "ts": 1792550110000,
+   "pnl": -18.5,
+   "equity": -1362
+  },
+  {
+   "ts": 1792551678000,
+   "pnl": -18.5,
+   "equity": -1380.5
+  },
+  {
+   "ts": 1792551752000,
+   "pnl": -19,
+   "equity": -1399.5
+  },
+  {
+   "ts": 1792554392000,
+   "pnl": -10,
+   "equity": -1409.5
+  },
+  {
+   "ts": 1792555035000,
+   "pnl": 77,
+   "equity": -1332.5
+  },
+  {
+   "ts": 1792591459000,
+   "pnl": -44,
+   "equity": -1376.5
+  },
+  {
+   "ts": 1792595817000,
+   "pnl": 100,
+   "equity": -1276.5
+  },
+  {
+   "ts": 1792596308000,
+   "pnl": -53,
+   "equity": -1329.5
+  },
+  {
+   "ts": 1792596607000,
+   "pnl": 54,
+   "equity": -1275.5
+  },
+  {
+   "ts": 1792597861000,
+   "pnl": -36,
+   "equity": -1311.5
+  },
+  {
+   "ts": 1792627242000,
+   "pnl": 2.5,
+   "equity": -1309
+  },
+  {
+   "ts": 1792627549000,
+   "pnl": 41.5,
+   "equity": -1267.5
+  },
+  {
+   "ts": 1792632911000,
+   "pnl": -1.5,
+   "equity": -1269
+  },
+  {
+   "ts": 1792632946000,
+   "pnl": -18.5,
+   "equity": -1287.5
+  },
+  {
+   "ts": 1792633074000,
+   "pnl": 15,
+   "equity": -1272.5
+  },
+  {
+   "ts": 1792634968000,
+   "pnl": -17,
+   "equity": -1289.5
+  },
+  {
+   "ts": 1792635062000,
+   "pnl": -27,
+   "equity": -1316.5
+  },
+  {
+   "ts": 1792635857000,
+   "pnl": 57,
+   "equity": -1259.5
+  },
+  {
+   "ts": 1792638161000,
+   "pnl": -39.5,
+   "equity": -1299
+  },
+  {
+   "ts": 1792638873000,
+   "pnl": -18.5,
+   "equity": -1317.5
+  },
+  {
+   "ts": 1792639148000,
+   "pnl": -0.5,
+   "equity": -1318
+  },
+  {
+   "ts": 1792640505000,
+   "pnl": -1,
+   "equity": -1319
+  },
+  {
+   "ts": 1792641718000,
+   "pnl": 0,
+   "equity": -1319
+  },
+  {
+   "ts": 1792643085000,
+   "pnl": -36.5,
+   "equity": -1355.5
+  },
+  {
+   "ts": 1792672458000,
+   "pnl": -27.5,
+   "equity": -1383
+  },
+  {
+   "ts": 1792672557000,
+   "pnl": 41,
+   "equity": -1342
+  },
+  {
+   "ts": 1792673290000,
+   "pnl": 13.5,
+   "equity": -1328.5
+  },
+  {
+   "ts": 1792673557000,
+   "pnl": -22,
+   "equity": -1350.5
+  },
+  {
+   "ts": 1792674460000,
+   "pnl": -18.5,
+   "equity": -1369
+  },
+  {
+   "ts": 1792675163000,
+   "pnl": 59.5,
+   "equity": -1309.5
+  },
+  {
+   "ts": 1792675845000,
+   "pnl": -46,
+   "equity": -1355.5
+  },
+  {
+   "ts": 1792675958000,
+   "pnl": 104,
+   "equity": -1251.5
+  },
+  {
+   "ts": 1792676041000,
+   "pnl": -89,
+   "equity": -1340.5
+  },
+  {
+   "ts": 1792676218000,
+   "pnl": 155,
+   "equity": -1185.5
+  },
+  {
+   "ts": 1792676763000,
+   "pnl": 4,
+   "equity": -1181.5
+  },
+  {
+   "ts": 1792677769000,
+   "pnl": -45,
+   "equity": -1226.5
+  },
+  {
+   "ts": 1792677916000,
+   "pnl": -80.5,
+   "equity": -1307
+  },
+  {
+   "ts": 1792678923000,
+   "pnl": -45.5,
+   "equity": -1352.5
+  },
+  {
+   "ts": 1792678999000,
+   "pnl": -45.5,
+   "equity": -1398
+  },
+  {
+   "ts": 1792679117000,
+   "pnl": -2.5,
+   "equity": -1400.5
+  },
+  {
+   "ts": 1792680240000,
+   "pnl": 38,
+   "equity": -1362.5
+  },
+  {
+   "ts": 1792682411000,
+   "pnl": -46,
+   "equity": -1408.5
+  },
+  {
+   "ts": 1792682477000,
+   "pnl": -74,
+   "equity": -1482.5
+  },
+  {
+   "ts": 1792682794000,
+   "pnl": -46.5,
+   "equity": -1529
+  },
+  {
+   "ts": 1792685661000,
+   "pnl": -22.5,
+   "equity": -1551.5
+  },
+  {
+   "ts": 1792685748000,
+   "pnl": -21,
+   "equity": -1572.5
+  },
+  {
+   "ts": 1792686510000,
+   "pnl": -22,
+   "equity": -1594.5
+  },
+  {
+   "ts": 1792686862000,
+   "pnl": 187.5,
+   "equity": -1407
+  },
+  {
+   "ts": 1792687528000,
+   "pnl": -21.5,
+   "equity": -1428.5
+  },
+  {
+   "ts": 1792687754000,
+   "pnl": 153,
+   "equity": -1275.5
+  },
+  {
+   "ts": 1792706687000,
+   "pnl": -30.5,
+   "equity": -1306
+  },
+  {
+   "ts": 1792706707000,
+   "pnl": -31,
+   "equity": -1337
+  },
+  {
+   "ts": 1792707091000,
+   "pnl": 34,
+   "equity": -1303
+  },
+  {
+   "ts": 1792707683000,
+   "pnl": 14.5,
+   "equity": -1288.5
+  },
+  {
+   "ts": 1792707941000,
+   "pnl": 0.5,
+   "equity": -1288
+  },
+  {
+   "ts": 1792708017000,
+   "pnl": -9,
+   "equity": -1297
+  },
+  {
+   "ts": 1792708217000,
+   "pnl": -60.5,
+   "equity": -1357.5
+  },
+  {
+   "ts": 1792708581000,
+   "pnl": -1,
+   "equity": -1358.5
+  },
+  {
+   "ts": 1792708814000,
+   "pnl": -40,
+   "equity": -1398.5
+  },
+  {
+   "ts": 1792709194000,
+   "pnl": -10,
+   "equity": -1408.5
+  },
+  {
+   "ts": 1792709629000,
+   "pnl": -2,
+   "equity": -1410.5
+  },
+  {
+   "ts": 1792710305000,
+   "pnl": -1.5,
+   "equity": -1412
+  },
+  {
+   "ts": 1792710496000,
+   "pnl": 0.5,
+   "equity": -1411.5
+  },
+  {
+   "ts": 1792710573000,
+   "pnl": 2,
+   "equity": -1409.5
+  },
+  {
+   "ts": 1792711370000,
+   "pnl": -74,
+   "equity": -1483.5
+  },
+  {
+   "ts": 1792711744000,
+   "pnl": 16.5,
+   "equity": -1467
+  },
+  {
+   "ts": 1792711871000,
+   "pnl": 3,
+   "equity": -1464
+  },
+  {
+   "ts": 1792713884000,
+   "pnl": 25,
+   "equity": -1439
+  },
+  {
+   "ts": 1792714284000,
+   "pnl": -31,
+   "equity": -1470
+  },
+  {
+   "ts": 1792715365000,
+   "pnl": 4,
+   "equity": -1466
+  },
+  {
+   "ts": 1792715836000,
+   "pnl": 8,
+   "equity": -1458
+  },
+  {
+   "ts": 1792716017000,
+   "pnl": 27,
+   "equity": -1431
+  },
+  {
+   "ts": 1792716485000,
+   "pnl": 138,
+   "equity": -1293
+  },
+  {
+   "ts": 1792758590000,
+   "pnl": 19,
+   "equity": -1274
+  },
+  {
+   "ts": 1792758959000,
+   "pnl": -16,
+   "equity": -1290
+  },
+  {
+   "ts": 1792761456000,
+   "pnl": -18,
+   "equity": -1308
+  },
+  {
+   "ts": 1792761518000,
+   "pnl": -9,
+   "equity": -1317
+  },
+  {
+   "ts": 1792762237000,
+   "pnl": -44,
+   "equity": -1361
+  },
+  {
+   "ts": 1792762353000,
+   "pnl": -45,
+   "equity": -1406
+  },
+  {
+   "ts": 1792763042000,
+   "pnl": -34,
+   "equity": -1440
+  },
+  {
+   "ts": 1792763131000,
+   "pnl": -35.5,
+   "equity": -1475.5
+  },
+  {
+   "ts": 1792763188000,
+   "pnl": -31,
+   "equity": -1506.5
+  },
+  {
+   "ts": 1792764089000,
+   "pnl": 0.5,
+   "equity": -1506
+  },
+  {
+   "ts": 1792764684000,
+   "pnl": -40,
+   "equity": -1546
+  },
+  {
+   "ts": 1792765023000,
+   "pnl": 113,
+   "equity": -1433
+  },
+  {
+   "ts": 1792765557000,
+   "pnl": 94,
+   "equity": -1339
+  },
+  {
+   "ts": 1792766168000,
+   "pnl": -52.5,
+   "equity": -1391.5
+  },
+  {
+   "ts": 1792766415000,
+   "pnl": 150,
+   "equity": -1241.5
+  },
+  {
+   "ts": 1792766843000,
+   "pnl": -61.5,
+   "equity": -1303
+  },
+  {
+   "ts": 1792766965000,
+   "pnl": -73.5,
+   "equity": -1376.5
+  },
+  {
+   "ts": 1792767169000,
+   "pnl": 178,
+   "equity": -1198.5
+  },
+  {
+   "ts": 1792773213000,
+   "pnl": -30.5,
+   "equity": -1229
+  },
+  {
+   "ts": 1792773366000,
+   "pnl": -26,
+   "equity": -1255
+  },
+  {
+   "ts": 1792773711000,
+   "pnl": -21,
+   "equity": -1276
+  },
+  {
+   "ts": 1792773829000,
+   "pnl": -20,
+   "equity": -1296
+  },
+  {
+   "ts": 1792774131000,
+   "pnl": -9,
+   "equity": -1305
+  },
+  {
+   "ts": 1792774265000,
+   "pnl": -26.5,
+   "equity": -1331.5
+  },
+  {
+   "ts": 1792774462000,
+   "pnl": 31,
+   "equity": -1300.5
+  },
+  {
+   "ts": 1792774798000,
+   "pnl": 8.5,
+   "equity": -1292
+  },
+  {
+   "ts": 1792774967000,
+   "pnl": -61.5,
+   "equity": -1353.5
+  },
+  {
+   "ts": 1792775183000,
+   "pnl": -31,
+   "equity": -1384.5
+  },
+  {
+   "ts": 1792775320000,
+   "pnl": -53.5,
+   "equity": -1438
+  },
+  {
+   "ts": 1792775408000,
+   "pnl": -30.5,
+   "equity": -1468.5
+  },
+  {
+   "ts": 1792775615000,
+   "pnl": -2,
+   "equity": -1470.5
+  },
+  {
+   "ts": 1792974055000,
+   "pnl": -28,
+   "equity": -1498.5
+  },
+  {
+   "ts": 1792977344000,
+   "pnl": -31,
+   "equity": -1529.5
+  },
+  {
+   "ts": 1792978148000,
+   "pnl": -32.5,
+   "equity": -1562
+  },
+  {
+   "ts": 1792978335000,
+   "pnl": -0.5,
+   "equity": -1562.5
+  },
+  {
+   "ts": 1792978402000,
+   "pnl": -31,
+   "equity": -1593.5
+  },
+  {
+   "ts": 1792979012000,
+   "pnl": 101,
+   "equity": -1492.5
+  },
+  {
+   "ts": 1792979828000,
+   "pnl": 64.5,
+   "equity": -1428
+  },
+  {
+   "ts": 1792980180000,
+   "pnl": -30,
+   "equity": -1458
+  },
+  {
+   "ts": 1792980363000,
+   "pnl": -30,
+   "equity": -1488
+  },
+  {
+   "ts": 1792981303000,
+   "pnl": -4,
+   "equity": -1492
+  },
+  {
+   "ts": 1792981755000,
+   "pnl": 43.5,
+   "equity": -1448.5
+  },
+  {
+   "ts": 1792983446000,
+   "pnl": -30,
+   "equity": -1478.5
+  },
+  {
+   "ts": 1792983505000,
+   "pnl": 3.5,
+   "equity": -1475
+  },
+  {
+   "ts": 1792983601000,
+   "pnl": 5.5,
+   "equity": -1469.5
+  },
+  {
+   "ts": 1792983884000,
+   "pnl": 103,
+   "equity": -1366.5
+  },
+  {
+   "ts": 1792987577000,
+   "pnl": -1,
+   "equity": -1367.5
+  },
+  {
+   "ts": 1793023344000,
+   "pnl": -44,
+   "equity": -1411.5
+  },
+  {
+   "ts": 1793026812000,
+   "pnl": -29.5,
+   "equity": -1441
+  },
+  {
+   "ts": 1793027343000,
+   "pnl": -32.5,
+   "equity": -1473.5
+  },
+  {
+   "ts": 1793028068000,
+   "pnl": -53,
+   "equity": -1526.5
+  },
+  {
+   "ts": 1793028149000,
+   "pnl": -31,
+   "equity": -1557.5
+  },
+  {
+   "ts": 1793028612000,
+   "pnl": -36,
+   "equity": -1593.5
+  },
+  {
+   "ts": 1793029134000,
+   "pnl": -47.5,
+   "equity": -1641
+  },
+  {
+   "ts": 1793029607000,
+   "pnl": 2,
+   "equity": -1639
+  },
+  {
+   "ts": 1793030094000,
+   "pnl": 75.5,
+   "equity": -1563.5
+  },
+  {
+   "ts": 1793030522000,
+   "pnl": -31,
+   "equity": -1594.5
+  },
+  {
+   "ts": 1793030767000,
+   "pnl": -17,
+   "equity": -1611.5
+  },
+  {
+   "ts": 1793031088000,
+   "pnl": -17.5,
+   "equity": -1629
+  },
+  {
+   "ts": 1793031382000,
+   "pnl": -31,
+   "equity": -1660
+  },
+  {
+   "ts": 1793032527000,
+   "pnl": -25,
+   "equity": -1685
+  },
+  {
+   "ts": 1793032560000,
+   "pnl": -10,
+   "equity": -1695
+  },
+  {
+   "ts": 1793032793000,
+   "pnl": -31,
+   "equity": -1726
+  },
+  {
+   "ts": 1793033500000,
+   "pnl": 102,
+   "equity": -1624
+  },
+  {
+   "ts": 1793033727000,
+   "pnl": -23,
+   "equity": -1647
+  },
+  {
+   "ts": 1793034006000,
+   "pnl": 91.5,
+   "equity": -1555.5
+  },
+  {
+   "ts": 1793034141000,
+   "pnl": -1,
+   "equity": -1556.5
+  },
+  {
+   "ts": 1793034617000,
+   "pnl": 8.5,
+   "equity": -1548
+  },
+  {
+   "ts": 1793035277000,
+   "pnl": 283.5,
+   "equity": -1264.5
+  },
+  {
+   "ts": 1793052728000,
+   "pnl": 12.5,
+   "equity": -1252
+  },
+  {
+   "ts": 1793065792000,
+   "pnl": -0.5,
+   "equity": -1252.5
+  },
+  {
+   "ts": 1793066016000,
+   "pnl": -26,
+   "equity": -1278.5
+  },
+  {
+   "ts": 1793066484000,
+   "pnl": 0,
+   "equity": -1278.5
+  },
+  {
+   "ts": 1793066633000,
+   "pnl": -18.5,
+   "equity": -1297
+  },
+  {
+   "ts": 1793066729000,
+   "pnl": 1.5,
+   "equity": -1295.5
+  },
+  {
+   "ts": 1793066812000,
+   "pnl": -19,
+   "equity": -1314.5
+  },
+  {
+   "ts": 1793067160000,
+   "pnl": 7,
+   "equity": -1307.5
+  },
+  {
+   "ts": 1793067381000,
+   "pnl": -16.5,
+   "equity": -1324
+  },
+  {
+   "ts": 1793067572000,
+   "pnl": 6.5,
+   "equity": -1317.5
+  },
+  {
+   "ts": 1793067781000,
+   "pnl": -18.5,
+   "equity": -1336
+  },
+  {
+   "ts": 1793067866000,
+   "pnl": -28.5,
+   "equity": -1364.5
+  },
+  {
+   "ts": 1793067976000,
+   "pnl": -36.5,
+   "equity": -1401
+  },
+  {
+   "ts": 1793068077000,
+   "pnl": 0,
+   "equity": -1401
+  },
+  {
+   "ts": 1793068460000,
+   "pnl": -0.5,
+   "equity": -1401.5
+  },
+  {
+   "ts": 1793068542000,
+   "pnl": -56.5,
+   "equity": -1458
+  },
+  {
+   "ts": 1793068593000,
+   "pnl": -72,
+   "equity": -1530
+  },
+  {
+   "ts": 1793068764000,
+   "pnl": 85.5,
+   "equity": -1444.5
+  },
+  {
+   "ts": 1793069096000,
+   "pnl": -0.5,
+   "equity": -1445
+  },
+  {
+   "ts": 1793069194000,
+   "pnl": 6.5,
+   "equity": -1438.5
+  },
+  {
+   "ts": 1793069632000,
+   "pnl": -1,
+   "equity": -1439.5
+  },
+  {
+   "ts": 1793069764000,
+   "pnl": 36,
+   "equity": -1403.5
+  },
+  {
+   "ts": 1793070071000,
+   "pnl": 1.5,
+   "equity": -1402
+  },
+  {
+   "ts": 1793070194000,
+   "pnl": -1.5,
+   "equity": -1403.5
+  },
+  {
+   "ts": 1793071526000,
+   "pnl": -39.5,
+   "equity": -1443
+  },
+  {
+   "ts": 1793071559000,
+   "pnl": -25.5,
+   "equity": -1468.5
+  },
+  {
+   "ts": 1793071641000,
+   "pnl": -0.5,
+   "equity": -1469
+  },
+  {
+   "ts": 1793072652000,
+   "pnl": 273.5,
+   "equity": -1195.5
+  },
+  {
+   "ts": 1793072774000,
+   "pnl": -29,
+   "equity": -1224.5
+  },
+  {
+   "ts": 1793073452000,
+   "pnl": -61,
+   "equity": -1285.5
+  },
+  {
+   "ts": 1793073854000,
+   "pnl": -1,
+   "equity": -1286.5
+  },
+  {
+   "ts": 1793073886000,
+   "pnl": -1,
+   "equity": -1287.5
+  },
+  {
+   "ts": 1793073914000,
+   "pnl": 0.5,
+   "equity": -1287
+  },
+  {
+   "ts": 1793074513000,
+   "pnl": -18,
+   "equity": -1305
+  },
+  {
+   "ts": 1793075224000,
+   "pnl": 4,
+   "equity": -1301
+  },
+  {
+   "ts": 1793075450000,
+   "pnl": 0,
+   "equity": -1301
+  },
+  {
+   "ts": 1793075591000,
+   "pnl": -19,
+   "equity": -1320
+  },
+  {
+   "ts": 1793076122000,
+   "pnl": -0.5,
+   "equity": -1320.5
+  },
+  {
+   "ts": 1793076993000,
+   "pnl": 94.5,
+   "equity": -1226
+  },
+  {
+   "ts": 1793077173000,
+   "pnl": 6.5,
+   "equity": -1219.5
+  },
+  {
+   "ts": 1793078161000,
+   "pnl": -36.5,
+   "equity": -1256
+  },
+  {
+   "ts": 1793078339000,
+   "pnl": 14,
+   "equity": -1242
+  },
+  {
+   "ts": 1793078952000,
+   "pnl": 74.5,
+   "equity": -1167.5
+  },
+  {
+   "ts": 1793079678000,
+   "pnl": 1.5,
+   "equity": -1166
+  },
+  {
+   "ts": 1793106780000,
+   "pnl": 29.5,
+   "equity": -1136.5
+  },
+  {
+   "ts": 1793107066000,
+   "pnl": -0.5,
+   "equity": -1137
+  },
+  {
+   "ts": 1793107834000,
+   "pnl": -46,
+   "equity": -1183
+  },
+  {
+   "ts": 1793107911000,
+   "pnl": -46,
+   "equity": -1229
+  },
+  {
+   "ts": 1793108389000,
+   "pnl": 161.5,
+   "equity": -1067.5
+  },
+  {
+   "ts": 1793109216000,
+   "pnl": -29.5,
+   "equity": -1097
+  },
+  {
+   "ts": 1793111795000,
+   "pnl": 41.5,
+   "equity": -1055.5
+  },
+  {
+   "ts": 1793113283000,
+   "pnl": -2.5,
+   "equity": -1058
+  },
+  {
+   "ts": 1793113410000,
+   "pnl": 10.5,
+   "equity": -1047.5
+  },
+  {
+   "ts": 1793113579000,
+   "pnl": -30,
+   "equity": -1077.5
+  },
+  {
+   "ts": 1793113679000,
+   "pnl": -29,
+   "equity": -1106.5
+  },
+  {
+   "ts": 1793113797000,
+   "pnl": -14.5,
+   "equity": -1121
+  },
+  {
+   "ts": 1793114066000,
+   "pnl": -46,
+   "equity": -1167
+  },
+  {
+   "ts": 1793115020000,
+   "pnl": 67,
+   "equity": -1100
+  },
+  {
+   "ts": 1793115269000,
+   "pnl": -0.5,
+   "equity": -1100.5
+  },
+  {
+   "ts": 1793115445000,
+   "pnl": -128.5,
+   "equity": -1229
+  },
+  {
+   "ts": 1793115593000,
+   "pnl": 4,
+   "equity": -1225
+  },
+  {
+   "ts": 1793115900000,
+   "pnl": 262.5,
+   "equity": -962.5
+  },
+  {
+   "ts": 1793150570000,
+   "pnl": 2,
+   "equity": -960.5
+  },
+  {
+   "ts": 1793150896000,
+   "pnl": -18,
+   "equity": -978.5
+  },
+  {
+   "ts": 1793151943000,
+   "pnl": -42.5,
+   "equity": -1021
+  },
+  {
+   "ts": 1793151993000,
+   "pnl": 1.5,
+   "equity": -1019.5
+  },
+  {
+   "ts": 1793152436000,
+   "pnl": 12.5,
+   "equity": -1007
+  },
+  {
+   "ts": 1793152558000,
+   "pnl": -7,
+   "equity": -1014
+  },
+  {
+   "ts": 1793152660000,
+   "pnl": -36,
+   "equity": -1050
+  },
+  {
+   "ts": 1793152876000,
+   "pnl": -36.5,
+   "equity": -1086.5
+  },
+  {
+   "ts": 1793152926000,
+   "pnl": -33.5,
+   "equity": -1120
+  },
+  {
+   "ts": 1793153534000,
+   "pnl": 91,
+   "equity": -1029
+  },
+  {
+   "ts": 1793154011000,
+   "pnl": -18.5,
+   "equity": -1047.5
+  },
+  {
+   "ts": 1793156414000,
+   "pnl": 66.5,
+   "equity": -981
+  },
+  {
+   "ts": 1793156501000,
+   "pnl": -37.5,
+   "equity": -1018.5
+  },
+  {
+   "ts": 1793156551000,
+   "pnl": -3.5,
+   "equity": -1022
+  },
+  {
+   "ts": 1793156741000,
+   "pnl": 11,
+   "equity": -1011
+  },
+  {
+   "ts": 1793157424000,
+   "pnl": 2,
+   "equity": -1009
+  },
+  {
+   "ts": 1793158180000,
+   "pnl": -3,
+   "equity": -1012
+  },
+  {
+   "ts": 1793158228000,
+   "pnl": -17,
+   "equity": -1029
+  },
+  {
+   "ts": 1793158378000,
+   "pnl": -26.5,
+   "equity": -1055.5
+  },
+  {
+   "ts": 1793158628000,
+   "pnl": 4.5,
+   "equity": -1051
+  },
+  {
+   "ts": 1793159107000,
+   "pnl": -35.5,
+   "equity": -1086.5
+  },
+  {
+   "ts": 1793159183000,
+   "pnl": -5,
+   "equity": -1091.5
+  },
+  {
+   "ts": 1793159569000,
+   "pnl": -1.5,
+   "equity": -1093
+  },
+  {
+   "ts": 1793159665000,
+   "pnl": 2,
+   "equity": -1091
+  },
+  {
+   "ts": 1793159785000,
+   "pnl": -43,
+   "equity": -1134
+  },
+  {
+   "ts": 1793160130000,
+   "pnl": -47,
+   "equity": -1181
+  },
+  {
+   "ts": 1793160220000,
+   "pnl": -78.5,
+   "equity": -1259.5
+  },
+  {
+   "ts": 1793160375000,
+   "pnl": 0,
+   "equity": -1259.5
+  },
+  {
+   "ts": 1793160962000,
+   "pnl": -4,
+   "equity": -1263.5
+  },
+  {
+   "ts": 1793161230000,
+   "pnl": -4,
+   "equity": -1267.5
+  },
+  {
+   "ts": 1793161457000,
+   "pnl": -1,
+   "equity": -1268.5
+  },
+  {
+   "ts": 1793161512000,
+   "pnl": 3.5,
+   "equity": -1265
+  },
+  {
+   "ts": 1793161745000,
+   "pnl": -107.5,
+   "equity": -1372.5
+  },
+  {
+   "ts": 1793161820000,
+   "pnl": -38.5,
+   "equity": -1411
+  },
+  {
+   "ts": 1793193516000,
+   "pnl": 39.5,
+   "equity": -1371.5
+  },
+  {
+   "ts": 1793206724000,
+   "pnl": -1,
+   "equity": -1372.5
+  },
+  {
+   "ts": 1793207238000,
+   "pnl": -31,
+   "equity": -1403.5
+  },
+  {
+   "ts": 1793207615000,
+   "pnl": -23,
+   "equity": -1426.5
+  },
+  {
+   "ts": 1793207886000,
+   "pnl": -19.5,
+   "equity": -1446
+  },
+  {
+   "ts": 1793208766000,
+   "pnl": 9,
+   "equity": -1437
+  },
+  {
+   "ts": 1793208993000,
+   "pnl": -14,
+   "equity": -1451
+  },
+  {
+   "ts": 1793209195000,
+   "pnl": -10.5,
+   "equity": -1461.5
+  },
+  {
+   "ts": 1793209503000,
+   "pnl": -31.5,
+   "equity": -1493
+  },
+  {
+   "ts": 1793209868000,
+   "pnl": -55,
+   "equity": -1548
+  },
+  {
+   "ts": 1793210400000,
+   "pnl": -1,
+   "equity": -1549
+  },
+  {
+   "ts": 1793210417000,
+   "pnl": -42.5,
+   "equity": -1591.5
+  },
+  {
+   "ts": 1793210525000,
+   "pnl": -23,
+   "equity": -1614.5
+  },
+  {
+   "ts": 1793210719000,
+   "pnl": -1.5,
+   "equity": -1616
+  },
+  {
+   "ts": 1793210895000,
+   "pnl": -3,
+   "equity": -1619
+  },
+  {
+   "ts": 1793211041000,
+   "pnl": -62,
+   "equity": -1681
+  },
+  {
+   "ts": 1793211190000,
+   "pnl": -44.5,
+   "equity": -1725.5
+  },
+  {
+   "ts": 1793211322000,
+   "pnl": 2.5,
+   "equity": -1723
+  },
+  {
+   "ts": 1793211413000,
+   "pnl": 4.5,
+   "equity": -1718.5
+  },
+  {
+   "ts": 1793211525000,
+   "pnl": -0.5,
+   "equity": -1719
+  },
+  {
+   "ts": 1793211620000,
+   "pnl": -123,
+   "equity": -1842
+  },
+  {
+   "ts": 1793226414000,
+   "pnl": 26.5,
+   "equity": -1815.5
+  },
+  {
+   "ts": 1793227306000,
+   "pnl": -0.5,
+   "equity": -1816
+  },
+  {
+   "ts": 1793229610000,
+   "pnl": -1,
+   "equity": -1817
+  },
+  {
+   "ts": 1793230099000,
+   "pnl": 93.5,
+   "equity": -1723.5
+  },
+  {
+   "ts": 1793230419000,
+   "pnl": 7,
+   "equity": -1716.5
+  },
+  {
+   "ts": 1793230822000,
+   "pnl": 3.5,
+   "equity": -1713
+  },
+  {
+   "ts": 1793231347000,
+   "pnl": -1,
+   "equity": -1714
+  },
+  {
+   "ts": 1793231677000,
+   "pnl": 24,
+   "equity": -1690
+  },
+  {
+   "ts": 1793232396000,
+   "pnl": -18.5,
+   "equity": -1708.5
+  },
+  {
+   "ts": 1793232593000,
+   "pnl": 3,
+   "equity": -1705.5
+  },
+  {
+   "ts": 1793232689000,
+   "pnl": -19,
+   "equity": -1724.5
+  },
+  {
+   "ts": 1793233518000,
+   "pnl": -85,
+   "equity": -1809.5
+  },
+  {
+   "ts": 1793233552000,
+   "pnl": -55,
+   "equity": -1864.5
+  },
+  {
+   "ts": 1793233603000,
+   "pnl": -92.5,
+   "equity": -1957
+  },
+  {
+   "ts": 1793234773000,
+   "pnl": -29.5,
+   "equity": -1986.5
+  },
+  {
+   "ts": 1793235233000,
+   "pnl": -122,
+   "equity": -2108.5
+  },
+  {
+   "ts": 1793235322000,
+   "pnl": -122.5,
+   "equity": -2231
+  },
+  {
+   "ts": 1793235978000,
+   "pnl": -609,
+   "equity": -2840
+  },
+  {
+   "ts": 1793236109000,
+   "pnl": -1119,
+   "equity": -3959
+  },
+  {
+   "ts": 1793236303000,
+   "pnl": 2224.5,
+   "equity": -1734.5
+  },
+  {
+   "ts": 1793237497000,
+   "pnl": 71,
+   "equity": -1663.5
+  },
+  {
+   "ts": 1793238541000,
+   "pnl": 106.5,
+   "equity": -1557
+  },
+  {
+   "ts": 1793239275000,
+   "pnl": -14,
+   "equity": -1571
+  },
+  {
+   "ts": 1793239298000,
+   "pnl": -91,
+   "equity": -1662
+  },
+  {
+   "ts": 1793239359000,
+   "pnl": -91.5,
+   "equity": -1753.5
+  },
+  {
+   "ts": 1793239565000,
+   "pnl": -69,
+   "equity": -1822.5
+  },
+  {
+   "ts": 1793239645000,
+   "pnl": 15,
+   "equity": -1807.5
+  },
+  {
+   "ts": 1793239734000,
+   "pnl": -185,
+   "equity": -1992.5
+  },
+  {
+   "ts": 1793239826000,
+   "pnl": 28,
+   "equity": -1964.5
+  },
+  {
+   "ts": 1793239921000,
+   "pnl": 33,
+   "equity": -1931.5
+  },
+  {
+   "ts": 1793240297000,
+   "pnl": 210,
+   "equity": -1721.5
+  },
+  {
+   "ts": 1793240326000,
+   "pnl": 94,
+   "equity": -1627.5
+  },
+  {
+   "ts": 1793291642000,
+   "pnl": -1,
+   "equity": -1628.5
+  },
+  {
+   "ts": 1793292079000,
+   "pnl": -20,
+   "equity": -1648.5
+  },
+  {
+   "ts": 1793292166000,
+   "pnl": -21,
+   "equity": -1669.5
+  },
+  {
+   "ts": 1793294174000,
+   "pnl": -39.5,
+   "equity": -1709
+  },
+  {
+   "ts": 1793294354000,
+   "pnl": -61.5,
+   "equity": -1770.5
+  },
+  {
+   "ts": 1793294426000,
+   "pnl": 0.5,
+   "equity": -1770
+  },
+  {
+   "ts": 1793294574000,
+   "pnl": -45,
+   "equity": -1815
+  },
+  {
+   "ts": 1793295065000,
+   "pnl": -42,
+   "equity": -1857
+  },
+  {
+   "ts": 1793296638000,
+   "pnl": 575,
+   "equity": -1282
+  },
+  {
+   "ts": 1793313707000,
+   "pnl": -4,
+   "equity": -1286
+  },
+  {
+   "ts": 1793313720000,
+   "pnl": 3.5,
+   "equity": -1282.5
+  },
+  {
+   "ts": 1793313728000,
+   "pnl": 2,
+   "equity": -1280.5
+  },
+  {
+   "ts": 1793352023000,
+   "pnl": 47.5,
+   "equity": -1233
+  },
+  {
+   "ts": 1793352323000,
+   "pnl": -28.5,
+   "equity": -1261.5
+  },
+  {
+   "ts": 1793352671000,
+   "pnl": -40,
+   "equity": -1301.5
+  },
+  {
+   "ts": 1793352940000,
+   "pnl": -62.5,
+   "equity": -1364
+  },
+  {
+   "ts": 1793353079000,
+   "pnl": -45.5,
+   "equity": -1409.5
+  },
+  {
+   "ts": 1793353370000,
+   "pnl": 6,
+   "equity": -1403.5
+  },
+  {
+   "ts": 1793353802000,
+   "pnl": 32,
+   "equity": -1371.5
+  },
+  {
+   "ts": 1793353987000,
+   "pnl": 4.5,
+   "equity": -1367
+  },
+  {
+   "ts": 1793354683000,
+   "pnl": 14.5,
+   "equity": -1352.5
+  },
+  {
+   "ts": 1793354741000,
+   "pnl": -1.5,
+   "equity": -1354
+  },
+  {
+   "ts": 1793354823000,
+   "pnl": 11,
+   "equity": -1343
+  },
+  {
+   "ts": 1793365902000,
+   "pnl": -20.5,
+   "equity": -1363.5
+  },
+  {
+   "ts": 1793368331000,
+   "pnl": 84.5,
+   "equity": -1279
+  },
+  {
+   "ts": 1793369056000,
+   "pnl": 15.5,
+   "equity": -1263.5
+  },
+  {
+   "ts": 1793369704000,
+   "pnl": 243,
+   "equity": -1020.5
+  }
+ ],
+ "behaviour": {
+  "maxGapMinutes": 2,
+  "revenge": {
+   "operations": 224,
+   "wins": 71,
+   "losses": 153,
+   "longs": 108,
+   "shorts": 116,
+   "longWins": 30,
+   "shortWins": 41,
+   "winRate": 0.3169642857142857,
+   "grossPnl": -947.5,
+   "avgWin": 98.45070422535211,
+   "avgLoss": -51.87908496732026,
+   "payoff": 1.8976954641233226,
+   "breakevenPayoff": 2.154929577464789,
+   "profitFactor": 0.88,
+   "expectancy": -4.229910714285714,
+   "best": 2224.5,
+   "worst": -1119,
+   "avgWinMinutes": 4.6,
+   "avgLossMinutes": 2.822657952069717
+  },
+  "rest": {
+   "operations": 349,
+   "wins": 118,
+   "losses": 231,
+   "longs": 154,
+   "shorts": 195,
+   "longWins": 54,
+   "shortWins": 64,
+   "winRate": 0.33810888252148996,
+   "grossPnl": -73,
+   "avgWin": 64.01271186440678,
+   "avgLoss": -33.015151515151516,
+   "payoff": 1.9388889321022706,
+   "breakevenPayoff": 1.957627118644068,
+   "profitFactor": 0.99,
+   "expectancy": -0.20916905444126074,
+   "best": 692,
+   "worst": -310,
+   "avgWinMinutes": 5.397316384180791,
+   "avgLossMinutes": 2.5553391053391055
+  }
+ },
+ "flagImpact": [
+  {
+   "code": "instant_stop",
+   "title": "Se fue en contra al instante",
+   "severity": "warn",
+   "count": 158,
+   "pnl": -5556.5
+  },
+  {
+   "code": "oversized_loss",
+   "title": "Perdida fuera de tamano",
+   "severity": "alert",
+   "count": 25,
+   "pnl": -5040.5
+  },
+  {
+   "code": "insist_same_candle",
+   "title": "Insististe en el mismo lado tras perder",
+   "severity": "alert",
+   "count": 158,
+   "pnl": -1632
+  },
+  {
+   "code": "loss_streak",
+   "title": "Entrada con 3 perdidas seguidas",
+   "severity": "alert",
+   "count": 199,
+   "pnl": -1333.5
+  },
+  {
+   "code": "revenge_entry",
+   "title": "Reentrada inmediata tras perder",
+   "severity": "alert",
+   "count": 224,
+   "pnl": -947.5
+  },
+  {
+   "code": "book_with_you",
+   "title": "Libro cargado a tu favor",
+   "severity": "good",
+   "count": 2,
+   "pnl": -123
+  },
+  {
+   "code": "outside_killzone",
+   "title": "Fuera de killzone",
+   "severity": "warn",
+   "count": 193,
+   "pnl": 297
+  },
+  {
+   "code": "direction_flip",
+   "title": "Giro de direccion inmediato",
+   "severity": "warn",
+   "count": 86,
+   "pnl": 442
+  },
+  {
+   "code": "session_opening",
+   "title": "Primeros minutos de la sesion",
+   "severity": "info",
+   "count": 48,
+   "pnl": 551
+  },
+  {
+   "code": "book_pulled",
+   "title": "Liquidez retirandose al entrar",
+   "severity": "warn",
+   "count": 72,
+   "pnl": 680.5
+  },
+  {
+   "code": "overtrading",
+   "title": "Operacion numero 13 del dia",
+   "severity": "warn",
+   "count": 380,
+   "pnl": 863
+  },
+  {
+   "code": "clean_win",
+   "title": "Ganadora limpia",
+   "severity": "good",
+   "count": 92,
+   "pnl": 5542
+  }
+ ],
+ "patterns": {
+  "rows": [
+   {
+    "code": "barrido_alcista",
+    "label": "Barrido de minimos",
+    "help": "Perforo el minimo de la vela anterior y cerro por encima de el: busco liquidez abajo y no se quedo.",
+    "operations": 142,
+    "wins": 41,
+    "pnl": -644.5,
+    "medianMfe": 52,
+    "medianGivenBack": 72.8,
+    "medianResult": -33.5
+   },
+   {
+    "code": "barrido_bajista",
+    "label": "Barrido de maximos",
+    "help": "Perforo el maximo de la vela anterior y cerro por debajo: busco liquidez arriba y no se quedo.",
+    "operations": 127,
+    "wins": 42,
+    "pnl": 104.5,
+    "medianMfe": 47,
+    "medianGivenBack": 64.3,
+    "medianResult": -17.7
+   },
+   {
+    "code": "normal",
+    "label": "Sin patron",
+    "help": "Nada destacable en la geometria de la vela.",
+    "operations": 125,
+    "wins": 54,
+    "pnl": 675,
+    "medianMfe": 48,
+    "medianGivenBack": 61,
+    "medianResult": -2
+   },
+   {
+    "code": "cuerpo_completo",
+    "label": "Cuerpo completo",
+    "help": "Cuerpo que ocupa casi todo el rango, sin apenas mechas: impulso limpio.",
+    "operations": 64,
+    "wins": 20,
+    "pnl": -264.5,
+    "medianMfe": 52.5,
+    "medianGivenBack": 70,
+    "medianResult": -30
+   },
+   {
+    "code": "interior",
+    "label": "Vela interior",
+    "help": "Entera dentro del rango de la anterior: el mercado se comprimio.",
+    "operations": 49,
+    "wins": 18,
+    "pnl": 252,
+    "medianMfe": 60,
+    "medianGivenBack": 66,
+    "medianResult": -2
+   },
+   {
+    "code": "envolvente",
+    "label": "Envolvente",
+    "help": "Su cuerpo se come entero el de la vela anterior, en direccion contraria.",
+    "operations": 39,
+    "wins": 8,
+    "pnl": -510.5,
+    "medianMfe": 28,
+    "medianGivenBack": 61,
+    "medianResult": -41
+   },
+   {
+    "code": "estrella",
+    "label": "Estrella fugaz",
+    "help": "Mecha superior larga y cuerpo pequeno abajo: rechazo de precios altos.",
+    "operations": 13,
+    "wins": 3,
+    "pnl": -272,
+    "medianMfe": 27,
+    "medianGivenBack": 50,
+    "medianResult": -39.3
+   },
+   {
+    "code": "doji",
+    "label": "Doji",
+    "help": "Abre y cierra casi en el mismo sitio: indecision.",
+    "operations": 9,
+    "wins": 3,
+    "pnl": -129.5,
+    "medianMfe": 77,
+    "medianGivenBack": 91,
+    "medianResult": -60
+   },
+   {
+    "code": "martillo",
+    "label": "Martillo",
+    "help": "Mecha inferior larga y cuerpo pequeno arriba: rechazo de precios bajos.",
+    "operations": 5,
+    "wins": 0,
+    "pnl": -231,
+    "medianMfe": 40,
+    "medianGivenBack": 97,
+    "medianResult": -50
+   }
+  ],
+  "skipped": 0,
+  "incomplete": 0
+ },
+ "accounts": [
+  {
+   "id": "17011740",
+   "operations": 539,
+   "from": 1791814012000,
+   "to": 1793369483000
+  },
+  {
+   "id": "17011971",
+   "operations": 34,
+   "from": 1791181307000,
+   "to": 1791572798000
+  }
+ ],
+ "chartPrefs": {
+  "timeframe": 1,
+  "candles": 500,
+  "beforeShare": 0.5,
+  "emas": [
+   {
+    "period": 8,
+    "color": "#2ecc71",
+    "on": true
+   },
+   {
+    "period": 21,
+    "color": "#5aaaff",
+    "on": true
+   },
+   {
+    "period": 55,
+    "color": "#f1c40f",
+    "on": true
+   },
+   {
+    "period": 200,
+    "color": "#e74c3c",
+    "on": true
+   }
+  ],
+  "showSessions": true,
+  "marginTop": 0.08,
+  "deltaShare": 0.18,
+  "rightOffset": 120,
+  "entryShare": 0.7,
+  "noteTags": [
+   "entre tarde",
+   "entre pronto",
+   "movi el stop",
+   "revancha",
+   "contra el flujo",
+   "fuera de plan",
+   "sali pronto",
+   "aguante de mas",
+   "manipulacion",
+   "miedo",
+   "rango",
+   "dentro del plan",
+   "scalper",
+   "test",
+   "vela sin patron m15",
+   "vela sin gatillar",
+   "no respecta estructura m1 (emas)",
+   "reentrada en misma vela m15",
+   "salida con fibo",
+   "entrada con fibo",
+   "plan",
+   "vela sin patron m1",
+   "vela con patron m15",
+   "vela con patron m1",
+   "respecta estructura m1 (emas)",
+   "operacion al borde limite de sesion",
+   "impulsivo",
+   "rompimiento de zona",
+   "falso rompimiento de zona",
+   "operacion en apertura de mercado",
+   "vela con patron h1",
+   "vela con patron h4",
+   "explosion"
+  ],
+  "tagPolarity": {
+   "entre tarde": "mala",
+   "entre pronto": "mala",
+   "movi el stop": "mala",
+   "sin stop": "mala",
+   "revancha": "mala",
+   "contra el flujo": "mala",
+   "fuera de plan": "mala",
+   "sali pronto": "mala",
+   "tamano de mas": "mala",
+   "dentro del plan": "buena",
+   "entrada con fibo": "buena",
+   "manipulacion": "mala",
+   "miedo": "mala",
+   "vela sin patron": "mala",
+   "vela sin gatillar": "mala",
+   "salida con fibo": "buena",
+   "reentrada en misma vela m15": "mala",
+   "no respecta estructura m1 (emas)": "mala",
+   "vela con patron m1": "buena",
+   "vela con patron m15": "buena",
+   "vela sin patron m1": "mala",
+   "vela sin patron m15": "mala",
+   "respecta estructura m1 (emas)": "buena",
+   "rompimiento de zona": "buena",
+   "falso rompimiento de zona": "mala",
+   "vela con patron h1": "buena",
+   "vela con patron h4": "buena",
+   "impulsivo": "mala"
+  },
+  "tagKind": {
+   "rango": "estrategia",
+   "scalper": "estrategia",
+   "test": "estrategia",
+   "plan": "estrategia"
+  },
+  "clock": "local",
+  "metricAccounts": []
+ },
+ "range": {
+  "from": 1791181307000,
+  "to": 1793369483000
+ },
+ "count": 573
+}

@@ -44,7 +44,9 @@
 
 body {
   margin: 0;
-  padding: 24px;
+  /* Sin padding: con el lateral, el aire lo pone cada columna. Si estuviera
+     aqui, la barra del lateral quedaria flotando a 24 px del borde. */
+  padding: 0;
   background: var(--surface);
   color: var(--ink);
   font: 14px/1.5 system-ui, -apple-system, 'Segoe UI', sans-serif;
@@ -57,6 +59,65 @@ h2 { font-size: 13px; font-weight: 600; margin: 0 0 14px; color: var(--ink-2); }
 
 .filters { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 20px; }
 .filters label { color: var(--ink-2); font-size: 12px; display: flex; align-items: center; gap: 5px; }
+/* ---------------------------------------------------------------------------
+   Selector de cuentas, con casillas
+   ---------------------------------------------------------------------------
+   Un desplegable nativo no admite varias marcadas (el `multiple` de HTML es
+   una caja con scroll que hay que usar con Ctrl, y nadie la usa bien), asi
+   que la lista se dibuja a mano.
+
+   Va en `absolute` sobre el resto y no empujando la barra: si la barra
+   creciera al abrirla, todo el panel de abajo daria un salto y perderias de
+   vista la cifra que estabas mirando, que es justo lo que vas a comparar
+   despues de cambiar de cuenta. */
+.selector-cuentas { position: relative; display: flex; align-items: center; gap: 5px; }
+.selector-cuentas .k { color: var(--ink-2); font-size: 12px; }
+.selector-cuentas .abrir { font-size: 13px; padding: 6px 9px; white-space: nowrap; }
+.selector-cuentas .flecha { color: var(--ink-dim); font-size: 10px; margin-left: 2px; }
+
+.selector-cuentas .lista {
+  background: var(--panel);
+  border: 1px solid var(--line);
+  border-radius: 6px;
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.45);
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  left: 0;
+  min-width: 260px;
+  padding: 6px;
+  position: absolute;
+  top: calc(100% + 6px);
+  z-index: 40;
+}
+
+.selector-cuentas .lista label {
+  align-items: center;
+  border-radius: 4px;
+  cursor: pointer;
+  display: flex;
+  font-size: 12px;
+  gap: 7px;
+  padding: 6px 7px;
+}
+
+.selector-cuentas .lista label:hover { background: rgba(255, 255, 255, 0.05); }
+.selector-cuentas .lista input { margin: 0; }
+/* El contador a la derecha y apagado: es apoyo para decidir, no el nombre. */
+.selector-cuentas .lista .n { color: var(--ink-dim); font-size: 11px; margin-left: auto; }
+.selector-cuentas .cuenta-todas { border-bottom: 1px solid var(--line); border-radius: 4px 4px 0 0; }
+
+/* Que el filtro de aqui no es la marca permanente hay que decirlo donde se
+   duda, que es con la lista abierta delante. */
+.selector-cuentas .pie {
+  border-top: 1px solid var(--line);
+  color: var(--ink-dim);
+  font-size: 10.5px;
+  line-height: 1.4;
+  margin-top: 4px;
+  padding: 6px 7px 2px;
+}
+
 .live { color: var(--ink-muted); font-size: 12px; margin-left: auto; }
 .live b { color: var(--up); font-weight: 600; }
 
@@ -1918,3 +1979,171 @@ tbody tr.apagada { opacity: 0.5; }
 .marcos-mini i.alto { background: rgba(232, 234, 240, 0.14); color: var(--ink); border-color: var(--ink-dim); }
 .marcos-mini i.medio { color: var(--ink-2); }
 .marcos-mini i.bajo { color: var(--ink-dim); opacity: 0.55; }
+
+/* --- Barra de navegacion del informe ---
+   El selector de periodo, las flechas y el rango en la misma linea. El rango
+   va en medio y con ancho fijo para que las flechas no se muevan de sitio al
+   pasar de "30/10" a "26/10 – 30/10": un boton que baila bajo el raton se
+   pulsa mal. */
+.informe-barra {
+  align-items: center;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 14px;
+}
+
+.informe-barra button:not(.tf-switch button) {
+  min-width: 38px;
+}
+
+.informe-barra button:disabled { cursor: default; opacity: 0.35; }
+
+.informe-rango {
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+  min-width: 118px;
+  text-align: center;
+}
+
+/* El calendario no necesita los 300 px de la columna de filtros: aqui vive
+   dentro del ancho completo del panel y se queda a la izquierda. */
+.informe-calendario > div:last-child { max-width: 340px; }
+
+/* --- Casillas de cuentas en Ajustes ---
+   Una por linea y no en fila: los identificadores de cuenta son largos y en
+   horizontal se parten. El "todas" va separado porque no es una cuenta mas,
+   es el estado de no haber marcado ninguna. */
+.cuentas-metricas { display: flex; flex-direction: column; gap: 6px; }
+
+.cuentas-metricas .k {
+  color: var(--ink-muted);
+  font-size: 11px;
+  letter-spacing: .05em;
+  text-transform: uppercase;
+}
+
+.cuentas-metricas label {
+  align-items: baseline;
+  display: flex;
+  flex-direction: row;
+  gap: 8px;
+}
+
+.cuentas-metricas .cuenta-todas { border-bottom: 1px solid var(--line); padding-bottom: 6px; }
+.cuentas-metricas input { margin: 0; }
+
+/* ===================================================================== */
+/* El lateral                                                            */
+/* ===================================================================== */
+
+/* Dos columnas: el lateral fijo y el contenido, que es el que rueda. El
+   lateral NO rueda con la pagina —es `sticky`— porque su razon de ser es
+   poder cambiar de seccion desde cualquier punto del scroll; si se fuera
+   arriba con el contenido, habria que subir del todo para usarlo. */
+.app { display: flex; align-items: flex-start; min-height: 100vh; }
+
+/* `.barra-lateral` y no `.lateral` a secas, que es como se llamo primero.
+   `.tabs.lateral` YA EXISTE desde hace meses: son las pestanas en columna del
+   detalle de Operaciones, metidas en una rejilla de 132 px. Con el nombre
+   corto, esa columna heredaba `width: 212px`, `height: 100vh`, `position:
+   sticky` y el borde del menu, se salia de su hueco y empujaba el grafico,
+   las etiquetas y las notas fuera de la pantalla por la izquierda.
+
+   Es la segunda vez en este mismo cambio (antes fue `.marca` con el logo):
+   un nombre repetido en CSS no da ningun error, solo un resultado raro en un
+   sitio que no estabas mirando. Antes de inventar una clase, buscarla. */
+
+.barra-lateral {
+  background: var(--panel);
+  border-right: 1px solid var(--line);
+  flex: none;
+  height: 100vh;
+  overflow-y: auto;
+  padding: 18px 12px 24px;
+  position: sticky;
+  top: 0;
+  width: 212px;
+}
+
+/* `.logo` y no `.marca`: esa clase YA EXISTE como etiqueta pequena con borde
+   y esquinas redondeadas, y reutilizarla le dibujaba un recuadro alrededor al
+   logo. Un nombre repetido en CSS no da ningun error, solo un resultado raro.
+
+   El logo manda el ancho del lateral y no al reves: se escala al hueco que
+   queda tras el padding y conserva su proporcion. */
+.barra-lateral .logo { display: block; height: auto; margin: 0 4px 22px; width: calc(100% - 8px); }
+
+.barra-lateral nav { display: flex; flex-direction: column; gap: 16px; }
+
+.barra-lateral .grupo { display: flex; flex-direction: column; gap: 1px; }
+
+.barra-lateral .grupo-k {
+  color: var(--ink-dim);
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  margin: 0 0 5px 10px;
+  text-transform: uppercase;
+}
+
+.barra-lateral button {
+  align-items: baseline;
+  background: none;
+  border: 0;
+  border-radius: 6px;
+  color: var(--ink-2);
+  cursor: pointer;
+  display: flex;
+  font-size: 13px;
+  gap: 7px;
+  padding: 7px 10px;
+  text-align: left;
+  width: 100%;
+}
+
+.barra-lateral button:hover { background: rgba(255, 255, 255, 0.045); color: var(--ink); }
+
+/* La seccion abierta se marca con fondo Y con una barra a la izquierda. Solo
+   con el fondo, en una pantalla con brillo bajo, no se distingue del hover. */
+.barra-lateral button.on {
+  background: rgba(255, 255, 255, 0.07);
+  box-shadow: inset 2px 0 0 var(--accent);
+  color: var(--ink);
+  font-weight: 600;
+}
+
+/* El contador de operaciones, a la derecha y en pequeño: es informacion de
+   apoyo, no parte del nombre de la seccion. */
+.barra-lateral .n { color: var(--ink-dim); font-size: 11px; margin-left: auto; font-variant-numeric: tabular-nums; }
+.barra-lateral button.on .n { color: var(--ink-2); }
+
+/* El punto de "hay una noticia ahora". Mismo ambar que el aviso grande. */
+.barra-lateral .aviso { color: var(--warn); font-size: 10px; margin-left: auto; }
+
+.app > main {
+  flex: 1;
+  min-width: 0; /* sin esto, una tabla ancha estira la columna y rompe el flex */
+  padding: 24px;
+}
+
+/* En pantalla estrecha el lateral se pone arriba y en horizontal: 212 px de
+   los 400 de un movil serian la mitad de la pantalla para un menu. */
+@media (max-width: 860px) {
+  .app { display: block; }
+  .barra-lateral {
+    border-bottom: 1px solid var(--line);
+    border-right: 0;
+    height: auto;
+    padding: 12px;
+    position: static;
+    width: 100%;
+  }
+  .barra-lateral .logo { margin-bottom: 12px; width: 180px; }
+  .barra-lateral nav { flex-direction: row; flex-wrap: wrap; gap: 10px; }
+  .barra-lateral .grupo { flex-direction: row; flex-wrap: wrap; }
+  .barra-lateral .grupo-k { display: none; }
+  .barra-lateral button { width: auto; }
+  .barra-lateral button.on { box-shadow: none; }
+  .app > main { padding: 16px 12px; }
+}

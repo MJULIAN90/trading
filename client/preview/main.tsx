@@ -7,6 +7,11 @@ import { Operations } from '../src/components/Operations';
 import { EquityChart } from '../src/components/Charts';
 import { AlignmentPanel } from '../src/components/AlignmentPanel';
 import { ScalperPanel } from '../src/components/ScalperPanel';
+import dashboardJson from './dashboard.json';
+import informesJson from './informes.json';
+import App from '../src/App';
+import { BarsChart } from '../src/components/Charts';
+import { ReportPanel } from '../src/components/ReportPanel';
 import { SessionDrawdownPanel } from '../src/components/SessionDrawdownPanel';
 import { setClock } from '../src/format';
 import '../src/styles.css';
@@ -35,6 +40,13 @@ import '../src/styles.css';
  *                  573 operaciones medido sobre sus velas.
  *   ?v=curva       la curva de capital, con el caso que pisaba las etiquetas:
  *                  acaba en +158 y toca suelo en -2949.
+ *   ?v=app         LA APLICACION ENTERA con datos reales: el lateral, el logo
+ *                  y las secciones. Es lo unico que comprueba la maquetacion.
+ *   ?v=globo       el grafico de barras EMPUJADO AL FONDO de una pagina larga,
+ *                  que es donde el globo se salia de la ventana. Pasar el raton
+ *                  por la ultima barra tiene que dejarlo entero dentro.
+ *   ?v=informe     el informe diario y semanal, con el selector de periodo
+ *                  funcionando y las cifras reales de sus 573 operaciones.
  *   ?v=drawdown        el drawdown por killzone, con el informe REAL de sus 573
  *                  operaciones: las 30 celdas probadas, cero supervivientes al
  *                  Benjamini-Hochberg, y el hueco de 11:00-12:00 a -501.
@@ -365,6 +377,34 @@ const replay = {
   coverage: { before: 40, after: 76, found: 120, expected: 120, aroundEntry: 120, entryWindowMin: 60 },
 };
 
+/**
+ * El informe periodico, calculado de verdad sobre sus 573 operaciones.
+ *
+ * Los datos viven en `informes.json` y no aqui porque son 100 KB generados:
+ * dentro de este fichero lo volvian ilegible y convertian cualquier diff en
+ * un muro. Se regeneran corriendo `informe()` contra la base.
+ *
+ * Van LAS CUATRO SEMANAS, indexadas por su LUNES, y cinco jornadas seguidas.
+ * Dos cosas que costaron un rato y conviene dejar escritas:
+ *
+ *   - Con solo dos semanas, la segunda flecha caia en un ancla que no estaba
+ *     aqui y parecia que el boton no hacia nada, con el dominio bien.
+ *   - `prev` y `next` devuelven dias DISTINTOS de la misma semana -el ultimo
+ *     hacia atras, el primero hacia delante-, asi que indexar por un dia
+ *     suelto dejaba la mitad de los saltos sin ancla. Por eso el stub
+ *     normaliza al lunes antes de buscar.
+ *
+ * Un banco de pruebas con huecos miente igual que un dato con huecos.
+ */
+const informes = informesJson as Record<string, unknown>;
+
+/** El lunes de la semana de una fecha, igual que hace `report.ts`. */
+function lunesDelBanco(dia: string): string {
+  const d = new Date(`${dia}T12:00:00Z`);
+  d.setUTCDate(d.getUTCDate() - ((d.getUTCDay() === 0 ? 6 : d.getUTCDay() - 1)));
+  return d.toISOString().slice(0, 10);
+}
+
 window.fetch = (async (url: string) => {
   const u = String(url);
   const ok = (d: unknown) => ({ ok: true, status: 200, json: async () => d });
@@ -373,6 +413,19 @@ window.fetch = (async (url: string) => {
   if (u.includes('/api/global')) return ok(globalReport);
   if (u.includes('/api/scalper')) return ok(scalper);
   if (u.includes('/api/alignment')) return ok(alineacion);
+  // La APLICACION ENTERA, para ver el lateral y la cabecera. Es el unico
+  // sitio donde se puede comprobar la maquetacion: los demas `?v=` montan un
+  // panel suelto y el lateral no existe ahi.
+  if (u.includes('/api/dashboard')) return ok(dashboardJson);
+  if (u.includes('/api/status')) return ok({ autoIngest: true, lastIngest: { at: ahora } });
+  if (u.includes('/api/today')) return ok({ state: 'sin-limite', date: '2026-10-30', netPnl: 262, operations: 18, contracts: 27, limit: 0, remaining: null });
+  if (u.includes('/api/report')) {
+    const periodo = u.includes('periodo=semanal') ? 'semanal' : 'diario';
+    const ancla = /ancla=(\d{4}-\d{2}-\d{2})/.exec(u)?.[1] ?? '';
+    const clave = `${periodo}|${ancla && periodo === 'semanal' ? lunesDelBanco(ancla) : ancla}`;
+    if (ancla && !(clave in informes)) console.warn(`[banco] falta el informe ${clave}, sirvo el ultimo`);
+    return ok(informes[clave] ?? informes[`${periodo}|`]);
+  }
   if (u.includes('/replay')) return ok(replay);
   if (u.includes('/reading')) return ok({ lines: [] });
   if (u.includes('/notes')) return ok({ operationId: 1, note: 'la mecha de las 10:05 no la vi venir', tags: ['scalper'] });
@@ -410,13 +463,13 @@ const drawdown = {
       "session": "ASIA",
       "days": 12,
       "trades": 184,
-      "total": 647,
-      "perTrade": 3.52,
+      "total": 24.5,
+      "perTrade": 0.13,
       "drawdownMedian": 132.25,
       "drawdownP75": 222.5,
-      "drawdownWorst": 1569.5,
+      "drawdownWorst": 2192,
       "drawdownWorstDay": "2026-10-29",
-      "chainedDrawdown": 1885.5,
+      "chainedDrawdown": 2508,
       "greenDays": 6,
       "worstStreak": 13,
       "overLimit": null
@@ -570,11 +623,11 @@ const drawdown = {
       "days": 11,
       "daysWithRest": 11,
       "tradesAfter": 155,
-      "perTradeAfter": 5.75,
-      "baseline": 3.52,
-      "diff": 2.23,
+      "perTradeAfter": 1.73,
+      "baseline": 0.13,
+      "diff": 1.6,
       "medianAfter": 17,
-      "p": 0.7351,
+      "p": 0.7156,
       "survives": false,
       "enough": true
     },
@@ -584,11 +637,11 @@ const drawdown = {
       "days": 10,
       "daysWithRest": 10,
       "tradesAfter": 135,
-      "perTradeAfter": 7.71,
-      "baseline": 3.52,
-      "diff": 4.2,
+      "perTradeAfter": 3.1,
+      "baseline": 0.13,
+      "diff": 2.97,
       "medianAfter": 19.75,
-      "p": 0.8591,
+      "p": 0.8286,
       "survives": false,
       "enough": true
     },
@@ -598,11 +651,11 @@ const drawdown = {
       "days": 9,
       "daysWithRest": 8,
       "tradesAfter": 118,
-      "perTradeAfter": 10.15,
-      "baseline": 3.52,
-      "diff": 6.64,
+      "perTradeAfter": 4.88,
+      "baseline": 0.13,
+      "diff": 4.74,
       "medianAfter": 63.25,
-      "p": 0.8896,
+      "p": 0.8471,
       "survives": false,
       "enough": true
     },
@@ -612,11 +665,11 @@ const drawdown = {
       "days": 7,
       "daysWithRest": 7,
       "tradesAfter": 109,
-      "perTradeAfter": 12.22,
-      "baseline": 3.52,
-      "diff": 8.7,
+      "perTradeAfter": 6.5,
+      "baseline": 0.13,
+      "diff": 6.37,
       "medianAfter": 81,
-      "p": 0.8336,
+      "p": 0.7836,
       "survives": false,
       "enough": true
     },
@@ -626,11 +679,11 @@ const drawdown = {
       "days": 5,
       "daysWithRest": 5,
       "tradesAfter": 70,
-      "perTradeAfter": 19.06,
-      "baseline": 3.52,
-      "diff": 15.54,
+      "perTradeAfter": 10.16,
+      "baseline": 0.13,
+      "diff": 10.03,
       "medianAfter": 131,
-      "p": 0.7846,
+      "p": 0.7161,
       "survives": false,
       "enough": true
     },
@@ -640,11 +693,11 @@ const drawdown = {
       "days": 4,
       "daysWithRest": 4,
       "tradesAfter": 53,
-      "perTradeAfter": 29.24,
-      "baseline": 3.52,
-      "diff": 25.72,
+      "perTradeAfter": 17.49,
+      "baseline": 0.13,
+      "diff": 17.36,
       "medianAfter": 239.5,
-      "p": 0.7426,
+      "p": 0.6937,
       "survives": false,
       "enough": true
     },
@@ -654,11 +707,11 @@ const drawdown = {
       "days": 2,
       "daysWithRest": 2,
       "tradesAfter": 21,
-      "perTradeAfter": 64.98,
-      "baseline": 3.52,
-      "diff": 61.46,
-      "medianAfter": 682.25,
-      "p": 0.9059,
+      "perTradeAfter": 35.33,
+      "baseline": 0.13,
+      "diff": 35.2,
+      "medianAfter": 371,
+      "p": 0.674,
       "survives": false,
       "enough": true
     },
@@ -1089,6 +1142,104 @@ createRoot(document.getElementById('root')!).render(
       {vista === 'scalper' && <ScalperPanel filters={{}} />}
 
       {vista === 'alineacion' && <AlignmentPanel filters={{}} />}
+
+      {vista === 'app' && <App />}
+
+      {vista === 'globo' && (
+        <>
+          {/* El hueco es el caso: el grafico tiene que quedar pegado al borde
+              de abajo, que es donde el globo no cabia debajo del cursor. */}
+          <div style={{ height: '78vh' }} className="note">
+            Espacio a proposito: el grafico de abajo esta donde estaba el fallo.
+          </div>
+          <div className="panel">
+            <h2>P&amp;L por fecha</h2>
+            <BarsChart
+              rows={[
+                {
+                  "key": "2026-10-27",
+                  "summary": {
+                    "operations": 62,
+                    "wins": 27,
+                    "losses": 35,
+                    "winRate": 0.4355,
+                    "longs": 31,
+                    "shorts": 31,
+                    "grossPnl": 405.0,
+                    "avgWin": 40.0,
+                    "avgLoss": -30.0,
+                    "payoff": 1.33,
+                    "breakevenPayoff": 1.0,
+                    "expectancy": 6.53,
+                    "avgWinMinutes": 3.1,
+                    "avgLossMinutes": 2.4
+                  }
+                },
+                {
+                  "key": "2026-10-28",
+                  "summary": {
+                    "operations": 55,
+                    "wins": 19,
+                    "losses": 36,
+                    "winRate": 0.3455,
+                    "longs": 27,
+                    "shorts": 28,
+                    "grossPnl": -747.5,
+                    "avgWin": 40.0,
+                    "avgLoss": -30.0,
+                    "payoff": 1.33,
+                    "breakevenPayoff": 1.0,
+                    "expectancy": -13.59,
+                    "avgWinMinutes": 3.1,
+                    "avgLossMinutes": 2.4
+                  }
+                },
+                {
+                  "key": "2026-10-29",
+                  "summary": {
+                    "operations": 41,
+                    "wins": 17,
+                    "losses": 24,
+                    "winRate": 0.4146,
+                    "longs": 20,
+                    "shorts": 21,
+                    "grossPnl": 788.0,
+                    "avgWin": 40.0,
+                    "avgLoss": -30.0,
+                    "payoff": 1.33,
+                    "breakevenPayoff": 1.0,
+                    "expectancy": 19.22,
+                    "avgWinMinutes": 3.1,
+                    "avgLossMinutes": 2.4
+                  }
+                },
+                {
+                  "key": "2026-10-30",
+                  "summary": {
+                    "operations": 18,
+                    "wins": 11,
+                    "losses": 7,
+                    "winRate": 0.6111,
+                    "longs": 9,
+                    "shorts": 9,
+                    "grossPnl": 288.5,
+                    "avgWin": 40.0,
+                    "avgLoss": -30.0,
+                    "payoff": 1.33,
+                    "breakevenPayoff": 1.0,
+                    "expectancy": 16.03,
+                    "avgWinMinutes": 3.1,
+                    "avgLossMinutes": 2.4
+                  }
+                }
+              ] as never}
+              label={(k) => String(k).slice(8) + '/' + String(k).slice(5, 7)}
+            />
+          </div>
+        </>
+      )}
+
+      {vista === 'informe' && <ReportPanel query="" />}
 
       {vista === 'drawdown' && <SessionDrawdownPanel data={drawdown} />}
 

@@ -80,10 +80,48 @@ que no salen en la lista (`MarketPanel`, `GridPanel`, `Diagnosis`, `OpTooltip`,
   50 % y no contra el cero. Ahí el signo no existe: un 40 % no es «negativo»,
   es malo.
 
+**Los globos flotantes se colocan con `usePosicionGlobo()` de `client/src/globo.ts`**,
+nunca a mano. La regla: primero debajo del ancla, si no cabe se da la vuelta y
+va encima, y en horizontal se empuja hacia dentro. Estaba bien hecha en
+`OpTooltip` y por estar solo ahí el globo de `Charts` —el de P&L por fecha, que
+cae al fondo de Resumen— se salía por debajo y no se podía leer. Un globo que se
+corta es peor que no tenerlo: se ve que hay algo escrito y no se puede leer.
+
 Lo que el color **no** dice nunca es si una cifra es significativa. En la tabla
 de recuperación del drawdown las dos cosas no coinciden —hay celdas muy verdes
 con p = 0,9— y por eso ese pie lo deja escrito: el color es el signo, el
 p-valor y el ✓ son el hallazgo.
+
+---
+
+## Nada cocido en el codigo: las metricas salen de la base
+
+**Peticion suya del 1 de noviembre.** El proyecto se comparte entre
+ordenadores, asi que una cifra escrita en el codigo es una cifra que miente en
+la otra maquina.
+
+**Auditado el 1 de noviembre: no hay ni una metrica cocida.** Lo que hay y por
+que esta bien:
+
+- `DEFAULT_COSTS`, `DEFAULT_SCALPER`, `DEFAULT_CHART`, `DEFAULT_REVIEW_CONFIG`,
+  `DEFAULT_SCRATCH`, `DEFAULT_EARNINGS` — son **valores de arranque**, y todos
+  se pisan desde `meta`. Un valor por defecto no es un dato cocido.
+- `PATTERN_LABEL` / `PATTERN_HELP` — texto de pantalla, no datos.
+- `COMPANY_NAMES` y `QQQ_WEIGHTS` — datos de mercado, no suyos, y los pesos se
+  pueden pisar con la variable de entorno `QQQ_WEIGHTS`.
+- `HORA_MEDIDA` (`earnings.ts`) — **el unico caso de dato medido escrito en el
+  codigo**, y lleva su valvula: `horasMedidas()` lee `meta.earnings_hours` y lo
+  MEZCLA encima, asi que `node scripts/medir-horas-resultados.mjs` en cualquier
+  maquina manda sobre la tabla. La tabla del codigo es solo el punto de partida
+  de una instalacion nueva.
+- `defaultSymbol()` en `server.ts` cae en `'MNQZ26'` **solo si la tabla `bars`
+  esta vacia**; con datos pregunta cual tiene mas velas.
+
+**Lo que si hay que vigilar son las CIFRAS EN LA PROSA de los paneles.** Frases
+como «sus cinco peores perdidas salieron entre −54 y −60 ticks» son hallazgos
+del periodo de aprendizaje, no metricas vivas. No se borran —son la leccion que
+costo medirlas— pero **van siempre fechadas y con la muestra**, para que nunca
+se lean como una afirmacion sobre los datos de quien mira la pantalla.
 
 ---
 
@@ -107,8 +145,43 @@ staged → normalizar a LF → aplicar los cambios → volver a escribir
          con el final de línea que tenía el suyo
 ```
 
-`client/src/App.tsx` es **mixto** (CRLF con 4 líneas LF sueltas): hay que
-restaurar esas cuatro por contenido, no por número de línea.
+**NUNCA `sed 's/$/\r/'` a pelo.** Sobre un fichero que YA era CRLF produce
+`\r\r\n` en cada línea. TypeScript lo compila sin rechistar —el CR es espacio
+en blanco— así que no se nota: lo que queda es un fichero con una línea en
+blanco entre cada línea real y un diff que marca el fichero entero. Así quedó
+su `src/domain/metrics.ts` el 1 de noviembre, y no se vio hasta tres commits
+después, comparando con `file` (decía `CRLF, CR line terminators`).
+
+La rutina segura es **normalizar a LF primero y luego aplicar el final**, y
+comprobar que no queda ningún `\r\r` antes de commitear. Está en
+`scripts/copiar-para-commit.py`.
+
+`client/src/App.tsx` es **mixto** (CRLF con alguna línea LF suelta): normalizar
+y reescribir entero lo arregla, que es justo lo que hace esa rutina.
+
+## Antes de inventar una clase de CSS, búscala
+
+`styles.css` es una sola hoja de más de dos mil líneas y sin ámbitos. Un
+nombre repetido **no da ningún error**: da un resultado raro en un sitio que
+no estabas mirando, y lo descubre el usuario.
+
+Pasó dos veces el mismo día, con el mismo cambio (el lateral):
+
+| clase | lo que ya era | lo que rompió |
+|---|---|---|
+| `.marca` | etiqueta pequeña con borde y esquinas redondeadas | el logo salía dentro de un recuadro |
+| `.lateral` | `.tabs.lateral`, las pestañas en columna del detalle de Operaciones, en una rejilla de 132 px | esa columna heredaba `width: 212px`, `height: 100vh`, `sticky` y el borde del menú, se salía de su hueco y **empujaba el gráfico, las etiquetas y las notas fuera de la pantalla por la izquierda** |
+
+Se llaman `.logo` y `.barra-lateral`. La rutina, antes de escribir la clase:
+
+```
+grep -n "\.<nombre>" client/src/styles.css
+```
+
+Y después, comprobarlo en el navegador con el panel afectado abierto: que
+ningún elemento de `main` tenga `getBoundingClientRect().left < 0` y que
+`document.documentElement.scrollWidth === window.innerWidth`. Las dos veces,
+`tsc` y el build pasaron limpios; lo único que lo habría visto es mirar.
 
 **3. `expectedMtimeMs` siempre.** Se saca del `device_stage_files`. Si rechaza
 el commit, es que él tocó el fichero: re-stage y vuelve a aplicar, no fuerces.
@@ -169,6 +242,8 @@ npx tsx scripts/prueba-pnl.ts                    # 10 casos, resultado de una op
 npx tsx scripts/prueba-resultados.ts             # 31 casos, informes y alarmas
 npx tsx scripts/prueba-scalper.ts                # 18 casos, salida fija por ticks
 npx tsx scripts/prueba-drawdown.ts               # 40 casos, drawdown por killzone
+npx tsx scripts/prueba-informe.ts                # 61 casos, informe y navegacion por fechas
+npx tsx scripts/prueba-ajustes.ts                # 25 casos, cuentas de metricas (TRES estados + IN vacio)
 npx tsx scripts/prueba-mercado.ts                # 35 casos, bloque de mercado sin red
 node scripts/doctor.mjs                          # revision de la instalacion
 ```
@@ -184,6 +259,9 @@ npx vite build -c vite.preview.ts
 #   ?v=news                la tabla de acciones, el petroleo y los bonos
 #   ?v=scalper             la salida fija por ticks
 #   ?v=alineacion          la alineacion con las medias
+#   ?v=app                 LA APP ENTERA: el lateral, el logo y las secciones
+#   ?v=globo               el globo pegado al borde: no se puede salir
+#   ?v=informe             el informe, el selector y la navegacion por fechas
 #   ?v=drawdown            el drawdown por killzone y los huecos
 #   ?v=curva               la curva de capital
 #   &reloj=mercado         en cualquiera: pinta en hora de Nueva York
@@ -301,6 +379,53 @@ el 43,7 %; con 5+, el 20,3 %. Separación −23,5 puntos, `p=0,0004`. **Es un ve
 no una señal**: el rojo quita, el verde no añade. Hay que repetir la medición
 entera con 3–4 semanas de noviembre antes de darlo por firme. **No toques el
 umbral mientras tanto.**
+
+---
+
+## Rendimiento: la trampa de la marca del caché
+
+**Medido el 1 de noviembre de 2026.** El tablero tardaba **4.843 ms** y ahora
+tarda **669 ms**, con las cifras idénticas byte a byte.
+
+La causa no era el volumen de datos ni los algoritmos. Seis módulos —`pattern`,
+`alignment`, `grid`, `sessionStats`, `study`, `trend`— construyen una serie cara
+a partir de todas las velas y la cachean. Para saber si la copia servía
+preguntaban `SELECT COUNT(*), MAX(ts) FROM bars WHERE symbol = ?`. Eso es un
+**hash del contenido** y cuesta O(todas las velas): recorre las 139.316 entradas
+del índice del MNQ.
+
+| | coste |
+|---|---|
+| `COUNT(*) + MAX(ts)` | **6,72 ms** |
+| solo `MAX(ts)` | 0,003 ms |
+| leer una fila de `meta` | 0,01 ms |
+
+**Comprobar si el caché valía costaba 2.000 veces más que leer un contador, y se
+hacía una vez por operación.** `patternReport` gastaba 4,1 s en preguntar si
+podía usar un caché que ya tenía construido; construirlo eran 414 ms.
+
+**La regla que sale de aquí:** para invalidar un caché se usa un **número de
+versión** (O(1)), nunca un hash del contenido (O(datos)). `barsVersion()` en
+`src/domain/bars.ts` lee un contador de `meta` que sube `refreshBars`, que es el
+**único** sitio que escribe en `bars`. Si algún día se insertan velas por otro
+camino, hay que subir el contador ahí también.
+
+**El otro patrón, el N+1 en un barrido.** `scalperReport` recorre catorce
+objetivos sobre las mismas 573 operaciones y volvía a pedir y a construir las
+mismas 350 velas catorce veces: tres millones de objetos. Se cargan una vez y se
+reparten por `op.id`. 5.533 ms → 435 ms.
+
+**Lo que queda pendiente y está medido:** la reconstrucción en frío sigue siendo
+O(todo el histórico). Con 2,3 M de velas (del orden de un año) son 9,5 s en frío
+y 24 ms cacheada. Como la ingesta mete velas cada 15 s, el frío se paga a
+menudo. El siguiente paso es **añadir por el final** en vez de reconstruir: las
+velas nuevas solo alargan la serie, salvo la última que hay que reabrir.
+
+**Cómo se verifica un cambio de rendimiento aquí:** se vuelcan a JSON todas las
+salidas que dependen de las velas —patrón, medias, scalper, estadística por
+franja con dos juegos de parámetros, y la lectura por operación de las 573— con
+el árbol viejo y con el nuevo, y se comparan con `cmp`. Si mueve una sola cifra,
+no es una optimización, es un error.
 
 ---
 

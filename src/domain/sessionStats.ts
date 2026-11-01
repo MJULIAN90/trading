@@ -1,5 +1,5 @@
 import { db } from '../db/index.js';
-import { normalizeSymbol } from './bars.js';
+import { normalizeSymbol, barsVersion } from './bars.js';
 import { instrumentOf } from './instruments.js';
 import { sessionOf, type SessionName } from './sessions.js';
 import { boundedCache } from './boundedCache.js';
@@ -179,11 +179,8 @@ export function sessionStats(symbol: string, options: SessionStatsOptions = {}):
   const stopPct = Math.max(0.1, Math.min(0.99, options.stopPct ?? 0.75));
   const targetR = Math.max(0.1, Math.min(10, options.targetR ?? 1));
 
-  const s = db()
-    .prepare('SELECT COUNT(*) AS n, MAX(ts) AS m FROM bars WHERE symbol = ?')
-    .get(sym) as { n: number; m: number | null };
-
-  const key = `${sym}:${s.n}:${s.m ?? 0}:${horizonMin}:${STEP_MIN}:${stopPct}:${targetR}`;
+  // Ver `barsVersion` en `bars.ts`: la marca vieja recorria el indice entero.
+  const key = `${sym}:${barsVersion(sym)}:${horizonMin}:${STEP_MIN}:${stopPct}:${targetR}`;
   const hit = cache.get(key);
   if (hit) return hit;
 

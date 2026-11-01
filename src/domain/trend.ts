@@ -1,5 +1,5 @@
 import { db } from '../db/index.js';
-import { normalizeSymbol } from './bars.js';
+import { normalizeSymbol, barsVersion } from './bars.js';
 import { marketOffsetAt } from './clock.js';
 
 /**
@@ -138,12 +138,9 @@ function seriesFor(symbol: string): Series {
   const sym = normalizeSymbol(symbol);
 
   // La huella evita rearmar los marcos en cada peticion y, a la vez, evita
-  // servir velas viejas cuando la ingesta ha anadido minutos nuevos.
-  const stampRow = db()
-    .prepare('SELECT COUNT(*) AS n, MAX(ts) AS m FROM bars WHERE symbol = ?')
-    .get(sym) as { n: number; m: number | null };
-
-  const stamp = `${stampRow.n}:${stampRow.m ?? 0}`;
+  // servir velas viejas cuando la ingesta ha anadido minutos nuevos. Ver
+  // `barsVersion` en `bars.ts`: la marca vieja recorria el indice entero.
+  const stamp = barsVersion(sym);
   const hit = cache.get(sym);
   if (hit && hit.stamp === stamp) return hit;
 

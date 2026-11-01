@@ -27,6 +27,7 @@ import { todayReport } from '../domain/today.js';
 import { earningsReport, setEarningsSettings } from '../domain/earnings.js';
 import { DEFAULT_SCALPER, scalperReport } from '../domain/scalper.js';
 import { sessionDrawdown } from '../domain/sessionDrawdown.js';
+import { informe, type Periodo } from '../domain/report.js';
 import { globalReport, type Alert } from '../domain/global.js';
 import { refreshGlobal, startMarketRefresh } from '../ingest/market.js';
 import { alignmentBreakdown } from '../domain/alignment.js';
@@ -34,7 +35,7 @@ import { openingStats } from '../domain/openings.js';
 import { marketDate } from '../domain/sessions.js';
 import { replay } from '../domain/replay.js';
 import { patternReport } from '../domain/pattern.js';
-import { TIMEFRAMES, getChartPrefs, setChartPrefs } from '../domain/prefs.js';
+import { TIMEFRAMES, getChartPrefs, resolverCuentas, setChartPrefs } from '../domain/prefs.js';
 import { sessionStats } from '../domain/sessionStats.js';
 import { patternStudy } from '../domain/study.js';
 import { patternGrid } from '../domain/grid.js';
@@ -148,7 +149,7 @@ function parseFilter(query: Record<string, unknown>): Filter {
     from: typeof query.from === 'string' ? query.from : undefined,
     to: typeof query.to === 'string' ? query.to : undefined,
     session: typeof query.session === 'string' ? query.session : undefined,
-    account: typeof query.account === 'string' && query.account ? query.account : undefined,
+    accounts: resolverCuentas(query),
   };
 }
 
@@ -333,6 +334,23 @@ app.get('/api/breakdown', async (req) => {
     byHour: byHour(ops),
     byDirection: byDirection(ops),
   };
+});
+
+/**
+ * El informe periodico. `periodo` es 'diario' o 'semanal'.
+ *
+ * Va en su propia ruta y no dentro de `/api/dashboard` a proposito: el panel
+ * tiene su propio selector y recalcularlo en cada carga del tablero seria
+ * trabajo tirado para quien no abre esa pestania.
+ */
+app.get('/api/report', async (req) => {
+  const q = req.query as Record<string, unknown>;
+  const periodo: Periodo = q.periodo === 'semanal' ? 'semanal' : 'diario';
+  // `ancla` es la jornada que se esta mirando, YYYY-MM-DD. Sin ella, la mas
+  // reciente. Se valida la FORMA aqui; si la fecha no existe en los datos, el
+  // informe sale vacio para ese dia, que es la respuesta correcta.
+  const ancla = typeof q.ancla === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(q.ancla) ? q.ancla : undefined;
+  return informe(loadOperations(q), periodo, getCostSettings(), ancla);
 });
 
 app.get('/api/equity', async (req) => {
