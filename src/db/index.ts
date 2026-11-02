@@ -248,6 +248,38 @@ function migrate(target: Database.Database): void {
     if (!cols.has('prev_close')) target.exec('ALTER TABLE global_quotes ADD COLUMN prev_close REAL');
   }
 
+  // HISTORICO de cotizaciones: una fila por simbolo y por momento.
+  //
+  // `global_quotes` guarda SOLO la ultima: su clave es el simbolo, asi que
+  // cada refresco pisa al anterior. Eso vale para ensenar un panel y no vale
+  // para nada mas — sin serie no hay media movil, no hay divergencia contra
+  // el Nasdaq, y no hay forma de medir si alguna de las dos cosas sirve.
+  //
+  // Se guarda la muestra CRUDA, cada 5 minutos, y no una version ya agregada
+  // a 15 minutos aunque sea a 15 minutos donde se vaya a mirar. Es la regla
+  // de siempre del proyecto: crudo abajo, derivado arriba. Agregar al guardar
+  // ahorra disco y tira el detalle para siempre; agregar al leer es una
+  // consulta que se puede cambiar de opinion mañana.
+  //
+  // La clave es (simbolo, momento de la cotizacion) y no (simbolo, momento de
+  // la peticion): con el mercado cerrado se pide cada hora y el precio es
+  // siempre el mismo de las 16:00, asi que por `ts` se guardarian doce copias
+  // de la misma cotizacion cada noche. Por `quote_ts` se guarda una.
+  target.exec(`
+    CREATE TABLE IF NOT EXISTS global_quotes_history (
+      symbol     TEXT NOT NULL,
+      quote_ts   INTEGER NOT NULL,
+      ts         INTEGER NOT NULL,
+      price      REAL NOT NULL,
+      change_pct REAL,
+      PRIMARY KEY (symbol, quote_ts)
+    )
+  `);
+
+  target.exec(
+    'CREATE INDEX IF NOT EXISTS idx_quotes_hist_ts ON global_quotes_history (quote_ts)',
+  );
+
   // Cierre de cada simbolo por jornada, que es lo que permite calcular la
   // variacion a 5 dias SIN pedirsela a nadie.
   //

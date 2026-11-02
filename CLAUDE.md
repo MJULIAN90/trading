@@ -530,8 +530,48 @@ métricas siguen idénticas, que es el fallo más caro de detectar.
   string sendingSource)` **ya existe** (clase pública, no documentada en el XML).
 - **Clean + Build siempre.** Los ficheros escritos por el puente llegan con
   marcas de tiempo inconsistentes y MSBuild decide por fechas. Los `.csproj`
-  apuntan a v1.146.18 con v1.147.8 instalada;
-  `scripts\compilar-indicadores.cmd` lo repunta, Visual Studio no.
+  se quedan apuntando a la versión vieja cuando Quantower se actualiza solo;
+  `scripts\compilar-indicadores.cmd` lo repunta, Visual Studio no. **Al
+  1-nov-2026 hay v1.147.9 instalada**, y `j_Flujo.csproj` seguía en v1.147.8
+  (KillZones y j_Guardia ya están en la buena). Comprobarlo ANTES de culpar a
+  un cambio de código: el error es «no se encuentra la referencia» y parece
+  cualquier otra cosa.
+
+## Cómo verificar C# sin poder compilarlo
+
+No hay .NET ni mono en el contenedor y el proxy bloquea `dot.net`. Aun así se
+puede verificar bastante más que «lo he leído con cuidado», y en este orden:
+
+1. **Sintaxis, con un parser de verdad.** `npm install tree-sitter
+   tree-sitter-c-sharp` (el registro de npm sí está permitido) y recorrer el
+   árbol buscando nodos `ERROR` o `isMissing`. Caza llaves sueltas, un `switch`
+   mal cerrado, una cadena de `using` rota. Hay que importarlo como **ESM**
+   (`import`, no `require`: el binding tiene top-level await).
+2. **Qué miembros han cambiado.** El mismo árbol, listando
+   `method_declaration` / `field_declaration` / `struct_declaration`, y
+   comparar la lista del fichero nuevo contra la del viejo. Enseña de un
+   vistazo lo añadido Y **lo perdido sin querer**, que es lo que no se ve.
+3. **Los nombres de la API, en el XML de documentación.**
+   `C:\Quantower\TradingPlatform\v<versión>\bin\TradingPlatform.BusinessLayer.xml`
+   son 326 KB con TODOS los miembros públicos. Un `grep` ahí sustituye a
+   adivinar: así se confirmaron `Position.OpenPrice`, `.Quantity`, `.Fee`,
+   `Symbol.GetTickCost(double)` y `Core.Instance.Positions`. **Adivinar un
+   nombre de propiedad cuesta un ciclo entero de Clean + Build suyo.**
+4. **La lógica, portándola a JavaScript.** Lo que el parser no puede ver. Se
+   reescribe la función en JS, se le pasan casos y se mira el resultado. Así
+   salieron dos fallos del horario de KillZones que no se veían leyendo: que
+   ASIA cruza medianoche, y que el viernes el mercado cierra a las 17:00 (sin
+   eso, la cuenta atrás apuntaba a una sesión que no iba a abrir).
+5. **No nombrar tipos de la API si se puede evitar.** j_Guardia coge el
+   convertidor de coordenadas con `var` y nunca escribe su tipo. Al añadir un
+   método que lo recibía por parámetro hubo que escribirlo, y eso es
+   exponerse a que el namespace no sea el que parece — ya pasó con `IChart`.
+   Se refactorizó para pasar la `Y` ya calculada.
+
+Lo que esto **no** cubre: tipos, sobrecargas y resolución de nombres. El
+`Clean + Build` sigue siendo la prueba de fuego, así que los cambios se
+entregan **de uno en uno por fichero** cuando se pueda: si no compila, hay una
+sola causa.
 
 ---
 

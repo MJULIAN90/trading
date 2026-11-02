@@ -218,6 +218,7 @@ interface Fila {
   when: string | null;
   epsEstimate: number | null;
   epsActual: number | null;
+  revenueActual: number | null;
 }
 
 /** YYYY-MM-DD de un instante, en hora de Nueva York. */
@@ -238,7 +239,8 @@ function filas(desde: string, hasta: string): Fila[] {
   return db()
     .prepare(
       `SELECT symbol, name, date, when_ AS "when",
-              eps_estimate AS epsEstimate, eps_actual AS epsActual
+              eps_estimate AS epsEstimate, eps_actual AS epsActual,
+              revenue_actual AS revenueActual
          FROM global_earnings
         WHERE date >= ? AND date <= ?
         ORDER BY date, symbol`,
@@ -297,11 +299,23 @@ export function agenda(dias = 3, ahora = Date.now()): Cita[] {
  * Como salieron los resultados de los ultimos dias: lo presentado contra lo
  * esperado.
  *
- * Solo entra lo que YA presento, y "ya presento" es que la fecha haya pasado,
- * no que `epsActual` traiga algo. El proveedor rellena ese campo con 0 cuando
- * todavia no hay dato, y un cero leido como resultado convierte a cualquier
- * empresa que aun no ha presentado en un desplome del 100 %. Es el tipo de
- * fallo que no se nota hasta que suena una alarma por nada.
+ * Solo entra lo que YA presento, y eso se comprueba por DOS caminos
+ * independientes porque este panel pinta una alarma roja y una alarma roja
+ * por nada se deja de mirar.
+ *
+ * 1. LA HORA, no la fecha. Antes decia "la fecha ha pasado" (`date > hoy`), y
+ *    eso deja entrar el dia de hoy: AAPL presenta el 2 de noviembre DESPUES
+ *    DEL CIERRE, y a las nueve de la maniana del dia 2 la fila ya pasaba el
+ *    filtro. Ahora se usa `momentoDe`, que sabe de `amc` y `bmo` y ademas usa
+ *    la hora medida en EDGAR cuando la hay.
+ * 2. QUE HAYA DATO. `epsActual` null no se calcula. Esto no sirvio de nada
+ *    durante un tiempo porque el null del proveedor llegaba convertido en 0
+ *    —ver `num` en `src/ingest/market.ts`—, que es lo que hacia falta arreglar
+ *    de verdad. Se mantiene igualmente: dos guardas contra el mismo fallo es
+ *    barato, y la segunda tambien cubre una fila vieja que ya tenga el cero.
+ *
+ * El cero que todavia pueda quedar guardado de antes se limpia solo en el
+ * siguiente refresco, porque el upsert vuelve a escribir el campo.
  */
 export function sorpresas(dias = 3, ahora = Date.now()): Sorpresa[] {
   const hoy = diaDe(ahora);
@@ -310,8 +324,24 @@ export function sorpresas(dias = 3, ahora = Date.now()): Sorpresa[] {
 
   for (const f of filas(diaDe(ahora - dias * 86_400_000), hoy)) {
     if (f.date > hoy) continue;
+
+    const momento = momentoDe(f.date, f.when, undefined, f.symbol);
+    if (momento !== null && momento > ahora) continue;
+
     if (f.epsEstimate === null || f.epsActual === null) continue;
     if (f.epsEstimate === 0) continue;
+
+    // UN CERO SOLO CUENTA SI HAY INGRESOS QUE LO RESPALDEN.
+    //
+    // Es la firma del "sin dato" del proveedor: cuando todavia no se ha
+    // presentado manda ceros en los cuatro campos. Un informe de verdad con un
+    // beneficio por accion de 0,00 exacto existe, pero ese informe TIENE
+    // ingresos; los dos campos a cero a la vez no es un resultado, es un hueco.
+    //
+    // Hace falta ademas de la guarda de la hora porque las filas viejas, las
+    // que se guardaron antes de arreglar `num`, ya tienen el cero dentro y el
+    // upsert ya no las pisa: lo presentado se conserva a proposito.
+    if (f.epsActual === 0 && (f.revenueActual === null || f.revenueActual === 0)) continue;
 
     // Sobre el valor absoluto de lo esperado: con una estimacion negativa
     // -una empresa que se esperaba en perdidas-, dividir por el numero con su

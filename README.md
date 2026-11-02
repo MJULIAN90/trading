@@ -703,12 +703,13 @@ git status --short          # los untracked salen con ??
 |---|---|
 | `client/src/globo.ts` | **no compila**: lo importan `Charts`, `OpTooltip` y `DayCalendar` |
 | `client/src/calendario.ts` | **no compila**: lo importa `DayCalendar` |
+| `src/domain/cesta.ts` | la cesta del Nasdaq no se puede leer |
 | `client/src/components/ReactionPanel.tsx` | **no compila**: lo importa `GlobalPanel` |
 | `src/domain/reaction.ts` | **no compila**: lo importan el servidor y el panel |
 | `client/src/components/ReportPanel.tsx` | **no compila**: lo importa `App.tsx` |
 | `src/domain/report.ts` | **no compila**: lo importa el servidor |
 | `client/public/greenspot.png` + `icono.png` | compila, pero sale el texto «Greenspot» en vez del logo y la pestaña sin icono |
-| `scripts/prueba-ajustes.ts`, `prueba-informe.ts`, `prueba-calendario.ts`, `prueba-reaccion.ts`, `prueba-ingesta-calendario.ts` | 164 de los 263 casos de prueba no existen |
+| `scripts/prueba-ajustes.ts`, `prueba-informe.ts`, `prueba-calendario.ts`, `prueba-reaccion.ts`, `prueba-ingesta-calendario.ts`, `prueba-cesta.ts` | 191 de los 303 casos de prueba no existen |
 | `scripts/copiar-para-commit.py` | la rutina de finales de línea |
 
 ```bash
@@ -718,7 +719,8 @@ git add client/src/globo.ts client/src/calendario.ts \
         client/public/greenspot.png client/public/icono.png \
         scripts/prueba-ajustes.ts scripts/prueba-informe.ts \
         scripts/prueba-calendario.ts scripts/prueba-reaccion.ts \
-        scripts/prueba-ingesta-calendario.ts scripts/copiar-para-commit.py
+        scripts/prueba-ingesta-calendario.ts scripts/prueba-cesta.ts \
+        scripts/copiar-para-commit.py
 ```
 
 **Y dos que hay que quitar:**
@@ -941,6 +943,69 @@ y que no se pierde ninguno. Con el código viejo, esa prueba da 9 fallos.
 El arreglo no es recortar el hueco a cuatro —eso pondría el lunes en el viernes— sino
 contarlo desde el primer día que de verdad ocupa casilla: si el mes abre en fin de
 semana, ese día siempre es un lunes y el hueco es cero.
+
+### La cesta: las diez del Nasdaq como una sola línea
+
+Para ver si el MNQ se está yendo por su cuenta o si sus pesos pesados van con él. Cuando
+el precio rompe y la cesta no le sigue, el rompimiento lo está haciendo el futuro solo.
+
+**Es un porcentaje, no un precio.** Las diez cotizan entre 200 y 900 dólares y el MNQ
+ronda los 28.800 puntos; un promedio de sus precios da unos 400 y no cabe en el gráfico.
+Lo único comparable entre escalas distintas es **cuánto se han movido**.
+
+**Ponderada por su peso en el QQQ**, no una media a secas: NVDA pesa 8,3 y TSLA 2,8, así
+que un 1 % de NVDA mueve el índice tres veces más. Medido contra el 30 de octubre, la
+cesta dio **−3,14 %** con el QQQ en **−3,47 %**. Y se normaliza contra el peso **presente**,
+no contra 100: las diez cubren el 46,8 % del índice, y dividir entre 100 aplastaría el
+porcentaje a la mitad.
+
+#### Una sola EMA, y da igual el orden
+
+No hay que elegir entre «la EMA de la cesta» y «la cesta de las diez EMAs»: **son la misma
+línea**. La EMA es un filtro lineal, así que promediar y luego suavizar da idéntico a
+suavizar y luego promediar. Comprobado numéricamente en `prueba-cesta.ts`: diferencia
+máxima de 8,9 × 10⁻¹⁶. Así que se promedia primero, que es una serie en vez de diez.
+
+#### El periodo no significa lo mismo en cada marco
+
+El error más fácil aquí es traerse un número de otro gráfico:
+
+| periodo | sobre velas de 1 min | sobre muestras de 15 min |
+|---|---|---|
+| 21 | 10 min de retraso | **150 min** |
+| 8 | 3,5 min | 52,5 min |
+| 5 | 2 min | 30 min |
+
+Una sesión de cotización dura 390 minutos y da **26 barras de 15 minutos**. Una EMA 21
+sobre ese marco cubre 21 de esas 26: eso no es un indicador intradía, es la media de la
+sesión entera. `retrasoMinutos(periodo, minutosPorBarra)` lo calcula, y está probado.
+
+#### Se guarda crudo a 5 minutos y se agrega al leer
+
+`global_quotes` guarda **solo la última** cotización de cada símbolo —su clave es el
+símbolo— así que cada refresco pisa al anterior. Sin serie no hay media móvil ni
+divergencia ni forma de medir si alguna de las dos sirve.
+
+`global_quotes_history` apunta cada muestra sin pisar nada, **cada 5 minutos y en crudo**,
+aunque se vaya a mirar a 15. Es la regla de siempre: agregar al guardar ahorra disco y
+tira el detalle para siempre; agregar al leer es una consulta que se puede cambiar
+mañana. `cesta(desde, hasta, minutos)` agrupa al marco que se le pida.
+
+La clave es **(símbolo, momento de la cotización)** y no el momento de la petición: con el
+mercado cerrado se pregunta cada hora y el precio devuelto es siempre el de las 16:00, así
+que por `ts` entrarían doce copias idénticas cada noche.
+
+Cada punto lleva **cuántas empresas y cuánto peso lo sostienen**. Si Finnhub deja de dar
+NVDA, la cesta se seguiría dibujando igual de bonita con nueve — y NVDA es la que más pesa.
+
+Ocupa unas **780 filas al día**, 8 MB al año.
+
+> **El CAST a INTEGER del bucket no es decorativo.** Los números de JavaScript son todos
+> coma flotante, así que `@ancho` llega a SQLite como un real y `entero / real` es una
+> división **real**: `quote_ts / 900000.0 * 900000.0` devuelve exactamente `quote_ts`, cada
+> muestra cae en su propio grupo y la agregación no agrupa nada. La línea sale igual de
+> bonita, con tres veces más puntos de los que debería y sin haber mirado el marco para
+> nada. Lo cazó la prueba contando cuántos puntos salen de tres muestras del mismo tramo.
 
 ### La marca: logo y favicon
 
@@ -1577,6 +1642,35 @@ de escritura de notas, etiquetas y ajustes. `src/api/server.ts` es la lista de v
   Por eso el diario lleva su propia cuenta de peticiones en vez de fiarse de
   los códigos de respuesta. Sin eso, quedarse sin cuota se guardaría como
   «cero resultados» y parecería un día tranquilo.
+
+- **`Number(null)` es `0`, no `NaN`, y eso pintó una alarma roja falsa.** El ayudante
+  que convertía los campos del proveedor era:
+
+  ```ts
+  const num = (v) => { const n = Number(v); return Number.isFinite(n) ? n : null; };
+  ```
+
+  Finnhub manda `epsActual: null` en los resultados que **todavía no se han
+  presentado**. Ese null se guardaba como un cero perfectamente válido, y el panel
+  calculaba `(0 − 2,03) / 2,03 = −100 %`: **AAPL salía en rojo con «RESULTADO POR DEBAJO
+  DE LO ESPERADO» el día antes de presentar**, y lo mismo las otras cuatro con fecha
+  futura. `Number('')` también es 0, así que a las series de Alpha Vantage les pasaba
+  igual en los días sin dato.
+
+  El arreglo son tres capas, porque esto pinta una alarma y una alarma por nada se deja
+  de mirar:
+
+  1. `num` descarta `null`, `undefined` y la cadena vacía **antes** de convertir.
+  2. `sorpresas()` comprueba **la hora, no la fecha**. Antes decía `date > hoy`, que deja
+     entrar el día de hoy entero — y AAPL presenta *después del cierre*. Ahora usa
+     `momentoDe()`, que sabe de `amc` / `bmo` y de la hora medida en EDGAR.
+  3. Un **cero solo cuenta si hay ingresos que lo respalden**. Dos ceros a la vez son el
+     hueco del proveedor, no un resultado. Hace falta porque las filas guardadas antes
+     del arreglo ya tienen el cero dentro, y el upsert ya no las pisa: lo presentado se
+     conserva con `COALESCE`, igual que en el calendario económico.
+
+  Comprobado contra la base real: a las 17:00 de hoy el panel enseña AMZN (−5,6 %),
+  MSFT (+1,4 %) y GOOGL (−14,1 %), y AAPL ya solo sale en la agenda de lo que viene.
 
 - **El sentimiento de las noticias ya no es gratis.** `NEWS_SENTIMENT` de Alpha
   Vantage —puntuación de −1 a +1 por titular y relevancia por ticker— pasó a

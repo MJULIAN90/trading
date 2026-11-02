@@ -21,6 +21,7 @@ import { join } from 'node:path';
 process.env.JOURNAL_DB = join(mkdtempSync(join(tmpdir(), 'tj-res-')), 'prueba.db');
 
 const { db } = await import('../src/db/index.js');
+const { num } = await import('../src/ingest/market.js');
 const { agenda, momentoDe, setEarningsSettings, sorpresas, HORA_MEDIDA } = await import(
   '../src/domain/earnings.js'
 );
@@ -162,9 +163,61 @@ meter('PERDIA', dia(-1), 'amc', -2.0, -1.0);
 const perdia = sorpresas(3, AHORA).find((x) => x.symbol === 'PERDIA')!;
 check('perder menos de lo esperado es mejor, no peor', perdia.fallo === false && perdia.desvioPct === 50, `${perdia.desvioPct}%`);
 
-// Un resultado de 0,00 de verdad, en una empresa que YA presento, si cuenta.
+// Un resultado de 0,00 de verdad, en una empresa que YA presento, si cuenta
+// —pero solo porque TIENE INGRESOS. Dos ceros a la vez son el hueco del
+// proveedor, no un resultado.
 meter('CERO', dia(-1), 'amc', 1.5, 0);
+db().prepare('UPDATE global_earnings SET revenue_actual = 5000 WHERE symbol = ?').run('CERO');
 const cero = sorpresas(3, AHORA).find((x) => x.symbol === 'CERO')!;
-check('un cero REAL, ya presentado, si es un fallo', cero.fallo === true && cero.desvioPct === -100, `${cero.desvioPct}%`);
+check('un cero REAL con ingresos, ya presentado, si es un fallo', cero.fallo === true && cero.desvioPct === -100, `${cero.desvioPct}%`);
+
+meter('HUECO', dia(-1), 'amc', 1.5, 0);
+db().prepare('UPDATE global_earnings SET revenue_actual = 0 WHERE symbol = ?').run('HUECO');
+check('pero dos ceros a la vez son un hueco, no un desplome', !sorpresas(3, AHORA).some((x) => x.symbol === 'HUECO'));
+
+// --- 5. HOY, que es el caso que se escapo ------------------------------------
+//
+// La guarda decia "la fecha ha pasado" (`date > hoy`) y eso deja entrar el dia
+// de hoy entero. AAPL presenta DESPUES DEL CIERRE: a las 10:00 de la maniana
+// su fila ya pasaba el filtro, y con `eps_actual = 0` salia un -100 % y un
+// aviso rojo por una empresa que aun no habia abierto la boca.
+//
+// AHORA son las 10:00 de Nueva York.
+meter('HOYAMC', dia(0), 'amc', 2.03, 0);
+check(
+  'lo que presenta HOY despues del cierre no sale por la maniana',
+  !sorpresas(3, AHORA).some((x) => x.symbol === 'HOYAMC'),
+);
+check(
+  'y a las 17:00 NY, ya cerrado, tampoco si sigue sin dato',
+  !sorpresas(3, AHORA + 7 * 3_600_000).some((x) => x.symbol === 'HOYAMC'),
+);
+
+db().prepare('UPDATE global_earnings SET eps_actual = 1.80 WHERE symbol = ?').run('HOYAMC');
+check(
+  'pero en cuanto publica, y ya cerrado, si sale',
+  sorpresas(3, AHORA + 7 * 3_600_000).some((x) => x.symbol === 'HOYAMC'),
+);
+check(
+  'y antes del cierre sigue sin salir aunque el dato ya este',
+  !sorpresas(3, AHORA).some((x) => x.symbol === 'HOYAMC'),
+);
+
+// El que presenta HOY antes de abrir si cuenta a las 10:00: ya ha presentado.
+meter('HOYBMO', dia(0), 'bmo', 2.00, 2.20);
+const bmo = sorpresas(3, AHORA).find((x) => x.symbol === 'HOYBMO');
+check('lo que presenta HOY antes de abrir si sale a las 10:00', bmo !== undefined);
+check('y con su desvio bien', bmo?.desvioPct === 10 && bmo?.fallo === false, `${bmo?.desvioPct}%`);
+
+// --- 6. la raiz: Number(null) es 0 -------------------------------------------
+//
+// Lo de arriba son dos guardas. Esto es lo que de verdad estaba mal: el null
+// que manda Finnhub para lo no presentado llegaba a la base como un cero.
+check('null no es cero', num(null) === null, String(num(null)));
+check('la cadena vacia tampoco', num('') === null, String(num('')));
+check('undefined tampoco', num(undefined) === null, String(num(undefined)));
+check('pero un cero de verdad se conserva', num(0) === 0);
+check('y un numero en texto se convierte', num('1.5') === 1.5);
+check('lo que no es un numero no pasa', num('manana') === null);
 
 console.log('\nbase temporal:', process.env.JOURNAL_DB);

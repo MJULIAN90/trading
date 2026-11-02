@@ -126,7 +126,25 @@ async function pedirAlpha<T>(url: string): Promise<T> {
   return pedir<T>(url);
 }
 
-const num = (v: unknown): number | null => {
+/**
+ * Un numero del proveedor, o null si no lo manda.
+ *
+ * EL `v == null` DE DELANTE NO SOBRA, y costo una alarma roja. `Number(null)`
+ * en JavaScript es **0**, no NaN, y `Number.isFinite(0)` es true: sin esa
+ * linea, un campo que el proveedor manda vacio se guardaba como un cero
+ * perfectamente valido.
+ *
+ * Donde se vio: Finnhub manda `epsActual: null` en los resultados que aun no
+ * se han presentado. Ese null se guardaba como 0, y el panel calculaba
+ * (0 - 2,03) / 2,03 = -100 %, asi que AAPL salia en rojo con "RESULTADO POR
+ * DEBAJO DE LO ESPERADO" **el dia antes de presentar**. Lo mismo le pasaba a
+ * las otras cuatro que tenian fecha futura.
+ *
+ * La cadena vacia es el mismo caso: `Number('')` tambien es 0. Alpha Vantage
+ * manda "" en los dias sin dato de sus series.
+ */
+export const num = (v: unknown): number | null => {
+  if (v === null || v === undefined || v === '') return null;
   const n = Number(v);
   return Number.isFinite(n) ? n : null;
 };

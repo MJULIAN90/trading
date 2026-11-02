@@ -134,6 +134,42 @@ export function saveQuotes(rows: Quote[]): void {
   );
 
   db().transaction((xs: Quote[]) => { for (const q of xs) stmt.run(q); })(rows);
+
+  saveQuotesHistory(rows);
+}
+
+/**
+ * Apunta cada cotizacion en el historico, sin pisar la anterior.
+ *
+ * Va pegado a `saveQuotes` y no en una ruta aparte a proposito: si fuera un
+ * paso suelto que hay que acordarse de llamar, el dia que se añada otra
+ * fuente de cotizaciones se olvidaria, y lo que se pierde no se recupera.
+ *
+ * Solo las ACCIONES. El petroleo, los bonos y el QQQ se refrescan por el
+ * mismo camino pero no entran en el indice ponderado, y guardarlos aqui seria
+ * llenar la tabla con filas que nadie va a leer. Si algun dia hacen falta, se
+ * quita este filtro y se empieza a guardar desde ese dia — igual que esto.
+ *
+ * `quote_ts` puede no venir. Cuando falta se usa `ts`, porque la alternativa
+ * -descartar la fila- pierde el dato, y una marca de tiempo aproximada sirve
+ * para lo que se va a hacer con ella.
+ */
+export function saveQuotesHistory(rows: Quote[]): void {
+  const acciones = rows.filter((q) => q.kind === 'accion');
+  if (acciones.length === 0) return;
+
+  const stmt = db().prepare(
+    `INSERT INTO global_quotes_history (symbol, quote_ts, ts, price, change_pct)
+     VALUES (?, ?, ?, ?, ?)
+     ON CONFLICT (symbol, quote_ts) DO UPDATE SET
+       price = excluded.price,
+       change_pct = excluded.change_pct,
+       ts = excluded.ts`,
+  );
+
+  db().transaction((xs: Quote[]) => {
+    for (const q of xs) stmt.run(q.symbol, q.quoteTs ?? q.ts, q.ts, q.price, q.changePct ?? null);
+  })(acciones);
 }
 
 /**
@@ -205,8 +241,14 @@ export function saveEarnings(rows: Earning[]): void {
              @revenueEstimate, @revenueActual)
      ON CONFLICT (symbol, date) DO UPDATE SET
        name = excluded.name, when_ = excluded.when_,
-       eps_estimate = excluded.eps_estimate, eps_actual = excluded.eps_actual,
-       revenue_estimate = excluded.revenue_estimate, revenue_actual = excluded.revenue_actual`,
+       eps_estimate = excluded.eps_estimate,
+       revenue_estimate = excluded.revenue_estimate,
+       -- Lo PRESENTADO no se pisa con un null, igual que en el calendario
+       -- economico. La estimacion se revisa y debe actualizarse; el resultado
+       -- ya no cambia, y si el proveedor deja de mandarlo un dia, perderlo
+       -- seria tirar el unico dato que no se puede volver a calcular.
+       eps_actual = COALESCE(excluded.eps_actual, global_earnings.eps_actual),
+       revenue_actual = COALESCE(excluded.revenue_actual, global_earnings.revenue_actual)`,
   );
 
   db().transaction((xs: Earning[]) => { for (const e of xs) stmt.run(e); })(rows);
