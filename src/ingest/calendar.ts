@@ -310,6 +310,70 @@ export interface CalendarIngestResult {
   unnamed: number;
   /** Entradas de catalogo aplicadas. */
   named: number;
+  /** Ficheros de ejemplo que se han saltado, con su nombre. */
+  plantillas: string[];
+  /** Filas descartadas por caer en fin de semana. Siempre es un fichero mal. */
+  finDeSemana: number;
+  /** Filas que se han borrado de la base por venir de una plantilla o caer en finde. */
+  limpiadas: number;
+  /**
+   * Ficheros que traian nombres de eventos pero ninguna fecha. El catalogo de
+   * Investing viene asi, y por si solo NO da ni previsiones ni datos reales:
+   * sin las ocurrencias, el calendario sigue siendo una agenda vacia.
+   */
+  soloCatalogo: string[];
+}
+
+/**
+ * Ficheros de la carpeta que son DOCUMENTACION, no datos.
+ *
+ * Esta lista nace de un caso real. `plantilla.csv` es el ejemplo que se deja
+ * para enseniar el formato del CSV, y estaba siendo importado como si fuera un
+ * calendario: metio seis eventos inventados en la base, uno de ellos un
+ * *Non-Farm Employment Change* el SABADO 17 de octubre de 2026. Nadie lo vio
+ * durante tres semanas porque un evento de mas en el calendario no rompe
+ * nada: sale pintado igual que los de verdad.
+ *
+ * Es el mismo criterio que ya se aplicaba a `source = 'prueba'` unas lineas
+ * mas abajo, y por el mismo motivo: un dato inventado conviviendo con los
+ * buenos es como se acaba tomando una decision sobre algo que nunca ocurrio.
+ *
+ * Se compara contra el nombre SIN extension y en minusculas, asi que coge
+ * `plantilla.csv`, `Plantilla.CSV` y `template.ics` por igual. Si alguna vez
+ * un calendario de verdad se llamara asi, basta con renombrarlo — y el aviso
+ * del resultado dice que se ha saltado, no se calla.
+ */
+const NOMBRES_DE_PLANTILLA = new Set([
+  'plantilla', 'plantillas', 'ejemplo', 'ejemplos', 'muestra',
+  'template', 'templates', 'example', 'examples', 'sample', 'samples',
+  'leeme', 'readme',
+]);
+
+function esPlantilla(file: string): boolean {
+  return NOMBRES_DE_PLANTILLA.has(file.replace(/\.[^.]+$/, '').trim().toLowerCase());
+}
+
+/**
+ * Un evento economico que cae en fin de semana es una fila mal, no un hallazgo.
+ *
+ * Los datos de Estados Unidos se publican de lunes a viernes, sin excepcion.
+ * Cuando una fila dice que un NFP sale un sabado, lo que ha pasado es una de
+ * tres: la plantilla traia fechas inventadas, la zona horaria esta mal, o el
+ * fichero venia en formato mes/dia y se leyo al reves. Las tres hacen que el
+ * evento este donde no ocurre, y las tres se arreglan en el fichero.
+ *
+ * Esta comprobacion es la red de seguridad general: habria cazado el sabado de
+ * `plantilla.csv` aunque el fichero se hubiera llamado de otra forma.
+ *
+ * Se mira con el reloj de NUEVA YORK y no en UTC: un dato de las 20:00 de un
+ * viernes en Nueva York es la una de la madrugada del sabado en UTC, y
+ * mirarlo en UTC lo descartaria estando bien.
+ */
+function enFinDeSemana(ts: number): boolean {
+  if (ts <= 0) return false; // fila de catalogo, sin fecha: no es un evento
+  const ny = ts + marketOffsetAt(ts) * 3600_000;
+  const dow = new Date(ny).getUTCDay();
+  return dow === 0 || dow === 6;
 }
 
 export function ingestCalendar(dir: string = CALENDAR_DIR): CalendarIngestResult {
@@ -317,6 +381,7 @@ export function ingestCalendar(dir: string = CALENDAR_DIR): CalendarIngestResult
     files: 0, read: 0, added: 0, skipped: 0, floating: 0, dir,
     tzOffsetHours: CALENDAR_TZ_OFFSET_HOURS,
     holidays: 0, unnamed: 0, named: 0,
+    plantillas: [], finDeSemana: 0, limpiadas: 0, soloCatalogo: [],
   };
 
   // Los eventos marcados como 'prueba' son datos SINTETICOS que se generaron
@@ -329,7 +394,29 @@ export function ingestCalendar(dir: string = CALENDAR_DIR): CalendarIngestResult
 
   if (!existsSync(dir) || !statSync(dir).isDirectory()) return result;
 
-  const files = readdirSync(dir).filter((f) => /\.(ics|csv|json)$/i.test(f));
+  const todos = readdirSync(dir).filter((f) => /\.(ics|csv|json)$/i.test(f));
+
+  // Las plantillas no se leen, y ademas se borra lo que hubieran metido antes
+  // de que existiera esta comprobacion. Borrar y no solo dejar de importar:
+  // si solo se dejara de importar, las seis filas de `plantilla.csv` seguirian
+  // en la base para siempre, que es justo el estado del que viene esto.
+  const files: string[] = [];
+  for (const f of todos) {
+    if (esPlantilla(f)) {
+      result.plantillas.push(f);
+      result.limpiadas += db().prepare('DELETE FROM economic_events WHERE source = ?').run(f).changes;
+      continue;
+    }
+    files.push(f);
+  }
+
+  // Y la red general, que no depende de como se llame el fichero.
+  for (const fila of db().prepare('SELECT id, ts FROM economic_events WHERE ts > 0').all() as Array<{ id: string; ts: number }>) {
+    if (!enFinDeSemana(fila.ts)) continue;
+    db().prepare('DELETE FROM economic_events WHERE id = ?').run(fila.id);
+    result.limpiadas++;
+  }
+
   if (files.length === 0) return result;
 
   const target = db();
@@ -351,6 +438,7 @@ export function ingestCalendar(dir: string = CALENDAR_DIR): CalendarIngestResult
 
   const run = target.transaction((rows: Array<RawEvent & { source: string }>) => {
     for (const e of rows) {
+      if (enFinDeSemana(e.ts)) { result.finDeSemana++; continue; }
       insert.run({
         id: eventId(e.ts, e.title),
         ts: e.ts,
@@ -380,6 +468,11 @@ export function ingestCalendar(dir: string = CALENDAR_DIR): CalendarIngestResult
     // en UTC, asi que no pasa por la conversion de zona de aqui.
     if (/\.json$/i.test(file)) {
       const inv = importInvestingJson(text, file);
+      // Un JSON con nombres y sin fechas es el CATALOGO de Investing, que por
+      // si solo no aporta ni una prevision. Decirlo: lo contrario es dejar al
+      // usuario creyendo que ya importo el calendario cuando lo que tiene es
+      // la mitad que no lleva datos.
+      if (inv.catalogue > 0 && inv.occurrences === 0) result.soloCatalogo.push(file);
       result.read += inv.occurrences;
       result.skipped += inv.skipped;
       result.holidays += inv.holidays;

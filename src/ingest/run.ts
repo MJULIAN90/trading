@@ -55,6 +55,24 @@ async function main() {
     if (cal.floating > 0) {
       console.log(`  aviso: ${cal.floating} eventos del ICS sin zona horaria, tomados como UTC`);
     }
+    // Lo que se ha saltado y lo que se ha quitado se dice SIEMPRE, aunque sea
+    // ruido en la salida. Un fichero que se ignora en silencio es peor que uno
+    // que da error: el usuario cree que lo importo.
+    if (cal.plantillas.length > 0) {
+      console.log(`  ${cal.plantillas.join(', ')}: fichero de ejemplo, no se importa`);
+    }
+    if (cal.finDeSemana > 0) {
+      console.log(`  ${cal.finDeSemana} eventos descartados por caer en fin de semana (revisa la fecha o la zona en el fichero)`);
+    }
+    if (cal.limpiadas > 0) {
+      console.log(`  ${cal.limpiadas} eventos inventados borrados de la base`);
+    }
+    for (const f of cal.soloCatalogo) {
+      console.log(`  ${f}: trae ${cal.named} NOMBRES de evento pero ninguna fecha.`);
+      console.log('    Es la mitad del calendario de Investing que no lleva datos: sin las');
+      console.log('    ocurrencias no hay prevision ni dato real, y la pestana Reaccion no');
+      console.log('    puede decir si un dato es bueno o malo para el Nasdaq.');
+    }
   }
 }
 

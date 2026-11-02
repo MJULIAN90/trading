@@ -495,6 +495,55 @@ Ojo con la zona horaria: un CSV no la lleva dentro, y leer "08:30" de Nueva
 York como UTC coloca el aviso cuatro horas antes. `CALENDAR_TZ_OFFSET_HOURS` lo
 resuelve; por defecto asume hora de mercado.
 
+#### Lo que no entra en el calendario, y por qué
+
+**Los ficheros de ejemplo.** `plantilla.csv` es el que explica el formato, y estuvo
+tres semanas **importándose como si fuera un calendario de verdad**: metió seis eventos
+inventados en la base, uno de ellos un *Non-Farm Employment Change* el **sábado 17 de
+octubre de 2026**.
+
+Lo que lo hizo durar tres semanas es que **un evento de más no rompe nada**: sale
+pintado igual que los buenos, el panel lo cuenta igual, y la única señal era que ese
+sábado no había velas alrededor. Se descubrió construyendo la pestaña Reacción, no
+mirando el calendario.
+
+Ahora la ingesta se salta por nombre `plantilla`, `ejemplo`, `muestra`, `template`,
+`example`, `sample` y `leeme` (sin extensión, sin distinguir mayúsculas) y **borra de la
+base lo que esos ficheros hubieran metido antes**. Las dos cosas: dejar de importarlos
+sin borrar habría dejado las seis filas ahí para siempre. Es el mismo criterio que ya se
+aplicaba a `source = 'prueba'`.
+
+**Los eventos en fin de semana.** La red general, que no depende de cómo se llame el
+fichero. Los datos de Estados Unidos se publican de lunes a viernes sin excepción;
+cuando una fila dice otra cosa, lo que ha pasado es una de tres: la plantilla traía
+fechas inventadas, la zona horaria está mal, o el fichero venía en formato mes/día y se
+leyó al revés. Las tres se arreglan en el fichero. Se descartan al importar y se cuentan
+en el resultado.
+
+Se mira con **el reloj de Nueva York, no en UTC**: un evento de las 20:00 de un viernes
+en Nueva York es la una de la madrugada del sábado en UTC, y mirarlo en UTC lo
+descartaría estando bien.
+
+`npx tsx scripts/prueba-ingesta-calendario.ts` comprueba las dos cosas, y también que un
+calendario legítimo no se toque — un filtro que se lleve por delante los datos buenos es
+peor que el problema que arregla. Con el código anterior, esa prueba da 19 fallos.
+
+#### El export de Investing viene en dos mitades
+
+`eventos-investing.json` tenía **105 nombres de evento y ninguna fecha**, y la
+importación lo daba por bueno en silencio.
+
+Son dos cosas distintas:
+
+| Parte | Qué trae | Sirve para |
+|---|---|---|
+| **catálogo** | `event_id`, nombre, importancia, categoría | ponerle nombre a las ocurrencias |
+| **ocurrencias** | `occurrence_time`, `forecast`, `previous`, `actual` | **todo lo demás** |
+
+Con solo el catálogo el calendario sigue siendo una agenda vacía: ni una previsión, ni
+un dato real, y por tanto ninguna sorpresa que medir. Ahora la importación lo dice con
+todas las letras, tanto en `pnpm run ingest` como en el botón **Importar calendario**.
+
 ### El contexto de fuera: Finnhub y Alpha Vantage
 
 Lo que alimenta la pestaña **News**. Es la única fuente que no es un fichero
@@ -642,8 +691,8 @@ ruta: `compilar-indicadores.cmd "D:\codigo"`.
 
 ### Antes del primer push a GitHub
 
-Comprobado el 1 de noviembre de 2026 leyendo el índice de git: **hay seis ficheros en
-disco que git todavía no rastrea, y cuatro de ellos son imprescindibles.** Un clon
+Comprobado el 1 de noviembre de 2026 leyendo el índice de git: **hay once ficheros en
+disco que git todavía no rastrea, y siete de ellos son imprescindibles.** Un clon
 limpio no compilaría.
 
 ```bash
@@ -653,16 +702,23 @@ git status --short          # los untracked salen con ??
 | Fichero | Sin él |
 |---|---|
 | `client/src/globo.ts` | **no compila**: lo importan `Charts`, `OpTooltip` y `DayCalendar` |
+| `client/src/calendario.ts` | **no compila**: lo importa `DayCalendar` |
+| `client/src/components/ReactionPanel.tsx` | **no compila**: lo importa `GlobalPanel` |
+| `src/domain/reaction.ts` | **no compila**: lo importan el servidor y el panel |
 | `client/src/components/ReportPanel.tsx` | **no compila**: lo importa `App.tsx` |
 | `src/domain/report.ts` | **no compila**: lo importa el servidor |
 | `client/public/greenspot.png` + `icono.png` | compila, pero sale el texto «Greenspot» en vez del logo y la pestaña sin icono |
-| `scripts/prueba-ajustes.ts`, `prueba-informe.ts` | 86 de los 185 casos de prueba no existen |
+| `scripts/prueba-ajustes.ts`, `prueba-informe.ts`, `prueba-calendario.ts`, `prueba-reaccion.ts`, `prueba-ingesta-calendario.ts` | 164 de los 263 casos de prueba no existen |
 | `scripts/copiar-para-commit.py` | la rutina de finales de línea |
 
 ```bash
-git add client/src/globo.ts client/src/components/ReportPanel.tsx \
-        src/domain/report.ts client/public/greenspot.png client/public/icono.png \
-        scripts/prueba-ajustes.ts scripts/prueba-informe.ts scripts/copiar-para-commit.py
+git add client/src/globo.ts client/src/calendario.ts \
+        client/src/components/ReportPanel.tsx client/src/components/ReactionPanel.tsx \
+        src/domain/report.ts src/domain/reaction.ts \
+        client/public/greenspot.png client/public/icono.png \
+        scripts/prueba-ajustes.ts scripts/prueba-informe.ts \
+        scripts/prueba-calendario.ts scripts/prueba-reaccion.ts \
+        scripts/prueba-ingesta-calendario.ts scripts/copiar-para-commit.py
 ```
 
 **Y dos que hay que quitar:**
@@ -680,7 +736,8 @@ push y que además se regeneran con `node scripts/velas-compartidas.mjs`.
 **Lo que NO conviene subir si el repositorio es público:**
 `client/preview/dashboard.json` y `client/preview/informes.json` son los datos de
 prueba de la vista en frío, y son **tus operaciones de verdad**: números de cuenta,
-P&L día a día y las notas. Ahora mismo están sin rastrear, que es justo donde deben
+P&L día a día y las notas. (`client/preview/reaccion.json` también está sin rastrear,
+pero ese solo lleva precios del MNQ y el calendario económico: no hay nada tuyo dentro.) Ahora mismo están sin rastrear, que es justo donde deben
 quedarse. Si el repositorio es privado, da igual. Para dejarlo explícito:
 
 ```
@@ -773,6 +830,117 @@ Tres cosas sostienen que el número signifique algo:
 
 `npx tsx scripts/prueba-scalper.ts` comprueba las tres con velas puestas a
 mano, incluida la de media hora antes que no debe contar.
+
+### News → Reacción: qué hacen las noticias, y qué no se puede saber
+
+La pestaña se pidió como **«interpretaciones»**: algo que dijera si un dato de empleo
+es bueno o malo para el Nasdaq. Se llama **Reacción** porque lo otro no se puede
+construir con esta base, y el nombre es parte de lo que promete.
+
+**El motivo está en la propia base.** De los 39 eventos de `economic_events`, **cero**
+traen `forecast` y **cero** traen `actual`. El calendario es una agenda —dice cuándo
+pasan las cosas— no un historial de resultados. Y sin previsión no hay sorpresa: lo
+que mueve el precio no es que el paro sea del 4,2 %, es que se esperaba 4,0 %.
+
+Así que el panel mide tres cosas y ninguna es una opinión.
+
+**1. Si la dirección se puede anticipar.** Hoy no. 12 momentos distintos, 8 subidas y
+4 bajadas; una binomial a dos colas da **p = 0,39**, indistinguible de una moneda. Esa
+cifra está ahí a propósito: «6 y 6» se lee solo, pero «8 y 4» a ojo parece una
+tendencia, y dejar que el lector decida cuánto es mucho es por donde vuelven a colarse
+las interpretaciones.
+
+**2. Cuánto se mueve, contra la línea base de esa misma hora.**
+
+| Hora UTC | Con noticia | Sin noticia | | p |
+|---|---|---|---|---|
+| **12:30** (08:30 NY) | **238,8 pts** · n=7 | 100,6 pts · n=72 | **×2,37** | **< 0,0001** |
+| 18:00 | 104,3 pts · n=5 | 78,5 pts · n=69 | ×1,33 | 0,13 |
+
+Permutación de 20.000 remuestreos sobre la diferencia de medianas, a una cola.
+
+Dos detalles que deciden si el contraste vale algo. **La comparación es contra el mismo
+minuto del reloj**, no contra la media del día: a las 12:30 el mercado ya se mueve más
+que de madrugada opere quien opere. Y **el fin de semana queda fuera** de la línea
+base; si entrara, su rango cero la hundiría y cualquier noticia parecería moverlo todo.
+
+Se resalta la fila con p < 0,05 **y** al menos cinco eventos. Las dos condiciones: un p
+pequeño con tres casos es ruido con suerte.
+
+**Lo que esto dice en una frase: se mueve mucho y no se sabe hacia dónde.** Las actas de
+la Fed de las 18:00, en cambio, no se distinguen de un día normal, y el calendario las
+pinta igual de rojas que un CPI.
+
+**3. Qué le falta al calendario.** La tabla del final cuenta cuántos eventos traen
+previsión y dato real, y de qué fichero vino cada uno. **No hace falta código nuevo**:
+`src/ingest/investing.ts` ya lee `forecast`, `previous` y `actual`, y conserva el dato
+real al reimportar (`actual = COALESCE(excluded.actual, …)`). Lo único que falta es
+dejar un `.json` con esos campos en `CALENDAR_DIR`. Cuando lo haya, la sorpresa se mide
+encima de esta misma tabla: el mismo movimiento, partido por el signo de la sorpresa.
+
+#### Los eventos rotos no se esconden
+
+El panel lista aparte, con el motivo escrito, los eventos del calendario que no se
+pudieron medir, en vez de quitarlos de la tabla. Es la misma regla que el aviso de fin
+de semana del calendario de días operados: **un evento que cae donde no hay mercado
+casi siempre significa que la fila está mal fechada**, y esconderla deja el dato
+inventado dentro de la base para siempre.
+
+Así se encontró el caso que está contado en «Lo que no entra en el calendario, y por
+qué»: seis eventos inventados que venían del fichero de ejemplo. Ahora la ingesta no
+los deja entrar, así que el recuadro rojo debería estar vacío.
+
+#### La marca del caché, que aquí va al revés
+
+`reaccion()` depende de dos tablas y las trata de forma opuesta a propósito:
+
+- **`bars`** → `barsVersion()`, el contador de `meta`. Contar las velas recorre el
+  índice entero y eso costaba casi cinco segundos por carga (ver «Cómo se mantiene
+  rápido»).
+- **`economic_events`** → se resume la tabla **entera** en cada llamada.
+
+Parece contradecir la lección anterior y no lo hace. Son decenas de filas, el resumen
+tarda microsegundos, y sobre todo: `COUNT(*)` y `MAX(rowid)` **no cambian** cuando se
+rellena el `forecast` de un evento que ya existía, que es exactamente lo que va a pasar
+en cuanto se importe un calendario con previsiones. Con una marca así, el panel seguiría
+diciendo que no hay previsiones mientras la base ya las tiene. Lo cazó
+`prueba-reaccion.ts` rellenando un `forecast` y comprobando que se nota.
+
+La lección de `bars.ts` no es «marcas baratas siempre», es **«mira lo que cuesta y lo
+que detecta cada marca»**.
+
+### El calendario de días operados
+
+La lista de operaciones lleva un calendario de lunes a viernes con el resultado de cada
+día pintado al fondo. **Cinco columnas y no siete**: las fechas son jornadas de mercado
+—corte a las 18:00 de Nueva York— y con ese corte no existe el fin de semana. Lo operado
+el domingo por la tarde, cuando el mercado acaba de abrir, pertenece al lunes, igual que
+lo cuenta una mesa de fondeo. Si aun así llegara una jornada en sábado o domingo, no se
+esconde: sale un aviso debajo con la fecha y la cifra.
+
+**El fallo del 1 de noviembre de 2026, que conviene tener presente por su forma.** El
+hueco inicial del mes se calculaba con el día de la semana del día 1 sin comprobar que
+ese día cupiera en la rejilla:
+
+```ts
+const leading = weekdayMondayFirst(y, m, 1);   // domingo = 6, y solo hay 5 columnas
+```
+
+El 1 de noviembre de 2026 cae en domingo. Seis huecos en cinco columnas son una fila
+entera vacía más uno, así que **el lunes 2 se pintó bajo la M y noviembre entero salió
+corrido una columna**; el viernes 6 aparecía bajo la L. Octubre nunca lo enseñó porque
+empieza en jueves: solo fallan los meses que abren en fin de semana, dos de doce.
+
+Lo que lo hace peligroso no es el tamaño, es que **no rompe nada a la vista**. El número
+de la casilla, la cifra y el color son todos correctos; lo único equivocado es la
+columna, que se lee sin leerla. Por eso el reparto vive ahora en `client/src/calendario.ts`,
+separado del componente y sin React, y `npx tsx scripts/prueba-calendario.ts` recorre los
+84 meses de 2024 a 2030 comprobando que cada día cae en la columna de su día de la semana
+y que no se pierde ninguno. Con el código viejo, esa prueba da 9 fallos.
+
+El arreglo no es recortar el hueco a cuatro —eso pondría el lunes en el viernes— sino
+contarlo desde el primer día que de verdad ocupa casilla: si el mes abre en fin de
+semana, ese día siempre es un lunes y el hueco es cero.
 
 ### La marca: logo y favicon
 
@@ -1346,6 +1514,7 @@ apagado y la purga no se ejecuta sola.
 | `GET /api/today` | la jornada en curso contra el límite de pérdida |
 | `GET /api/report` | el informe diario o semanal (`periodo`, `ancla`) |
 | `GET /api/scalper` | el barrido de salidas fijas sobre las mismas entradas |
+| `GET /api/reaction` | cuánto movió el precio cada noticia, contra la línea base de esa hora |
 | `GET /api/global` | contexto de mercado: lee de la base, **nunca** pide al proveedor |
 | `POST /api/global/refresh` | fuerza un ciclo y dice qué bloque falló |
 

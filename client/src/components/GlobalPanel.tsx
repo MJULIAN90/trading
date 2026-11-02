@@ -1,6 +1,7 @@
 import { Fragment, useEffect, useRef, useState } from 'react';
 import { dateTime, faseDeCotizacion, hora as horaDelReloj, num, signClass, zonaCorta, type FaseCotizacion } from '../format';
 import { useSort } from '../sortable';
+import { ReactionPanel } from './ReactionPanel';
 
 /**
  * News: contexto de mercado. Materias primas, bonos, indices, resultados y
@@ -250,7 +251,7 @@ export function GlobalPanel() {
   const [data, setData] = useState<Report | null>(null);
   const [sonido, setSonido] = useState(true);
   const [pendientes, setPendientes] = useState<Alert[]>([]);
-  const [sub, setSub] = useState<'metricas' | 'noticias'>('metricas');
+  const [sub, setSub] = useState<'metricas' | 'noticias' | 'reaccion'>('metricas');
   // Por defecto solo lo relevante. El canal general trae de todo, y de catorce
   // titulares reales solo dos podian mover el Nasdaq.
   const [tema, setTema] = useState<Tema>('relevantes');
@@ -482,6 +483,11 @@ export function GlobalPanel() {
         </button>
         <button className={sub === 'noticias' ? 'on' : ''} onClick={() => setSub('noticias')}>
           Noticias ({data.news.length})
+        </button>
+        {/* "Reaccion" y no "Interpretaciones": ver la cabecera de
+            `ReactionPanel.tsx`. El nombre es parte de lo que promete. */}
+        <button className={sub === 'reaccion' ? 'on' : ''} onClick={() => setSub('reaccion')}>
+          Reaccion
         </button>
       </div>
 
@@ -884,6 +890,8 @@ export function GlobalPanel() {
           </>
         )
       )}
+
+      {sub === 'reaccion' && <ReactionPanel />}
     </>
   );
 }

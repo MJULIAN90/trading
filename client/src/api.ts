@@ -663,6 +663,7 @@ export const api = {
     if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
     return (await res.json()) as {
       files: number; read: number; added: number; skipped: number; floating: number; dir: string;
+      plantillas: string[]; finDeSemana: number; limpiadas: number; soloCatalogo: string[];
     };
   },
 
@@ -690,6 +691,8 @@ export const api = {
   scalper: (f: Filters, target: number, stop: number, horizon: number) =>
     get<ScalperReport>(`/api/scalper?${qs(f, { target, stop, horizon })}`),
 
+  reaccion: () => get<ReaccionReport>('/api/reaction'),
+
   saveEarningsSettings: async (next: EarningsSettings) => {
     const res = await fetch('/api/earnings/settings', {
       method: 'PUT',
@@ -714,6 +717,54 @@ export interface ScalperFila {
   sinVelas: number;
   realTicksPorOp: number | null;
   realMediana: number | null;
+}
+
+/**
+ * Como reacciono el precio a las noticias. MIDE, no interpreta: ver la
+ * cabecera de `src/domain/reaction.ts` para por que no hay una columna que
+ * diga "bueno" o "malo" para el Nasdaq.
+ */
+export interface ReaccionReport {
+  symbol: string;
+  desde: number;
+  hasta: number;
+  eventos: Array<{
+    id: string;
+    ts: number;
+    title: string;
+    impact: string | null;
+    source: string | null;
+    previo: number | null;
+    movimientos: Array<{ min: number; puntos: number }>;
+    rango60: number | null;
+    velas: number;
+    problema: string | null;
+  }>;
+  franjas: Array<{
+    hhmm: string;
+    medianaCon: number;
+    medianaSin: number;
+    nCon: number;
+    nSin: number;
+    ratio: number;
+    p: number;
+  }>;
+  direccion: {
+    momentos: number;
+    aFavor: number;
+    enContra: number;
+    medianaNeta: number;
+    medianaAbs: number;
+    medianaAbsUsd: number;
+    pMoneda: number;
+  } | null;
+  fueraDeRango: number;
+  calendario: {
+    total: number;
+    conPrevision: number;
+    conDatoReal: number;
+    fuentes: Array<{ source: string; n: number }>;
+  };
 }
 
 export interface ScalperReport {

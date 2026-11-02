@@ -1,0 +1,396 @@
+{
+ "symbol": "MNQZ26",
+ "desde": 1783396500000,
+ "hasta": 1793585400000,
+ "eventos": [
+  {
+   "id": "1783533600000|t1 · fomc minutes (reunion de junio)",
+   "ts": 1783533600000,
+   "title": "T1 · FOMC Minutes (reunion de junio)",
+   "impact": "high",
+   "source": "t1-2026.csv",
+   "previo": 29653.25,
+   "movimientos": [
+    {
+     "min": 5,
+     "puntos": 50.5
+    },
+    {
+     "min": 15,
+     "puntos": 68.75
+    },
+    {
+     "min": 30,
+     "puntos": 19.75
+    },
+    {
+     "min": 60,
+     "puntos": 54
+    }
+   ],
+   "rango60": 99.5,
+   "velas": 54,
+   "problema": null
+  },
+  {
+   "id": "1784032200000|t1 · cpi",
+   "ts": 1784032200000,
+   "title": "T1 · CPI",
+   "impact": "high",
+   "source": "t1-2026.csv",
+   "previo": 29990,
+   "movimientos": [
+    {
+     "min": 5,
+     "puntos": 210
+    },
+    {
+     "min": 15,
+     "puntos": 133.5
+    },
+    {
+     "min": 30,
+     "puntos": 85.5
+    },
+    {
+     "min": 60,
+     "puntos": 130
+    }
+   ],
+   "rango60": 222,
+   "velas": 64,
+   "problema": null
+  },
+  {
+   "id": "1785348000000|t1 · fomc meeting",
+   "ts": 1785348000000,
+   "title": "T1 · FOMC Meeting",
+   "impact": "high",
+   "source": "t1-2026.csv",
+   "previo": 28000,
+   "movimientos": [
+    {
+     "min": 5,
+     "puntos": 95.5
+    },
+    {
+     "min": 15,
+     "puntos": 64.25
+    },
+    {
+     "min": 30,
+     "puntos": 51.25
+    },
+    {
+     "min": 60,
+     "puntos": 327
+    }
+   ],
+   "rango60": 380.75,
+   "velas": 70,
+   "problema": null
+  },
+  {
+   "id": "1786105800000|t1 · u.s. employment report",
+   "ts": 1786105800000,
+   "title": "T1 · U.S. Employment Report",
+   "impact": "high",
+   "source": "t1-2026.csv",
+   "previo": 29930,
+   "movimientos": [
+    {
+     "min": 5,
+     "puntos": 122
+    },
+    {
+     "min": 15,
+     "puntos": 171.75
+    },
+    {
+     "min": 30,
+     "puntos": 215.25
+    },
+    {
+     "min": 60,
+     "puntos": 68
+    }
+   ],
+   "rango60": 181.5,
+   "velas": 67,
+   "problema": null
+  },
+  {
+   "id": "1786537800000|t1 · cpi",
+   "ts": 1786537800000,
+   "title": "T1 · CPI",
+   "impact": "high",
+   "source": "t1-2026.csv",
+   "previo": 30192.5,
+   "movimientos": [
+    {
+     "min": 5,
+     "puntos": -17.75
+    },
+    {
+     "min": 15,
+     "puntos": 25
+    },
+    {
+     "min": 30,
+     "puntos": 18.5
+    },
+    {
+     "min": 60,
+     "puntos": 93.25
+    }
+   ],
+   "rango60": 240.5,
+   "velas": 61,
+   "problema": null
+  },
+  {
+   "id": "1787162400000|t1 · fomc minutes (reunion de julio)",
+   "ts": 1787162400000,
+   "title": "T1 · FOMC Minutes (reunion de julio)",
+   "impact": "high",
+   "source": "t1-2026.csv",
+   "previo": 29836.75,
+   "movimientos": [
+    {
+     "min": 5,
+     "puntos": 20.25
+    },
+    {
+     "min": 15,
+     "puntos": -22.25
+    },
+    {
+     "min": 30,
+     "puntos": -5.75
+    },
+    {
+     "min": 60,
+     "puntos": -5.75
+    }
+   ],
+   "rango60": 104.25,
+   "velas": 55,
+   "problema": null
+  },
+  {
+   "id": "1788525000000|t1 · u.s. employment report",
+   "ts": 1788525000000,
+   "title": "T1 · U.S. Employment Report",
+   "impact": "high",
+   "source": "t1-2026.csv",
+   "previo": 30000,
+   "movimientos": [
+    {
+     "min": 5,
+     "puntos": -145.5
+    },
+    {
+     "min": 15,
+     "puntos": -140.25
+    },
+    {
+     "min": 30,
+     "puntos": -157
+    },
+    {
+     "min": 60,
+     "puntos": -115.75
+    }
+   ],
+   "rango60": 200,
+   "velas": 68,
+   "problema": null
+  },
+  {
+   "id": "1789129800000|t1 · cpi",
+   "ts": 1789129800000,
+   "title": "T1 · CPI",
+   "impact": "high",
+   "source": "t1-2026.csv",
+   "previo": 29663,
+   "movimientos": [
+    {
+     "min": 5,
+     "puntos": -26.5
+    },
+    {
+     "min": 15,
+     "puntos": -12.25
+    },
+    {
+     "min": 30,
+     "puntos": 100.5
+    },
+    {
+     "min": 60,
+     "puntos": 48.5
+    }
+   ],
+   "rango60": 294,
+   "velas": 71,
+   "problema": null
+  },
+  {
+   "id": "1789581600000|t1 · fomc meeting",
+   "ts": 1789581600000,
+   "title": "T1 · FOMC Meeting",
+   "impact": "high",
+   "source": "t1-2026.csv",
+   "previo": 29478,
+   "movimientos": [
+    {
+     "min": 5,
+     "puntos": 30
+    },
+    {
+     "min": 15,
+     "puntos": -12.75
+    },
+    {
+     "min": 30,
+     "puntos": -23.25
+    },
+    {
+     "min": 60,
+     "puntos": -246.25
+    }
+   ],
+   "rango60": 318,
+   "velas": 141,
+   "problema": null
+  },
+  {
+   "id": "1790944200000|t1 · u.s. employment report",
+   "ts": 1790944200000,
+   "title": "T1 · U.S. Employment Report",
+   "impact": "high",
+   "source": "t1-2026.csv",
+   "previo": 30988.5,
+   "movimientos": [
+    {
+     "min": 5,
+     "puntos": 129.75
+    },
+    {
+     "min": 15,
+     "puntos": 114.75
+    },
+    {
+     "min": 30,
+     "puntos": 180.25
+    },
+    {
+     "min": 60,
+     "puntos": 159.5
+    }
+   ],
+   "rango60": 238.75,
+   "velas": 141,
+   "problema": null
+  },
+  {
+   "id": "1791396000000|t1 · fomc minutes (reunion de septiembre)",
+   "ts": 1791396000000,
+   "title": "T1 · FOMC Minutes (reunion de septiembre)",
+   "impact": "high",
+   "source": "t1-2026.csv",
+   "previo": 31356.25,
+   "movimientos": [
+    {
+     "min": 5,
+     "puntos": 16
+    },
+    {
+     "min": 15,
+     "puntos": 19.5
+    },
+    {
+     "min": 30,
+     "puntos": 34.75
+    },
+    {
+     "min": 60,
+     "puntos": 17.75
+    }
+   ],
+   "rango60": 53.75,
+   "velas": 141,
+   "problema": null
+  },
+  {
+   "id": "1791981000000|t1 · cpi",
+   "ts": 1791981000000,
+   "title": "T1 · CPI",
+   "impact": "high",
+   "source": "t1-2026.csv",
+   "previo": 30842,
+   "movimientos": [
+    {
+     "min": 5,
+     "puntos": -228.5
+    },
+    {
+     "min": 15,
+     "puntos": -260.5
+    },
+    {
+     "min": 30,
+     "puntos": -284.75
+    },
+    {
+     "min": 60,
+     "puntos": -290.25
+    }
+   ],
+   "rango60": 320,
+   "velas": 141,
+   "problema": null
+  }
+ ],
+ "franjas": [
+  {
+   "hhmm": "12:30",
+   "medianaCon": 238.75,
+   "medianaSin": 100.625,
+   "nCon": 7,
+   "nSin": 72,
+   "ratio": 2.372670807453416,
+   "p": 0.00004999750012499375
+  },
+  {
+   "hhmm": "18:00",
+   "medianaCon": 104.25,
+   "medianaSin": 78.5,
+   "nCon": 5,
+   "nSin": 69,
+   "ratio": 1.3280254777070064,
+   "p": 0.1296935153242338
+  }
+ ],
+ "direccion": {
+  "momentos": 12,
+  "aFavor": 8,
+  "enContra": 4,
+  "medianaNeta": 51.25,
+  "medianaAbs": 104.5,
+  "medianaAbsUsd": 209,
+  "pMoneda": 0.3876953125
+ },
+ "fueraDeRango": 27,
+ "calendario": {
+  "total": 39,
+  "conPrevision": 0,
+  "conDatoReal": 0,
+  "fuentes": [
+   {
+    "source": "t1-2026.csv",
+    "n": 39
+   }
+  ]
+ }
+}

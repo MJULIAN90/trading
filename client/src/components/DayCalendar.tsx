@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
 import { num, signedUsd } from '../format';
+import { celdasDelMes, COLUMNAS, weekdayMondayFirst } from '../calendario';
 
 /**
  * Calendario de dias operados, con el resultado de cada uno pintado al fondo.
@@ -42,9 +43,13 @@ const MONTHS = [
  * Si aun asi llegara una jornada en fin de semana, NO se esconde: sale un
  * aviso debajo del calendario con la fecha y la cifra. Un dia con dinero que
  * desaparece de la vista es el unico fallo que no se puede permitir aqui.
+ *
+ * El reparto de los dias en la rejilla vive en `../calendario.ts`, separado
+ * para poder probarlo sin navegador: es la unica parte que puede equivocarse
+ * sin que se note, porque un dia en la columna que no toca sigue enseniando
+ * su numero y su cifra correctos.
  */
 const WEEKDAYS = ['L', 'M', 'X', 'J', 'V'];
-const COLUMNAS = WEEKDAYS.length;
 
 /**
  * Las fechas vienen como texto YYYY-MM-DD y son dias naturales, no instantes.
@@ -61,11 +66,6 @@ function parts(date: string) {
 
 const pad = (n: number) => String(n).padStart(2, '0');
 const key = (y: number, m: number, d: number) => `${y}-${pad(m)}-${pad(d)}`;
-
-/** Dia de la semana con lunes = 0. Date.UTC evita la zona horaria local. */
-function weekdayMondayFirst(y: number, m: number, d: number) {
-  return (new Date(Date.UTC(y, m - 1, d)).getUTCDay() + 6) % 7;
-}
 
 function percentile(sorted: number[], p: number) {
   if (sorted.length === 0) return 0;
@@ -110,18 +110,10 @@ export function DayCalendar({
   const y = Number(current.slice(0, 4));
   const m = Number(current.slice(5, 7));
 
-  const daysInMonth = new Date(Date.UTC(y, m, 0)).getUTCDate();
-  const leading = weekdayMondayFirst(y, m, 1);
-
-  const cells: Array<{ day: number | null; stat: DayStat | undefined }> = [];
-  for (let i = 0; i < leading; i++) cells.push({ day: null, stat: undefined });
-  for (let d = 1; d <= daysInMonth; d++) {
-    // El fin de semana no ocupa casilla: se salta, y las semanas siguen
-    // cuadrando porque el hueco inicial ya lo pone `leading`.
-    if (weekdayMondayFirst(y, m, d) >= COLUMNAS) continue;
-    cells.push({ day: d, stat: index.get(key(y, m, d)) });
-  }
-  while (cells.length % COLUMNAS !== 0) cells.push({ day: null, stat: undefined });
+  const cells = celdasDelMes(y, m).map((day) => ({
+    day,
+    stat: day === null ? undefined : index.get(key(y, m, day)),
+  }));
 
   // Lo que caiga en sabado o domingo con el corte de mercado no deberia
   // existir. Si existe, es que pasa algo con el corte y hay que verlo.

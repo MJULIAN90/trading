@@ -2147,3 +2147,60 @@ tbody tr.apagada { opacity: 0.5; }
   .barra-lateral button.on { box-shadow: none; }
   .app > main { padding: 16px 12px; }
 }
+
+/* ===================================================================== */
+/* Reaccion a las noticias                                               */
+/* ===================================================================== */
+
+.reaccion h3 { margin: 26px 0 8px; }
+.reaccion h3:first-of-type { margin-top: 10px; }
+
+/* El aviso de lo que este panel NO puede contestar va arriba del todo y se
+   ve, no en letra pequenia al final. Es la limitacion que condiciona todo lo
+   que viene debajo: quien lea las tablas sin haber leido esto se va a llevar
+   una conclusion que los datos no sostienen. */
+.reaccion-aviso {
+  background: rgba(230, 180, 60, 0.07);
+  border: 1px solid rgba(230, 180, 60, 0.3);
+  border-radius: 6px;
+  color: var(--ink-2);
+  font-size: 12.5px;
+  line-height: 1.65;
+  padding: 11px 13px;
+}
+
+/* La fila que pasa el corte. Fondo Y borde a la izquierda: solo con el fondo
+   no se distingue del resaltado al pasar el raton. */
+.reaccion tr.destaca td {
+  background: rgba(90, 170, 255, 0.07);
+}
+.reaccion tr.destaca td:first-child {
+  box-shadow: inset 2px 0 0 var(--info);
+  font-weight: 600;
+}
+
+.reaccion .aviso { color: var(--warn); }
+
+/* Los eventos que no se pudieron medir, a la vista. Un evento del calendario
+   que cae donde no hay mercado es casi siempre una fila mal fechada, y eso es
+   un dato inventado dentro de la base: esconderlo lo deja ahi para siempre. */
+.reaccion-rotos {
+  background: rgba(209, 72, 58, 0.06);
+  border: 1px solid rgba(209, 72, 58, 0.28);
+  border-radius: 6px;
+  font-size: 12.5px;
+  line-height: 1.6;
+  margin-top: 14px;
+  padding: 11px 13px;
+}
+
+.reaccion-rotos ul { margin: 8px 0 0; padding-left: 18px; }
+.reaccion-rotos li { margin-bottom: 6px; }
+.reaccion-rotos .note { margin-top: 1px; }
+
+.reaccion code {
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 3px;
+  font-size: 11.5px;
+  padding: 1px 4px;
+}

@@ -183,6 +183,61 @@ ningún elemento de `main` tenga `getBoundingClientRect().left < 0` y que
 `document.documentElement.scrollWidth === window.innerWidth`. Las dos veces,
 `tsc` y el build pasaron limpios; lo único que lo habría visto es mirar.
 
+## Lo que se pide no siempre es lo que se puede medir
+
+El 1 de noviembre pidió una pestaña de «interpretaciones» que dijera si un
+dato de empleo es bueno o malo para el Nasdaq. La respuesta correcta no era ni
+hacerlo ni negarse: era **mirar la base primero**. De 45 eventos del
+calendario, **cero** traían previsión y **cero** el dato real. Sin previsión no
+hay sorpresa, y sin sorpresa no hay dirección.
+
+Con eso en la mano la conversación cambia de sitio: ya no es «¿lo hago?» sino
+«esto es lo que hay, esto es lo que falta, y esto es lo que sí se puede medir
+hoy» — que resultó ser el efecto más limpio del proyecto (×2,25 de rango con
+p < 0,0001). Se entregó como **Reacción**, no como «Interpretaciones»: el
+nombre es parte de lo que promete.
+
+La regla, para la próxima: **antes de aceptar o rechazar una pantalla nueva,
+contar las filas que la sostendrían.** Un panel sin muestra detrás es la única
+cosa que este proyecto no se puede permitir, porque no se puede matar: se lee
+como análisis, se recuerda cuando acierta y se olvida cuando falla. De once
+hipótesis medidas aquí, nueve murieron — el método funciona porque cada
+afirmación se enfrenta a un número.
+
+Y cuando algo no se puede medir, **decirlo en la pantalla**, no solo en el
+código. El aviso de «esto mide, no interpreta» va arriba del todo, con los dos
+ceros en rojo.
+
+## El fallo que no rompe nada: datos correctos, sitio equivocado
+
+El calendario de días operados colocó todo noviembre de 2026 una columna a la
+derecha (el lunes 2 bajo la M). El número de cada casilla era correcto, la
+cifra era correcta y el color era correcto. **Lo único equivocado era la
+columna**, que es información que se lee sin leerla, y por eso un mes entero
+pudo salir mal sin que saltara nada.
+
+La familia completa de este fallo, que merece una mirada extra cada vez:
+
+- un día en la columna que no es
+- una serie pintada contra el eje que no es
+- una cifra bajo la cabecera de al lado
+- un porcentaje correcto sobre el denominador equivocado
+
+Las tres cosas que lo cazan, por orden de lo que cuestan:
+
+1. **Sacar el cálculo del componente.** Una función pura en su fichero, sin
+   React ni nada del navegador, se prueba con `tsx` en un segundo. Así salió
+   `client/src/calendario.ts` de `DayCalendar.tsx`.
+2. **Probar el rango entero, no un caso.** Octubre de 2026 salía bien y eso
+   bastó para dar por bueno el calendario. `prueba-calendario.ts` recorre los
+   84 meses de 2024 a 2030: solo fallan los que empiezan en fin de semana, dos
+   de doce, y por eso pasó un mes desapercibido.
+3. **Comprobar que la prueba falla con el código viejo.** Se revierte el
+   arreglo, se ejecuta y se mira que dé exactamente los fallos esperados (aquí,
+   9 de 14 y uno diciendo «el 2 cae en la columna M y es L»). Una prueba que
+   pasa con el código roto no prueba nada, y escribirla después del arreglo es
+   justo cuando es fácil que salga así.
+
 **3. `expectedMtimeMs` siempre.** Se saca del `device_stage_files`. Si rechaza
 el commit, es que él tocó el fichero: re-stage y vuelve a aplicar, no fuerces.
 

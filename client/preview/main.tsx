@@ -1,3 +1,4 @@
+import reaccionMedida from './reaccion.json';
 import { StrictMode } from 'react';
 import { createRoot } from 'react-dom/client';
 import { DayCalendar } from '../src/components/DayCalendar';
@@ -412,6 +413,7 @@ window.fetch = (async (url: string) => {
   if (u.includes('/api/calendar/agenda')) return ok({ now: ahora, agenda: economicos });
   if (u.includes('/api/global')) return ok(globalReport);
   if (u.includes('/api/scalper')) return ok(scalper);
+  if (u.includes('/api/reaction')) return ok(reaccionMedida);
   if (u.includes('/api/alignment')) return ok(alineacion);
   // La APLICACION ENTERA, para ver el lateral y la cabecera. Es el unico
   // sitio donde se puede comprobar la maquetacion: los demas `?v=` montan un

@@ -36,6 +36,7 @@ import { marketDate } from '../domain/sessions.js';
 import { replay } from '../domain/replay.js';
 import { patternReport } from '../domain/pattern.js';
 import { TIMEFRAMES, getChartPrefs, resolverCuentas, setChartPrefs } from '../domain/prefs.js';
+import { reaccion } from '../domain/reaction.js';
 import { sessionStats } from '../domain/sessionStats.js';
 import { patternStudy } from '../domain/study.js';
 import { patternGrid } from '../domain/grid.js';
@@ -493,6 +494,20 @@ app.get('/api/sessions/stats', async (req) => {
     stopPct: Number(q.stopPct) || undefined,
     targetR: Number(q.targetR) || undefined,
   });
+});
+
+/**
+ * Como reacciono el precio a cada noticia del calendario.
+ *
+ * Sin parametros a proposito: no hay nada que ajustar aqui. Los horizontes y
+ * la linea base estan fijos porque un mando que los cambiara seria un mando
+ * para buscar la combinacion que mejor queda, y eso es justo lo que el metodo
+ * del proyecto intenta evitar.
+ */
+app.get('/api/reaction', async (req) => {
+  const q = req.query as Record<string, unknown>;
+  const symbol = typeof q.symbol === 'string' && q.symbol ? q.symbol : defaultSymbol();
+  return reaccion(symbol);
 });
 
 /** Estudio de patrones a favor de la 4h sobre todo el historico de velas. */

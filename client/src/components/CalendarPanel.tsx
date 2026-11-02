@@ -86,12 +86,28 @@ export function CalendarPanel({ data, news }: { data: CalendarStatus; news: News
     api
       .importCalendar()
       .then((r) => {
-        setResult(
-          r.files === 0
-            ? `No hay ficheros .ics ni .csv en ${r.dir}`
-            : `${r.files} ficheros · ${r.read} eventos leidos · ${r.added} nuevos` +
-                (r.floating ? ` · ${r.floating} sin zona horaria, tomados como UTC` : ''),
-        );
+        // Lo que se ha SALTADO y lo que se ha BORRADO se dice siempre, aunque
+        // alargue la linea. Un fichero ignorado en silencio es peor que uno
+        // que da error: te quedas creyendo que lo importaste.
+        const partes = [
+          `${r.files} ficheros`,
+          `${r.read} eventos leidos`,
+          `${r.added} nuevos`,
+        ];
+        if (r.floating > 0) partes.push(`${r.floating} sin zona horaria, tomados como UTC`);
+        if (r.plantillas.length > 0) partes.push(`${r.plantillas.join(', ')}: es el ejemplo, no se importa`);
+        if (r.finDeSemana > 0) partes.push(`${r.finDeSemana} descartados por caer en fin de semana`);
+        if (r.limpiadas > 0) partes.push(`${r.limpiadas} eventos inventados borrados de la base`);
+        if (r.soloCatalogo.length > 0) {
+          partes.push(
+            `${r.soloCatalogo.join(', ')}: trae NOMBRES de evento pero ninguna fecha ` +
+              '— es la mitad del export de Investing que no lleva previsiones',
+          );
+        }
+
+        setResult(r.files === 0 && r.plantillas.length === 0
+          ? `No hay ficheros .ics ni .csv en ${r.dir}`
+          : partes.join(' · '));
       })
       .catch((e: Error) => setResult(`Error: ${e.message}`))
       .finally(() => setImporting(false));
