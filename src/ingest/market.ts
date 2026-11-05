@@ -1,5 +1,6 @@
 import {
   ALPHA_API_KEY,
+  PETROLEO_FUENTES,
   ALPHA_DAILY_BUDGET,
   COMPANY_NAMES,
   FINNHUB_API_KEY,
@@ -238,7 +239,12 @@ interface FhQuote { c?: number; dp?: number; pc?: number; t?: number }
  * en Promise.all podria serlo, asi que van en tandas pequeñas.
  */
 async function traerCotizaciones(): Promise<Quote[]> {
-  const simbolos = ['QQQ', ...MARKET_TICKERS];
+  // Los ETFs del petroleo van AQUI y no en el bloque lento a proposito: son
+  // acciones estadounidenses como las demas, cotizan durante la sesion y los
+  // da Finnhub, no Alpha. Lo lento es lento porque Alpha publica una vez al
+  // dia; esto no tiene por que heredar ese ritmo.
+  const simbolos = ['QQQ', ...MARKET_TICKERS, ...PETROLEO_FUENTES.map((e) => e.symbol)];
+  const sigueAlCrudo = new Map(PETROLEO_FUENTES.map((e) => [e.symbol, e.sigue]));
   const now = Date.now();
   const out: Quote[] = [];
 
@@ -262,8 +268,17 @@ async function traerCotizaciones(): Promise<Quote[]> {
         // sobre 25.000, asi que llamarlo Nasdaq 100 hace pensar que el dato
         // esta roto. Lo que SI vale del ETF es su variacion del dia, que es
         // practicamente la del indice, y es lo que se mira aqui.
-        label: s === 'QQQ' ? 'QQQ · ETF del Nasdaq 100' : s,
-        kind: s === 'QQQ' ? 'indice' : 'accion',
+        label: s === 'QQQ'
+          ? 'QQQ · ETF del Nasdaq 100'
+          : sigueAlCrudo.has(s)
+            // "sigue al" y no "ETF del": la lista admite cualquier simbolo que
+            // cotice, no solo fondos, y llamar ETF a lo que no lo es seria
+            // decir algo falso sobre el instrumento.
+            ? `${s} · sigue al ${sigueAlCrudo.get(s)}`
+            : s,
+        // 'materia' para que caiga en el telon de fondo junto al crudo, que es
+        // donde se mira. No es una accion aunque se pida como tal.
+        kind: s === 'QQQ' ? 'indice' : sigueAlCrudo.has(s) ? 'materia' : 'accion',
         price,
         changePct: num(q.dp),
         ts: now,
@@ -495,12 +510,41 @@ interface AvSeries { data?: Array<{ date?: string; value?: string }> }
  * Los endpoints de Alpha Vantage devuelven una serie diaria completa. Solo
  * interesa el ultimo valor que no venga como ".", que es como marcan los dias
  * sin dato (festivos). Un "." pasado a numero da NaN y pintaria un hueco.
+ *
+ * SE DEVUELVE TAMBIEN LA FECHA DE LA SERIE, y eso no es un extra: es lo que
+ * arregla un fallo que estuvo seis dias a la vista sin que se notara.
+ *
+ * Antes solo se devolvia el numero. El que llamaba lo guardaba como cierre de
+ * HOY, con la fecha del reloj. Pero estas series son diarias y se actualizan
+ * con retraso: si Alpha no trae nada nuevo, el ultimo valor sigue siendo el
+ * del martes pasado, y guardarlo como cierre de hoy FABRICA una jornada.
+ *
+ * Asi quedo el WTI: el mismo 103,37 repetido como cierre del 28, 30, 31, 1, 2
+ * y 3. La tabla decia "9 jornadas" de historico -sonaba a que habia datos- y
+ * la variacion del dia salia 0,00 % porque comparaba el numero consigo mismo.
+ * Un cero que significa "no ha cambiado" y uno que significa "no lo sabemos"
+ * se pintan igual, y el segundo es el que habia.
+ *
+ * Con la fecha de la serie, el cierre se guarda en SU dia. Si no hay dato
+ * nuevo no se escribe nada, el historico deja de crecer en falso y se ve
+ * cuando fue la ultima vez que de verdad se movio.
  */
-async function ultimoValor(url: string): Promise<number | null> {
+interface ValorFechado { value: number; day: string | null }
+
+async function ultimoValor(url: string): Promise<ValorFechado | null> {
   const s = await pedirAlpha<AvSeries>(url);
   for (const row of s.data ?? []) {
     const v = num(row.value);
-    if (v !== null) return v;
+    if (v === null) continue;
+
+    // La fecha viene como YYYY-MM-DD. Si llegara con otra forma se prefiere
+    // null a recortarla a ciegas: una fecha mal leida coloca el cierre en el
+    // dia equivocado, que es peor que no tener fecha.
+    const day = typeof row.date === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(row.date.trim())
+      ? row.date.trim()
+      : null;
+
+    return { value: v, day };
   }
   return null;
 }
@@ -513,25 +557,38 @@ async function ultimoValor(url: string): Promise<number | null> {
   */
 export const SERIES_LENTAS = 5;
 
+/** Los simbolos de esas series, para saber cuales faltan por traer hoy. */
+export const SERIES_SIMBOLOS = ['WTI', 'BRENT', 'US5Y', 'US10Y', 'US30Y'];
+
 interface Lento {
   quotes: Quote[];
   errors: string[];
-  /** True solo si llegaron LAS CUATRO. Decide si el dia se da por hecho. */
+  /** True solo si llegaron todas las que se pidieron en esta pasada. */
   completo: boolean;
+  /** Cuantas se pidieron de verdad. Es lo que se descuenta de la cuota. */
+  pedidas: number;
 }
 
-async function traerLento(): Promise<Lento> {
+/**
+ * `pendientes` son las series que AUN no han llegado hoy.
+ *
+ * Reintentar solo lo que falta, y no las cinco, es lo que convierte la cuota
+ * en algo que dura. Ver `refreshGlobal`.
+ */
+export async function traerLento(pendientes?: Set<string>): Promise<Lento> {
   const now = Date.now();
   const out: Quote[] = [];
   const errors: string[] = [];
 
-  const piezas: Array<{ symbol: string; label: string; kind: Quote['kind']; url: string }> = [
+  const todas: Array<{ symbol: string; label: string; kind: Quote['kind']; url: string }> = [
     { symbol: 'WTI', label: 'WTI', kind: 'materia', url: `${ALPHA}?function=WTI&interval=daily&apikey=${ALPHA_API_KEY}` },
     { symbol: 'BRENT', label: 'Brent', kind: 'materia', url: `${ALPHA}?function=BRENT&interval=daily&apikey=${ALPHA_API_KEY}` },
     { symbol: 'US5Y', label: 'EE.UU. 5 anios', kind: 'bono', url: `${ALPHA}?function=TREASURY_YIELD&interval=daily&maturity=5year&apikey=${ALPHA_API_KEY}` },
     { symbol: 'US10Y', label: 'EE.UU. 10 anios', kind: 'bono', url: `${ALPHA}?function=TREASURY_YIELD&interval=daily&maturity=10year&apikey=${ALPHA_API_KEY}` },
     { symbol: 'US30Y', label: 'EE.UU. 30 anios', kind: 'bono', url: `${ALPHA}?function=TREASURY_YIELD&interval=daily&maturity=30year&apikey=${ALPHA_API_KEY}` },
   ];
+
+  const piezas = pendientes === undefined ? todas : todas.filter((p) => pendientes.has(p.symbol));
 
   // Cada serie con su propio try y no uno para las cuatro: antes, que el Brent
   // fallara dejaba tambien sin petroleo y sin los dos bonos, cuando tres de
@@ -549,15 +606,17 @@ async function traerLento(): Promise<Lento> {
       // hora, y poner una inventada haria que la tabla dijera "en vivo" sobre
       // el cierre de ayer. Null se lee como "cierre diario", que es la verdad.
       out.push({
-        symbol: p.symbol, label: p.label, kind: p.kind, price: v,
+        symbol: p.symbol, label: p.label, kind: p.kind, price: v.value,
         changePct: null, ts: now, quoteTs: null, prevClose: null,
+        // El dia DE LA SERIE, no el de hoy. Ver `ultimoValor`.
+        day: v.day,
       });
     } catch (e) {
       errors.push(`${p.label}: ${(e as Error).message}`);
     }
   }
 
-  return { quotes: out, errors, completo: out.length === piezas.length };
+  return { quotes: out, errors, completo: out.length === piezas.length, pedidas: piezas.length };
 }
 
 // -------------------------------------------------------------- el refresco
@@ -601,6 +660,27 @@ let proximoSeries = 0;
 let proximoSentimiento = 0;
 /** Dia UTC en el que las series diarias llegaron COMPLETAS. */
 let diaSeries = '';
+
+/**
+ * Las series que YA han llegado hoy, para no volver a pedirlas.
+ *
+ * EL REINTENTO SE COMIA LA CUOTA ENTERA, y asi es como:
+ *
+ * El dia solo se da por hecho cuando llegan las cinco. Si una falla —el WTI
+ * lleva fallando desde el 28 de octubre— el dia nunca se cierra y el bloque
+ * reintenta cada hora. Pero reintentaba pidiendo LAS CINCO, asi que cada
+ * intento gastaba 5 peticiones para traer cuatro datos que ya teniamos y
+ * fallar otra vez en la quinta.
+ *
+ * Con un presupuesto de 20: cuatro intentos y se acabo el dia. Es exactamente
+ * el 20/20 que aparecia en la base, y a partir de ahi ya no se reintenta nada
+ * —ni lo que fallaba ni ninguna otra cosa de Alpha— hasta el dia siguiente.
+ *
+ * Pidiendo solo lo que falta, los mismos 20 dan para 16 reintentos del WTI en
+ * vez de 4 barridos completos. La cuota se gasta en lo que no se tiene.
+ */
+let seriesHechas = new Set<string>();
+let diaHechas = '';
 
 export async function refreshGlobal(forzarLento = false): Promise<RefreshResult> {
   const errors: string[] = [];
@@ -653,20 +733,38 @@ export async function refreshGlobal(forzarLento = false): Promise<RefreshResult>
   const tocaSeries = forzarLento || (diaSeries !== hoy && ahora >= proximoSeries);
 
   if (tocaSeries) {
-    if (puedoGastarAlpha(SERIES_LENTAS)) {
-      const r = await traerLento();
+    // Al cambiar el dia se olvida lo que llego ayer y vuelven a estar todas
+    // pendientes.
+    if (diaHechas !== hoy) { seriesHechas = new Set(); diaHechas = hoy; }
+
+    // Si falta alguna, se piden SOLO esas, forzando o no: forzar es querer el
+    // dato que falta, no volver a bajar los cuatro que ya estan. Solo cuando
+    // no falta ninguna un refresco a mano vuelve a pedirlas todas, que es lo
+    // que uno espera al pulsar "refrescar ahora".
+    const faltan = SERIES_SIMBOLOS.filter((s) => !seriesHechas.has(s));
+    const pendientes = faltan.length > 0
+      ? new Set(faltan)
+      : forzarLento ? undefined : new Set<string>();
+
+    const cuantas = pendientes === undefined ? SERIES_LENTAS : pendientes.size;
+
+    if (cuantas > 0 && puedoGastarAlpha(cuantas)) {
+      const r = await traerLento(pendientes);
       lentos = r.quotes;
+      for (const q of r.quotes) seriesHechas.add(q.symbol);
       for (const e of r.errors) errors.push(`petroleo/bonos · ${e}`);
 
       did.push('petroleo/bonos');
       markBlock('petroleo/bonos', r.quotes.length > 0, r.quotes.length, r.errors.join(' · '));
 
-      // El dia solo se da por hecho si llegaron las cuatro. Si falto alguna,
-      // se reintenta dentro de una hora: lo que protege la cuota es el
-      // presupuesto, no resignarse.
-      if (r.completo) diaSeries = hoy;
+      // El dia solo se da por hecho cuando han llegado LAS CINCO, contando lo
+      // que ya habia llegado en pasadas anteriores. Si falta alguna se
+      // reintenta dentro de una hora, pero solo ESA: lo que protege la cuota
+      // es el presupuesto, y lo que la hace durar es no volver a pedir lo que
+      // ya se tiene.
+      if (seriesHechas.size >= SERIES_LENTAS) diaSeries = hoy;
       else proximoSeries = ahora + REINTENTO_MS;
-    } else if (ALPHA_API_KEY) {
+    } else if (ALPHA_API_KEY && cuantas > 0) {
       const msg = `cuota diaria agotada (${alphaUsage().used}/${ALPHA_DAILY_BUDGET})`;
       errors.push(`petroleo/bonos: ${msg}`);
       markBlock('petroleo/bonos', false, 0, msg);

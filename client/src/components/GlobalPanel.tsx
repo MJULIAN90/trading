@@ -28,6 +28,8 @@ interface Row {
   change5d: number | null;
   /** Jornadas de cierre guardadas. Con menos de 6 no hay 5d. */
   dias: number;
+  /** Dia del ultimo cierre guardado. Delata una serie que dejo de llegar. */
+  ultimaJornada?: string | null;
   /** Cuando COTIZO, segun el proveedor. null = no lo dice. */
   quoteTs: number | null;
   prevClose: number | null;
@@ -732,10 +734,30 @@ export function GlobalPanel() {
                 // el +1,4% que saldria de dividir es un porcentaje DE un
                 // porcentaje y no significa nada. El petroleo si va en %.
                 const esBono = q.kind === 'bono';
+
+                // EL % DEL DIA SALE DEL PROVEEDOR CUANDO LO DA, y solo si no,
+                // de nuestros cierres guardados.
+                //
+                // Importa para los ETFs del petroleo, que son los unicos de
+                // esta tabla que cotizan durante la sesion: Finnhub manda su
+                // variacion del dia en vivo, asi que se ve moverse desde el
+                // primer refresco. Derivarla de nuestro historico obligaria a
+                // esperar a tener dos cierres, y ademas solo cambiaria una vez
+                // al dia, que es justo lo que se queria evitar.
+                //
+                // Las series de Alpha -el barril y los bonos- llegan con
+                // `changePct` a null a proposito: son diarias y inventarles un
+                // porcentaje del dia seria mentir. Esas siguen por el camino
+                // de siempre.
+                const pct1 = q.changePct ?? (
+                  q.change1d === null || q.price === q.change1d
+                    ? null
+                    : (q.change1d / (q.price - q.change1d)) * 100
+                );
+
                 const var1 = esBono
                   ? q.change1d === null ? null : `${q.change1d > 0 ? '+' : ''}${Math.round(q.change1d * 100)} pb`
-                  : q.change1d === null || q.price === q.change1d ? null
-                    : `${q.change1d > 0 ? '+' : ''}${num((q.change1d / (q.price - q.change1d)) * 100, 2)}%`;
+                  : pct1 === null ? null : `${pct1 > 0 ? '+' : ''}${num(pct1, 2)}%`;
                 const var5 = esBono
                   ? q.change5d === null ? null : `${q.change5d > 0 ? '+' : ''}${Math.round(q.change5d * 100)} pb`
                   : q.changePct5d === null ? null : `${q.changePct5d > 0 ? '+' : ''}${num(q.changePct5d, 2)}%`;
@@ -755,13 +777,21 @@ export function GlobalPanel() {
                         de arriba. Pintarlo verde seria contradecirlo en la
                         misma pantalla. El petroleo si lleva color, que ahi
                         subir es subir. */}
-                    <td className={esBono ? '' : signClass(q.change1d ?? 0)}>
+                    <td className={esBono ? '' : signClass(pct1 ?? 0)}>
                       {var1 ?? <span className="note">—</span>}
                     </td>
                     <td className={esBono ? '' : signClass(q.changePct5d ?? 0)}>
                       {var5 ?? <span className="note">—</span>}
                     </td>
+                    {/* La fecha del ultimo cierre va DELANTE del recuento,
+                        porque es lo que contesta la pregunta que de verdad se
+                        hace uno al ver un numero quieto: "esto no se mueve o
+                        no me esta llegando?". El WTI estuvo seis dias en
+                        103,37 con 0,00 % de variacion, y las dos lecturas se
+                        pintaban exactamente igual. */}
                     <td className="note">
+                      {q.ultimaJornada && <b>{q.ultimaJornada.slice(5).replace('-', '/')}</b>}
+                      {q.ultimaJornada && ' · '}
                       {q.dias} jornada{q.dias === 1 ? '' : 's'}
                       {q.dias < 6 && <span className="note"> · faltan {6 - q.dias} para el 5d</span>}
                     </td>

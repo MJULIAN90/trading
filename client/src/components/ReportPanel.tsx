@@ -123,7 +123,7 @@ function FilasBloque({
           <th title="Mediana del neto por operacion. Cuando no acompania a la media, manda ella.">
             Mediana
           </th>
-          <th title="Ticks por contrato y operacion: la cifra limpia de tamanio.">tk/op</th>
+          <th title="Ticks por contrato y operacion: la cifra limpia de tamaño.">tk/op</th>
           <th>Acierto</th>
         </tr>
       </thead>
@@ -157,12 +157,12 @@ function Destacadas({ rows, titulo }: { rows: Destacada[]; titulo: string }) {
             <th className="izq">Jornada</th>
             <th className="izq">Franja</th>
             <th>Lotes</th>
-            <th title="Ticks por contrato. Dice si respetaste el stop, aparte del tamanio.">
+            <th title="Ticks por contrato. Dice si respetaste el stop, aparte del tamaño.">
               tk/contrato
             </th>
             <th>Neto</th>
             <th title="Lo que habria costado o dado con UN contrato.">Con 1 contrato</th>
-            <th title="Cuantas veces multiplico el tamanio esa operacion.">Factor</th>
+            <th title="Cuantas veces multiplico el tamaño esa operacion.">Factor</th>
           </tr>
         </thead>
         <tbody>
@@ -357,7 +357,7 @@ export function ReportPanel({ query }: { query: string }) {
             <div className="k">Ticks por contrato</div>
             <div className={`v ${signClass(data.ticksPerTrade)}`}>{ticks(data.ticksPerTrade)}</div>
             <div className="n">
-              mediana {ticks(data.ticksMedian)} · sin el efecto del tamanio
+              mediana {ticks(data.ticksMedian)} · sin el efecto del tamaño
             </div>
           </div>
 
@@ -417,9 +417,9 @@ export function ReportPanel({ query }: { query: string }) {
         )}
       </div>
 
-      {/* ------------------------------------------------------ 2. el tamanio */}
+      {/* ------------------------------------------------------ 2. el tamaño */}
       <div className="panel">
-        <h2>El tamanio</h2>
+        <h2>El tamaño</h2>
         <div className="note" style={{ marginBottom: 10 }}>
           <b>La pregunta mas importante del informe.</b> Lo medido en octubre: sus cinco peores
           perdidas salieron entre −54 y −60 ticks por contrato, o sea que el stop estaba donde
@@ -477,7 +477,7 @@ export function ReportPanel({ query }: { query: string }) {
         <h2>Las que movieron el periodo</h2>
         <div className="note" style={{ marginBottom: 4 }}>
           <b>tk/contrato</b> dice si respetaste el stop. <b>Factor</b> dice cuanto multiplico el
-          tamanio. Una perdida de −60 ticks con 1 contrato son −$30; con 40, son −$1.200.
+          tamaño. Una perdida de −60 ticks con 1 contrato son −$30; con 40, son −$1.200.
         </div>
         <Destacadas rows={data.worst} titulo="Las cinco peores" />
         <Destacadas rows={data.best} titulo="Las cinco mejores" />

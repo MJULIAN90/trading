@@ -162,24 +162,41 @@ export const REAL_TRADING_SINCE = process.env.REAL_TRADING_SINCE ?? '2026-10-12'
 export const MARKET_UTC_OFFSET_HOURS = Number(process.env.MARKET_UTC_OFFSET_HOURS ?? -4);
 
 /**
- * Quantower guarda la cache de operaciones en una carpeta por cuenta, con un
- * nombre generado que incluye el id del broker. Como no se puede adivinar, se
- * busca la primera que exista en vez de pedirla configurada.
+ * Quantower guarda la cache de operaciones en una carpeta por conexion/cuenta,
+ * con un nombre generado que incluye el id del broker. No se puede adivinar:
+ * se recorren TODAS las carpetas y se devuelven las bases que existan.
+ *
+ * Antes se devolvia solo la primera. Con una sola cuenta daba igual; al abrir
+ * la cuenta de MyFundedFutures, su carpeta quedo detras de AMP47CQG en el
+ * orden del sistema y sus operaciones no se ingerian nunca.
  */
-export function findQuantowerTradesDb(): string | null {
+export function findQuantowerTradesDbs(): string[] {
   const explicit = process.env.QUANTOWER_TRADES_DB;
-  if (explicit) return existsSync(explicit) ? explicit : null;
+  if (explicit) {
+    return explicit
+      .split(';')
+      .map((p) => p.trim())
+      .filter((p) => p.length > 0 && existsSync(p));
+  }
 
   const cacheRoot = join(QUANTOWER_ROOT, 'UserTradesCache');
-  if (!existsSync(cacheRoot)) return null;
+  if (!existsSync(cacheRoot)) return [];
 
+  const out: string[] = [];
   for (const dir of readdirSync(cacheRoot, { withFileTypes: true })) {
     if (!dir.isDirectory()) continue;
     const candidate = join(cacheRoot, dir.name, 'user-trades.db');
-    if (existsSync(candidate)) return candidate;
+    if (existsSync(candidate)) out.push(candidate);
   }
 
-  return null;
+  // Orden estable: la ingesta es idempotente, pero un orden fijo hace que los
+  // logs y los ingest_runs se puedan comparar entre arranques.
+  return out.sort();
+}
+
+/** Compatibilidad: la primera base, para codigo que solo espera una. */
+export function findQuantowerTradesDb(): string | null {
+  return findQuantowerTradesDbs()[0] ?? null;
 }
 
 
@@ -294,6 +311,62 @@ export const MARKET_TICKERS = (
   .split(',')
   .map((s) => s.trim().toUpperCase())
   .filter(Boolean);
+
+/**
+ * Simbolos que siguen al petroleo y COTIZAN DURANTE EL DIA.
+ *
+ * -------------------------------------------------------------------------
+ * MAS PROVEEDORES NO DAN MAS FRECUENCIA
+ * -------------------------------------------------------------------------
+ * La serie de petroleo de Alpha Vantage es DIARIA: publica un valor al dia.
+ * Otro proveedor de series diarias seria igual de diario. Lo que decide cada
+ * cuanto se actualiza un precio no es de donde se pide, es QUE SE PIDE: un
+ * instrumento que cotiza en continuo cambia en continuo, y una estadistica
+ * diaria cambia una vez al dia aunque la pidas cada minuto.
+ *
+ * Por eso esto no es "otra fuente del barril", es una lista de instrumentos
+ * que se negocian y que se mueven con el crudo.
+ *
+ * -------------------------------------------------------------------------
+ * ES UNA LISTA, Y SE PUEDE AMPLIAR SIN TOCAR CODIGO
+ * -------------------------------------------------------------------------
+ * Cada entrada es `SIMBOLO:LO QUE SIGUE`. Se piden todas a Finnhub con el
+ * mismo endpoint que las acciones, asi que no hay clave nueva ni cuota de
+ * Alpha que gastar.
+ *
+ * Y PROBAR UNA CUESTA CERO: Finnhub contesta precio 0 a un simbolo que no
+ * cubre, no un error, asi que una entrada que su plan no incluya desaparece
+ * sola de la tabla. Se puede aniadir una candidata y mirar si aparece.
+ *
+ *   USO, BNO       fondos cotizados de EE.UU. Cubiertos seguro: son la misma
+ *                  clase de instrumento que el QQQ que ya se pide. Solo
+ *                  cotizan de 09:30 a 16:00 de Nueva York.
+ *   XLE            el sector energetico; se mueve con el crudo pero tambien
+ *                  con la bolsa, asi que es el mas indirecto de todos.
+ *
+ * Lo que NO se puede resolver con esta lista: una cobertura de 24 horas.
+ * Para eso hace falta un contrato que cotice de noche -un futuro o un CFD- y
+ * eso depende de lo que incluya el plan de cada proveedor. Si alguno de los
+ * que tengas lo diera, se aniade aqui y ya.
+ *
+ * -------------------------------------------------------------------------
+ * NO SON EL BARRIL, Y ESO NO SE DISIMULA
+ * -------------------------------------------------------------------------
+ * Un fondo de petroleo lleva futuros dentro y los va renovando, asi que su
+ * NIVEL se separa del crudo con los meses. Lo que sigue de cerca es su
+ * VARIACION del dia. Por eso conviven con la serie de Alpha: Alpha da el
+ * nivel del barril una vez al dia, estos dan el movimiento cada cinco
+ * minutos, y cada fila dice cual es cual.
+ */
+export const PETROLEO_FUENTES: Array<{ symbol: string; sigue: string }> = (
+  process.env.PETROLEO_FUENTES ?? 'USO:WTI,BNO:Brent'
+)
+  .split(',')
+  .map((par) => {
+    const [symbol, sigue] = par.split(':');
+    return { symbol: (symbol ?? '').trim().toUpperCase(), sigue: (sigue ?? '').trim() };
+  })
+  .filter((x) => x.symbol !== '');
 
 /**
  * Nombre de cada empresa. Lo ponemos nosotros, no el proveedor.

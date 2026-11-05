@@ -46,6 +46,18 @@ export interface Quote {
   /** Cuando lo LEIMOS nosotros. */
   ts: number;
   /**
+   * El dia al que pertenece el dato, cuando el proveedor lo dice (YYYY-MM-DD).
+   *
+   * Solo lo traen las series DIARIAS de Alpha Vantage -petroleo y bonos-, que
+   * se publican con retraso: el ultimo valor puede ser del martes pasado. Sin
+   * este campo, el cierre se guardaba con la fecha del reloj y se fabricaba
+   * una jornada cada vez que se refrescaba sin dato nuevo.
+   *
+   * Las cotizaciones de acciones lo dejan en null: son de hoy por definicion,
+   * y su dia es la jornada de calendario.
+   */
+  day?: string | null;
+  /**
    * Cuando COTIZO ese precio, segun el proveedor. null si no lo dice.
    *
    * Es otra cosa que `ts` y la diferencia importa: con el mercado cerrado,
@@ -63,6 +75,8 @@ export interface Row extends Quote {
   name: string;
   /** Peso en el QQQ, en porcentaje. null si no esta en la lista. */
   weight: number | null;
+  /** Dia del ultimo cierre guardado (YYYY-MM-DD), o null si no hay ninguno. */
+  ultimaJornada?: string | null;
   /** Variacion a 5 jornadas en porcentaje, de nuestro propio historico. */
   changePct5d: number | null;
   /**
@@ -178,6 +192,16 @@ export function saveQuotesHistory(rows: Quote[]): void {
  * Se sobreescribe en cada refresco, asi que al acabar el dia la fila tiene el
  * ultimo precio de esa jornada. No es el cierre oficial -es el ultimo que
  * vimos- y para una variacion a cinco dias da igual.
+ *
+ * CADA UNO EN SU DIA. El `day` que se pasa es el de las acciones, que cotizan
+ * hoy por definicion. Las series diarias de Alpha Vantage -petroleo y bonos-
+ * traen el suyo en `q.day` y manda ese, porque se publican con retraso.
+ *
+ * Sin esto se fabricaban jornadas: si Alpha no traia nada nuevo, el mismo
+ * valor se guardaba otra vez con la fecha de hoy. El WTI acabo con el mismo
+ * 103,37 como cierre del 28, 30, 31, 1, 2 y 3 de noviembre — seis jornadas
+ * que nunca ocurrieron, una variacion del dia de 0,00 % calculada contra si
+ * mismo, y un "9 jornadas" de historico que sonaba a que habia datos.
  */
 export function saveDailyClose(rows: Quote[], day: string): void {
   if (rows.length === 0) return;
@@ -187,25 +211,52 @@ export function saveDailyClose(rows: Quote[], day: string): void {
      ON CONFLICT (symbol, day) DO UPDATE SET close = excluded.close`,
   );
 
-  db().transaction((xs: Quote[]) => { for (const q of xs) stmt.run(q.symbol, day, q.price); })(rows);
+  db().transaction((xs: Quote[]) => {
+    for (const q of xs) stmt.run(q.symbol, q.day ?? day, q.price);
+  })(rows);
 }
 
-/** Variacion entre el precio de ahora y el cierre de hace 5 jornadas. */
-/** El cierre guardado hace `atras` jornadas, o null si no llega el historico. */
-function cierreAtras(symbol: string, atras: number): number | null {
+/**
+ * El cierre guardado hace `atras` jornadas, o null si no llega el historico.
+ *
+ * Devuelve tambien SU DIA, y eso decide si la comparacion vale.
+ */
+function cierreAtras(symbol: string, atras: number): { close: number; day: string } | null {
   const row = db()
     .prepare(
-      `SELECT close FROM global_daily_close
+      `SELECT close, day FROM global_daily_close
         WHERE symbol = ? ORDER BY day DESC LIMIT 1 OFFSET ?`,
     )
-    .get(symbol, atras) as { close: number } | undefined;
-  return row ? row.close : null;
+    .get(symbol, atras) as { close: number; day: string } | undefined;
+  return row ?? null;
 }
+
+/**
+ * Dias de calendario entre dos fechas YYYY-MM-DD.
+ */
+function diasEntre(a: string, b: string): number {
+  return Math.abs(Date.parse(a + 'T00:00:00Z') - Date.parse(b + 'T00:00:00Z')) / 86_400_000;
+}
+
+/**
+ * Hasta que distancia en dias de calendario una comparacion sigue siendo lo
+ * que dice la cabecera de la columna.
+ *
+ * Cuatro dias y no uno: la jornada anterior a un lunes es el viernes, que son
+ * tres dias de calendario, y con un festivo por medio cuatro. Mas alla de ahi
+ * la cuenta ya no es "ayer" ni "hace cinco jornadas" en ningun sentido util.
+ *
+ * Importa porque sin este corte el WTI enseniaba un "1d" de -4,52 que en
+ * realidad iba del 25 al 28 de octubre: la serie llevaba seis dias sin dato
+ * nuevo, y la unica comparacion posible era contra un cierre de tres dias
+ * antes. Un numero con la etiqueta equivocada es peor que un hueco.
+ */
+const MARGEN_JORNADA_DIAS = 4;
 
 function cambio5d(symbol: string, price: number): number | null {
   const antes = cierreAtras(symbol, 5);
-  if (antes === null || antes === 0) return null;
-  return Number(((price / antes - 1) * 100).toFixed(2));
+  if (antes === null || antes.close === 0) return null;
+  return Number(((price / antes.close - 1) * 100).toFixed(2));
 }
 
 /**
@@ -220,7 +271,14 @@ function cambio5d(symbol: string, price: number): number | null {
 function cambioAbs(symbol: string, price: number, atras: number): number | null {
   const antes = cierreAtras(symbol, atras);
   if (antes === null) return null;
-  return Number((price - antes).toFixed(4));
+
+  // La referencia tiene que estar donde dice la columna. Si la serie lleva
+  // dias sin dato nuevo, el cierre "de ayer" es de la semana pasada y la
+  // resta no es una variacion diaria: mejor un hueco.
+  const hoy = cierreAtras(symbol, 0);
+  if (hoy !== null && diasEntre(hoy.day, antes.day) > atras + MARGEN_JORNADA_DIAS) return null;
+
+  return Number((price - antes.close).toFixed(4));
 }
 
 /** Cuantas jornadas de cierre llevamos guardadas de ese simbolo. */
@@ -231,7 +289,46 @@ function jornadasGuardadas(symbol: string): number {
   return row.n;
 }
 
-export function saveEarnings(rows: Earning[]): void {
+/**
+ * El dia del ultimo cierre guardado, o null si no hay ninguno.
+ *
+ * Hace falta porque un numero quieto no dice por que esta quieto. El WTI
+ * estuvo seis dias enseniando 103,37 con una variacion de 0,00 %, y las dos
+ * lecturas posibles -"no se ha movido" y "no tenemos dato nuevo"- se pintaban
+ * exactamente igual. Con la fecha delante, la segunda se ve sola.
+ */
+function ultimaJornada(symbol: string): string | null {
+  const row = db()
+    .prepare('SELECT day FROM global_daily_close WHERE symbol = ? ORDER BY day DESC LIMIT 1')
+    .get(symbol) as { day: string } | undefined;
+  return row?.day ?? null;
+}
+
+/**
+ * Guarda el calendario de resultados y RETIRA lo que el proveedor ya no dice.
+ *
+ * El upsert solo aniade. La clave es (simbolo, fecha), asi que cuando una
+ * empresa mueve su fecha de presentacion entra una fila nueva y la vieja se
+ * queda: NVDA acabo con el 17 y el 25 de noviembre a la vez, con la misma
+ * estimacion. Como la agenda ordena por cercania, el aviso habria saltado
+ * ocho dias antes de tiempo, y ademas para la que mas pesa del indice.
+ *
+ * Asi que despues de guardar se limpia el FUTURO: de cada simbolo que el
+ * proveedor ha contestado, se borran las fechas futuras que ya no estan en su
+ * respuesta. La foto de lo que viene pasa a ser la suya, no la acumulacion de
+ * todas las suyas.
+ *
+ * Tres cuidados, y los tres importan:
+ *
+ *   - Solo el FUTURO. Las filas pasadas llevan lo presentado, que es el unico
+ *     dato de esta tabla que no se puede volver a pedir.
+ *   - Solo los simbolos que han CONTESTADO. Si una peticion falla y vuelve
+ *     vacia, ese simbolo no aparece en `rows` y no se toca nada suyo. Borrar
+ *     por una respuesta vacia seria dejar sin aviso a quien presenta maniana.
+ *   - La fecha de corte se pasa como argumento y no se saca de `date('now')`,
+ *     para que la prueba pueda situarse en un dia concreto.
+ */
+export function saveEarnings(rows: Earning[], hoy = new Date().toISOString().slice(0, 10)): void {
   if (rows.length === 0) return;
 
   const stmt = db().prepare(
@@ -251,7 +348,23 @@ export function saveEarnings(rows: Earning[]): void {
        revenue_actual = COALESCE(excluded.revenue_actual, global_earnings.revenue_actual)`,
   );
 
-  db().transaction((xs: Earning[]) => { for (const e of xs) stmt.run(e); })(rows);
+  const borrar = db().prepare(
+    `DELETE FROM global_earnings
+      WHERE symbol = ? AND date > ? AND date NOT IN (SELECT value FROM json_each(?))`,
+  );
+
+  db().transaction((xs: Earning[]) => {
+    for (const e of xs) stmt.run(e);
+
+    const porSimbolo = new Map<string, string[]>();
+    for (const e of xs) {
+      const f = porSimbolo.get(e.symbol);
+      if (f) f.push(e.date);
+      else porSimbolo.set(e.symbol, [e.date]);
+    }
+
+    for (const [symbol, fechas] of porSimbolo) borrar.run(symbol, hoy, JSON.stringify(fechas));
+  })(rows);
 }
 
 /** @returns cuantas noticias eran NUEVAS. Es lo que decide si suena la alerta. */
@@ -544,6 +657,7 @@ export function globalReport(newsLimit = NEWS_MAX): GlobalReport {
     change1d: cambioAbs(q.symbol, q.price, 1),
     change5d: cambioAbs(q.symbol, q.price, 5),
     dias: jornadasGuardadas(q.symbol),
+    ultimaJornada: ultimaJornada(q.symbol),
   }));
 
   // Los resultados de los ultimos dias siguen interesando: el movimiento de

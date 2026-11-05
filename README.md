@@ -709,7 +709,7 @@ git status --short          # los untracked salen con ??
 | `client/src/components/ReportPanel.tsx` | **no compila**: lo importa `App.tsx` |
 | `src/domain/report.ts` | **no compila**: lo importa el servidor |
 | `client/public/greenspot.png` + `icono.png` | compila, pero sale el texto «Greenspot» en vez del logo y la pestaña sin icono |
-| `scripts/prueba-ajustes.ts`, `prueba-informe.ts`, `prueba-calendario.ts`, `prueba-reaccion.ts`, `prueba-ingesta-calendario.ts`, `prueba-cesta.ts` | 191 de los 303 casos de prueba no existen |
+| `scripts/prueba-ajustes.ts`, `prueba-informe.ts`, `prueba-calendario.ts`, `prueba-reaccion.ts`, `prueba-ingesta-calendario.ts`, `prueba-cesta.ts` | 191 de los 364 casos de prueba no existen |
 | `scripts/copiar-para-commit.py` | la rutina de finales de línea |
 
 ```bash
@@ -794,6 +794,7 @@ Todo esto es opcional: sin las dos claves, el bloque no pide nada.
 | `NEWS_MAX` | `300` | tope de titulares que viajan a la pantalla |
 | `NEWS_KEYWORDS` | (vacío) | palabras extra que hacen relevante un titular |
 | `QQQ_WEIGHTS` | foto de oct-2026 | pesos en el QQQ, `NVDA:8.3,AAPL:7.4,…` |
+| `PETROLEO_FUENTES` | `USO:WTI,BNO:Brent` | símbolos que siguen al crudo y cotizan en sesión |
 
 > **`QQQ_WEIGHTS` es una foto a mano y se queda vieja.** El fichero de
 > posiciones del ETF no lo da ninguna API gratuita, así que los pesos están
@@ -1671,6 +1672,137 @@ de escritura de notas, etiquetas y ajustes. `src/api/server.ts` es la lista de v
 
   Comprobado contra la base real: a las 17:00 de hoy el panel enseña AMZN (−5,6 %),
   MSFT (+1,4 %) y GOOGL (−14,1 %), y AAPL ya solo sale en la agenda de lo que viene.
+
+- **Fabricábamos jornadas que nunca ocurrieron.** Las series de Alpha Vantage —petróleo
+  y bonos— son **diarias y se publican con retraso**, pero su cierre se guardaba con la
+  fecha del **reloj**. Cada refresco sin dato nuevo volvía a escribir el mismo número en
+  un día nuevo:
+
+  ```
+  WTI   11-03:103.37  11-02:103.37  11-01:103.37  10-31:103.37  10-30:103.37  10-28:103.37
+  ```
+
+  Seis cierres idénticos. La variación del día comparaba el número **consigo mismo** y
+  salía `0,00 %`, y el contador decía «9 jornadas» de histórico, que sonaba a que había
+  datos. **Un cero que significa «no lo sabemos» se pintaba igual que uno que significa
+  «no se ha movido»**, y el que había era el primero: el WTI llevaba desde el 28 de
+  octubre sin un valor nuevo.
+
+  `ultimoValor()` devolvía el número y **tiraba la fecha de la serie**, que Alpha sí da.
+  Ahora la devuelve, el cierre se guarda en **su** día, y si no hay dato nuevo no se
+  escribe nada. Una limpieza de una sola vez retiró **21 jornadas fabricadas** de
+  `global_daily_close`.
+
+  Dos cosas más para que no se repita en silencio: la tabla enseña ahora **la fecha del
+  último cierre** junto al recuento de jornadas, y la variación se deja en blanco cuando
+  la referencia está más lejos de lo que dice la columna — un «1d» calculado contra un
+  cierre de hace ocho días es un número con la etiqueta equivocada, que es peor que un
+  hueco.
+
+#### El reintento se comía la cuota entera
+
+Las series de Alpha se piden **una vez al día**, pero el día solo se da por hecho cuando
+llegan **las cinco**. Como el WTI lleva fallando desde el 28 de octubre, el día no se
+cerraba nunca y el bloque reintentaba cada hora — **pidiendo las cinco otra vez**. Cinco
+peticiones para traer cuatro datos que ya teníamos y fallar de nuevo en la quinta.
+
+```
+presupuesto 20  ÷  5 por intento  =  4 intentos y se acabó el día
+```
+
+Y «se acabó el día» es para **todo** lo de Alpha, incluidos los reintentos. Es exactamente
+el `alpha_used = 20/20` que aparecía en la base.
+
+Ahora se piden **solo las que faltan**. Los mismos 20 dan para **16 reintentos del WTI**
+en vez de 4 barridos completos. Forzar un refresco a mano también pide solo lo que falta
+—forzar es querer el dato que falta, no volver a bajar los cuatro que ya están— y solo
+cuando no falta ninguna vuelve a pedirlas todas.
+
+> **La prueba de esto pasó primero por el motivo equivocado**, y conviene que quede
+> escrito. Escrita contra `refreshGlobal`, decía «0 peticiones de 5» y salía verde: el
+> reintento está detrás de un temporizador de una hora, así que el código **no llegaba a
+> ejecutarse**. Se pasó a probar `traerLento` directamente. Una prueba que pasa porque no
+> ejecutó nada es peor que no tenerla.
+
+#### Más proveedores no dan más frecuencia
+
+Es la pregunta que sale sola —«¿y si lo traemos de varios sitios?»— y la respuesta
+empieza por corregir la premisa: **lo que decide cada cuánto se actualiza un precio no es
+de dónde se pide, es qué se pide.** La serie de petróleo de Alpha Vantage publica un
+valor al día; otro proveedor de series diarias sería igual de diario. Un instrumento que
+se negocia en continuo cambia en continuo, y una estadística diaria cambia una vez al día
+aunque la pidas cada minuto.
+
+Por eso `PETROLEO_FUENTES` no es «otra fuente del barril», es una **lista de instrumentos
+que cotizan** y se mueven con el crudo. Se amplía sin tocar código:
+
+```
+PETROLEO_FUENTES=USO:WTI,BNO:Brent,XLE:energía
+```
+
+| | qué es | cobertura |
+|---|---|---|
+| `USO`, `BNO` | fondos cotizados de EE.UU. | 09:30–16:00 NY |
+| `XLE` | el sector energético | 09:30–16:00 NY, y es el más indirecto |
+
+**Probar una candidata cuesta cero**: Finnhub contesta precio `0` a un símbolo que no
+cubre —no un error— así que una entrada que su plan no incluya desaparece sola de la
+tabla. Se añade y se mira si aparece.
+
+Lo que **no** se resuelve con la lista es una cobertura de 24 horas: para eso hace falta
+un contrato que cotice de noche (un futuro o un CFD), y eso depende de lo que incluya el
+plan de cada proveedor.
+
+#### El petróleo, dos veces y por dos caminos
+
+Las series de crudo de Alpha Vantage son **diarias**, así que pedirlas más a menudo no
+las hace más frescas: el proveedor publica un valor al día y con retraso. La única forma
+de ver el crudo moverse dentro de la sesión es mirar algo que **cotice** dentro de la
+sesión.
+
+`USO` y `BNO` son fondos cotizados estadounidenses — exactamente la misma clase de
+instrumento que el `QQQ` que el diario ya pide a Finnhub **cada cinco minutos**. No hay
+clave nueva, ni proveedor nuevo, ni cuota de Alpha que gastar: son dos peticiones más de
+las sesenta por minuto del plan gratuito.
+
+| | de dónde | cada cuánto | para qué |
+|---|---|---|---|
+| `WTI` / `BRENT` | Alpha Vantage | una vez al día | el **nivel** del barril |
+| `USO` / `BNO` | Finnhub | **cada 5 min** | el **movimiento** del día |
+
+**Un ETF de petróleo no es el barril.** Lleva futuros dentro y los va renovando, así que
+su *nivel* se separa del crudo con los meses. Lo que sigue de cerca es su *variación del
+día*, que es justo lo que se quiere para saber por dónde va el crudo hoy. Por eso conviven
+los dos y cada fila dice lo que es: `USO · ETF del WTI`.
+
+El `%` del día de esas filas sale **del proveedor**, no de nuestros cierres guardados: así
+se mueve desde el primer refresco en vez de esperar a tener dos jornadas, y cambia cada
+cinco minutos en vez de una vez al día. Las series de Alpha llegan con `changePct` a null
+a propósito y siguen por el camino de siempre.
+
+Si Finnhub dejara de cubrir alguno devuelve precio `0`, no un error, y la fila se descarta
+sola. `PETROLEO_ETFS` permite cambiarlos sin tocar código.
+
+- **Una prueba con una fecha fija caduca sin avisar.** `prueba-mercado.ts` simulaba una
+  noticia fechada el 25 de octubre. El panel solo enseña los últimos `NEWS_WINDOW_DAYS`
+  (tres), así que el 28 de octubre la noticia se salió de la ventana y **tres
+  comprobaciones se pusieron en rojo solas**, sin que nadie tocara el código. Una cuarta
+  falló al añadirse el bono de 5 años, porque el número de peticiones esperadas estaba
+  escrito a mano. Las fechas del simulador son ahora relativas a hoy y el recuento sale
+  de `SERIES_LENTAS`.
+
+- **Una fecha de presentación que se mueve dejaba dos filas.** La clave de
+  `global_earnings` es (símbolo, fecha) y el upsert solo añade, así que cuando NVDA
+  movió su presentación de noviembre quedaron **el 17 y el 25 a la vez**, con la misma
+  estimación. La agenda ordena por cercanía, de modo que el aviso habría saltado **ocho
+  días antes de tiempo**, y para la empresa que más pesa del índice.
+
+  Ahora, después de guardar, se retira del **futuro** lo que el proveedor ya no dice. Tres
+  cuidados: solo el futuro (las filas pasadas llevan lo presentado, el único dato de esta
+  tabla que no se puede volver a pedir); solo los símbolos que han **contestado** (una
+  petición fallida vuelve vacía, y borrar por eso dejaría sin aviso a quien presenta
+  mañana); y la fecha de corte se pasa como argumento, no sale de `date('now')`, para
+  poder probarla en un día fijo.
 
 - **El sentimiento de las noticias ya no es gratis.** `NEWS_SENTIMENT` de Alpha
   Vantage —puntuación de −1 a +1 por titular y relevancia por ticker— pasó a

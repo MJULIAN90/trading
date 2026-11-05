@@ -126,22 +126,27 @@ export function ingestQuantower(tradesDbPath: string): IngestResult {
       if (info.changes > 0) fillsNew++;
     }
 
-    // Reconstruccion de operaciones por ciclo de posicion.
-    let position = 0;
-    let current: {
-      symbol: string;
-      openedAt: number;
-      direction: 'LONG' | 'SHORT';
-      entryPrice: number;
-      /** Lo que suma Quantower. Se guarda, pero ya no es lo que manda. */
-      brokerPnl: number;
-      /** Flujo de caja acumulado del ciclo, en puntos x contrato. */
-      cash: number;
-      fills: number;
-      maxQuantity: number;
-      accountId: string | null;
-      firstFillId: string;
-    } | null = null;
+    // Un ciclo por cuenta Y simbolo. Antes habia una sola posicion global:
+    // con dos cuentas o dos simbolos abiertos a la vez, los fills se mezclaban
+    // y la "operacion" cerraba con precios de otro instrumento.
+    interface Ciclo {
+      position: number;
+      current: {
+        symbol: string;
+        openedAt: number;
+        direction: 'LONG' | 'SHORT';
+        entryPrice: number;
+        /** Lo que suma Quantower. Se guarda, pero ya no es lo que manda. */
+        brokerPnl: number;
+        /** Flujo de caja acumulado del ciclo, en puntos x contrato. */
+        cash: number;
+        fills: number;
+        maxQuantity: number;
+        accountId: string | null;
+        firstFillId: string;
+      } | null;
+    }
+    const ciclos = new Map<string, Ciclo>();
 
     for (const r of rows) {
       const qty = Number(r.quantity);
@@ -149,8 +154,17 @@ export function ingestQuantower(tradesDbPath: string): IngestResult {
       const signed = side === 0 ? qty : -qty;
       const ts = ticksToMs(BigInt(r.time));
 
-      if (position === 0) {
-        current = {
+      // La clave separa por cuenta y simbolo: dos posiciones abiertas a la vez
+      // son dos ciclos independientes, aunque sus fills lleguen intercalados.
+      const clave = `${r.account_id ?? ''}|${r.symbol_id}`;
+      let ciclo = ciclos.get(clave);
+      if (!ciclo) {
+        ciclo = { position: 0, current: null };
+        ciclos.set(clave, ciclo);
+      }
+
+      if (ciclo.position === 0) {
+        ciclo.current = {
           symbol: r.symbol_id,
           openedAt: ts,
           direction: side === 0 ? 'LONG' : 'SHORT',
@@ -166,15 +180,16 @@ export function ingestQuantower(tradesDbPath: string): IngestResult {
         };
       }
 
-      if (!current) continue;
+      if (!ciclo.current) continue;
+      const current = ciclo.current;
 
-      position += signed;
+      ciclo.position += signed;
       current.fills++;
-      current.maxQuantity = Math.max(current.maxQuantity, Math.abs(position));
+      current.maxQuantity = Math.max(current.maxQuantity, Math.abs(ciclo.position));
       current.cash += flujo(side, qty, Number(r.price));
       if (r.gross_pnl_value !== null) current.brokerPnl += Number(r.gross_pnl_value);
 
-      if (position === 0) {
+      if (ciclo.position === 0) {
         operations++;
         // Los precios mandan. El broker solo es el respaldo para un contrato
         // que no este en la tabla de instrumentos, donde no sabemos el valor
@@ -200,7 +215,7 @@ export function ingestQuantower(tradesDbPath: string): IngestResult {
           last_fill_id: String(r.trade_id),
         });
         if (info.changes > 0) operationsNew++;
-        current = null;
+        ciclo.current = null;
       }
     }
 

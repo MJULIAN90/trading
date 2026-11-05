@@ -22,6 +22,7 @@ process.env.JOURNAL_DB = join(mkdtempSync(join(tmpdir(), 'tj-res-')), 'prueba.db
 
 const { db } = await import('../src/db/index.js');
 const { num } = await import('../src/ingest/market.js');
+const { saveEarnings } = await import('../src/domain/global.js');
 const { agenda, momentoDe, setEarningsSettings, sorpresas, HORA_MEDIDA } = await import(
   '../src/domain/earnings.js'
 );
@@ -97,6 +98,12 @@ check('y GOOGL NO: por eso hacia falta medir', HORA_MEDIDA.GOOGL?.hhmm === '16:0
 // Reloj fijo: martes 27 oct 2026, 10:00 de Nueva York (14:00Z).
 const AHORA = Date.UTC(2026, 9, 27, 14, 0, 0);
 const dia = (n: number) => new Date(AHORA + n * 86_400_000).toISOString().slice(0, 10);
+
+const cuantas = (s: string) =>
+  (db().prepare('SELECT COUNT(*) n FROM global_earnings WHERE symbol = ?').get(s) as { n: number }).n;
+
+const fechaDe = (s: string) =>
+  (db().prepare('SELECT date FROM global_earnings WHERE symbol = ? ORDER BY date DESC LIMIT 1').get(s) as { date: string } | undefined)?.date;
 
 const meter = (symbol: string, fecha: string, when: string, est: number | null, real: number | null) =>
   db()
@@ -208,6 +215,45 @@ meter('HOYBMO', dia(0), 'bmo', 2.00, 2.20);
 const bmo = sorpresas(3, AHORA).find((x) => x.symbol === 'HOYBMO');
 check('lo que presenta HOY antes de abrir si sale a las 10:00', bmo !== undefined);
 check('y con su desvio bien', bmo?.desvioPct === 10 && bmo?.fallo === false, `${bmo?.desvioPct}%`);
+
+// --- 5b. la fecha que se mueve ----------------------------------------------
+//
+// NVDA tenia el 17 Y el 25 de noviembre a la vez, con la misma estimacion: el
+// proveedor movio la fecha, el upsert metio la nueva y la vieja se quedo. Como
+// la agenda ordena por cercania, el aviso habria saltado ocho dias antes de
+// tiempo para la empresa que mas pesa del indice.
+{
+  const hoy = dia(0);
+  const mañana = dia(1);
+  const dentro = dia(10);
+
+  saveEarnings([
+    { symbol: 'MUEVE', name: 'Mueve', date: mañana, when: 'amc', epsEstimate: 1, epsActual: null, revenueEstimate: null, revenueActual: null },
+  ], hoy);
+  check('entra la primera fecha', cuantas('MUEVE') === 1, `${cuantas('MUEVE')}`);
+
+  saveEarnings([
+    { symbol: 'MUEVE', name: 'Mueve', date: dentro, when: 'amc', epsEstimate: 1, epsActual: null, revenueEstimate: null, revenueActual: null },
+  ], hoy);
+  check('al mover la fecha NO quedan dos', cuantas('MUEVE') === 1, `${cuantas('MUEVE')} filas`);
+  check('y la que queda es la nueva', fechaDe('MUEVE') === dentro, fechaDe('MUEVE'));
+
+  // Lo PASADO no se toca: lleva lo presentado, que no se puede volver a pedir.
+  saveEarnings([
+    { symbol: 'PASADO', name: 'Pasado', date: dia(-2), when: 'amc', epsEstimate: 1, epsActual: 1.1, revenueEstimate: null, revenueActual: 900 },
+  ], hoy);
+  saveEarnings([
+    { symbol: 'PASADO', name: 'Pasado', date: dentro, when: 'amc', epsEstimate: 2, epsActual: null, revenueEstimate: null, revenueActual: null },
+  ], hoy);
+  check('la fila ya presentada sobrevive', cuantas('PASADO') === 2, `${cuantas('PASADO')} filas`);
+
+  // Un simbolo que no contesta no se toca. Si una peticion falla y vuelve
+  // vacia, borrar su futuro dejaria sin aviso a quien presenta maniana.
+  saveEarnings([
+    { symbol: 'OTRO', name: 'Otro', date: mañana, when: 'amc', epsEstimate: 3, epsActual: null, revenueEstimate: null, revenueActual: null },
+  ], hoy);
+  check('un simbolo ajeno a la tanda no pierde su fecha', cuantas('OTRO') === 1);
+}
 
 // --- 6. la raiz: Number(null) es 0 -------------------------------------------
 //

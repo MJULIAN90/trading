@@ -1,6 +1,6 @@
 import { readdirSync, statSync } from 'node:fs';
 import { join } from 'node:path';
-import { CONTEXT_DIR, findQuantowerTradesDb } from '../config.js';
+import { CONTEXT_DIR, findQuantowerTradesDbs } from '../config.js';
 import { ingestContextLog } from './context.js';
 import { ingestQuantower } from './quantower.js';
 
@@ -21,8 +21,8 @@ export interface AutoIngestOptions {
 export function startAutoIngest(opts: AutoIngestOptions = {}): () => void {
   const intervalMs = opts.intervalMs ?? 15_000;
 
-  let lastTradesMtime = 0;
   let lastContextMtime = 0;
+  const lastTradesMtime = new Map<string, number>();
   let running = false;
 
   /**
@@ -69,8 +69,7 @@ export function startAutoIngest(opts: AutoIngestOptions = {}): () => void {
     running = true;
 
     try {
-      const tradesDb = findQuantowerTradesDb();
-      const tradesMtime = mtimeOf(tradesDb);
+      const tradesDbs = findQuantowerTradesDbs();
       // La carpeta cambia de mtime cuando se crea el fichero del dia, pero no
       // cuando se anaden lineas al que ya existe: hay que mirar los ficheros.
       const contextMtime = newestContextMtime();
@@ -78,9 +77,17 @@ export function startAutoIngest(opts: AutoIngestOptions = {}): () => void {
       let operationsNew = 0;
       let contextNew = 0;
 
-      if (tradesDb && (force || tradesMtime !== lastTradesMtime)) {
-        lastTradesMtime = tradesMtime;
-        operationsNew = ingestQuantower(tradesDb).operationsNew;
+      for (const tradesDb of tradesDbs) {
+        const tradesMtime = mtimeOf(tradesDb);
+        if (!force && lastTradesMtime.get(tradesDb) === tradesMtime) continue;
+        lastTradesMtime.set(tradesDb, tradesMtime);
+        operationsNew += ingestQuantower(tradesDb).operationsNew;
+      }
+
+      // Si una carpeta desaparece, no hay que seguir recordando su mtime: al
+      // volver a aparecer tiene que ingerirse como una base nueva.
+      for (const conocida of [...lastTradesMtime.keys()]) {
+        if (!tradesDbs.includes(conocida)) lastTradesMtime.delete(conocida);
       }
 
       if (force || contextMtime !== lastContextMtime) {

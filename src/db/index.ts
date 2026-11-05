@@ -295,6 +295,62 @@ function migrate(target: Database.Database): void {
       PRIMARY KEY (symbol, day)
     )
   `);
+
+  // LIMPIEZA DE UNA SOLA VEZ: las jornadas que nos inventamos nosotros.
+  //
+  // Hasta el 3 de noviembre de 2026, el cierre diario de las series de Alpha
+  // Vantage -petroleo y bonos- se guardaba con la fecha del RELOJ y no con la
+  // de la serie. Esas series se publican con retraso, asi que cada refresco
+  // sin dato nuevo volvia a escribir el mismo numero en un dia nuevo. El WTI
+  // acabo con el mismo 103,37 como cierre del 28, 30, 31, 1, 2 y 3: seis
+  // jornadas que nunca ocurrieron.
+  //
+  // Lo que eso rompia: la variacion del dia comparaba el numero consigo mismo
+  // y salia 0,00 % —un cero que significa "no lo sabemos" pintado igual que
+  // uno que significa "no se ha movido"— y el contador decia "9 jornadas" de
+  // historico, que sonaba a que habia datos.
+  //
+  // Se colapsa cada racha de dias CONSECUTIVOS CON EL MISMO VALOR a su primer
+  // dia, que es el unico en el que de verdad supimos ese numero. Solo para los
+  // cinco simbolos de Alpha: las acciones vienen de Finnhub con su propia
+  // marca de tiempo y su cierre diario si es de ese dia.
+  //
+  // Una sola vez y marcado en `meta`: a partir de ahora `saveDailyClose`
+  // guarda cada valor en SU dia, asi que no se vuelve a fabricar nada. Dejarlo
+  // permanente ademas borraria los dias en los que un bono de verdad no se
+  // movio, que son dato.
+  const marcaLimpieza = target
+    .prepare("SELECT value FROM meta WHERE key = 'limpieza_cierres_fabricados'")
+    .get() as { value: string } | undefined;
+
+  if (marcaLimpieza === undefined) {
+    const simbolos = ['WTI', 'BRENT', 'US5Y', 'US10Y', 'US30Y'];
+    let borradas = 0;
+
+    for (const s of simbolos) {
+      const filas = target
+        .prepare('SELECT day, close FROM global_daily_close WHERE symbol = ? ORDER BY day')
+        .all(s) as Array<{ day: string; close: number }>;
+
+      const fuera: string[] = [];
+      for (let i = 1; i < filas.length; i++) {
+        if (filas[i]!.close === filas[i - 1]!.close) fuera.push(filas[i]!.day);
+      }
+
+      for (const day of fuera) {
+        target.prepare('DELETE FROM global_daily_close WHERE symbol = ? AND day = ?').run(s, day);
+        borradas++;
+      }
+    }
+
+    target
+      .prepare("INSERT INTO meta (key, value) VALUES ('limpieza_cierres_fabricados', ?)")
+      .run(String(borradas));
+    if (borradas > 0) {
+      console.log(`[cierres] ${borradas} jornadas fabricadas retiradas de global_daily_close`);
+    }
+  }
+
 }
 
 /** Abre la base de Quantower en solo lectura. Nunca escribimos ahi. */

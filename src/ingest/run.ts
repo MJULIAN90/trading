@@ -1,4 +1,4 @@
-import { CONTEXT_DIR, JOURNAL_DB, findQuantowerTradesDb } from '../config.js';
+import { CONTEXT_DIR, JOURNAL_DB, findQuantowerTradesDbs } from '../config.js';
 import { refreshBars } from '../domain/bars.js';
 import { ingestCalendar } from './calendar.js';
 import { ingestContextLog } from './context.js';
@@ -17,16 +17,18 @@ async function main() {
   // Las dos fuentes son independientes: que falte una no es motivo para
   // saltarse la otra. El contexto se graba aunque Quantower no este instalado
   // en esta maquina, por ejemplo al analizar datos copiados de otro sitio.
-  const tradesDb = findQuantowerTradesDb();
-  if (tradesDb) {
-    console.log(`operaciones de Quantower: ${tradesDb}`);
-    const trades = ingestQuantower(tradesDb);
-    console.log(
-      `  fills: ${trades.fillsRead} leidos, ${trades.fillsNew} nuevos   |   ` +
-        `operaciones: ${trades.operations} reconstruidas, ${trades.operationsNew} nuevas`,
-    );
-    if (trades.repriced > 0) {
-      console.log(`  PnL recalculado desde los precios en ${trades.repriced} operaciones`);
+  const tradesDbs = findQuantowerTradesDbs();
+  if (tradesDbs.length > 0) {
+    for (const tradesDb of tradesDbs) {
+      console.log(`operaciones de Quantower: ${tradesDb}`);
+      const trades = ingestQuantower(tradesDb);
+      console.log(
+        `  fills: ${trades.fillsRead} leidos, ${trades.fillsNew} nuevos   |   ` +
+          `operaciones: ${trades.operations} reconstruidas, ${trades.operationsNew} nuevas`,
+      );
+      if (trades.repriced > 0) {
+        console.log(`  PnL recalculado desde los precios en ${trades.repriced} operaciones`);
+      }
     }
   } else {
     console.log('operaciones de Quantower: no se encontro user-trades.db');
