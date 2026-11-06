@@ -28,7 +28,7 @@
  *   npx tsx scripts/prueba-ingesta-calendario.ts
  */
 
-import { mkdtempSync, rmSync, writeFileSync, mkdirSync } from 'node:fs';
+import { existsSync, mkdtempSync, rmSync, writeFileSync, mkdirSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 
@@ -39,6 +39,13 @@ console.log(`base temporal: ${ruta}`);
 
 const carpeta = join(dir, 'calendario');
 mkdirSync(carpeta, { recursive: true });
+
+// Windows y macOS (por defecto) no distinguen mayusculas. Hay que saberlo para
+// no pedirle al sistema dos ficheros que en realidad son el mismo.
+const sonda = join(carpeta, 'sonda-caso.tmp');
+writeFileSync(sonda, 'x');
+const ignoraMayusculas = existsSync(join(carpeta, 'SONDA-CASO.TMP'));
+rmSync(sonda);
 
 const { db } = await import('../src/db/index.js');
 const { ingestCalendar } = await import('../src/ingest/calendar.js');
@@ -91,7 +98,7 @@ for (const nombre of ['Plantilla.CSV', 'ejemplo.csv', 'TEMPLATE.ics', 'sample.cs
 const r1b = ingestCalendar(carpeta);
 comprobar(
   'da igual mayusculas, idioma y extension',
-  r1b.plantillas.length === 6,
+  r1b.plantillas.length === (ignoraMayusculas ? 5 : 6),
   r1b.plantillas.sort().join(', '),
 );
 comprobar('y la base sigue con los dos buenos', cuantos() === 2, `${cuantos()} eventos`);
@@ -99,6 +106,10 @@ comprobar('y la base sigue con los dos buenos', cuantos() === 2, `${cuantos()} e
 for (const nombre of ['Plantilla.CSV', 'ejemplo.csv', 'TEMPLATE.ics', 'sample.csv', 'leeme.csv']) {
   rmSync(join(carpeta, nombre));
 }
+
+// Al borrar `Plantilla.CSV` en un sistema que ignora mayusculas tambien se va
+// `plantilla.csv`. El bloque 2 necesita una plantilla de verdad en la carpeta.
+if (ignoraMayusculas) escribir('plantilla.csv', CSV_CON_SABADO);
 
 console.log('\n--- 2. lo que las plantillas metieron ANTES se borra ---\n');
 
@@ -228,5 +239,8 @@ comprobar('pero dice que vio la plantilla', r6.plantillas.includes('plantilla.cs
 
 console.log('');
 console.log(`${ok} OK, ${fallos} fallos`);
+// En Windows SQLite mantiene el fichero abierto y rmSync da EPERM hasta que
+// se cierra la conexion. Cerrar aqui no cambia ninguna comprobacion.
+db().close();
 rmSync(dir, { recursive: true, force: true });
 if (fallos > 0) process.exit(1);

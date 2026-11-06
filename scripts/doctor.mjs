@@ -145,8 +145,13 @@ const cacheRoot = join(qwRoot, 'UserTradesCache');
 const found = [];
 
 if (explicitDb) {
-  if (existsSync(explicitDb)) say(OK, `user-trades.db fijado a mano: ${explicitDb}`);
-  else say(FAIL, `QUANTOWER_TRADES_DB apunta a algo que no existe: ${explicitDb}`);
+  const rutas = explicitDb.split(';').map((p) => p.trim()).filter(Boolean);
+  const validas = rutas.filter((p) => existsSync(p));
+  if (validas.length === rutas.length && validas.length > 0) {
+    say(OK, `user-trades.db fijado a mano (${validas.length})`, validas.join('\n'));
+  } else {
+    say(FAIL, 'QUANTOWER_TRADES_DB apunta a algo que no existe', rutas.join('\n'));
+  }
 } else if (existsSync(cacheRoot)) {
   for (const d of readdirSync(cacheRoot, { withFileTypes: true })) {
     if (!d.isDirectory()) continue;
@@ -157,14 +162,13 @@ if (explicitDb) {
   if (found.length === 1) {
     say(OK, 'Una cuenta encontrada', `${found[0]}  (${mb(statSync(found[0]).size)})`);
   } else if (found.length > 1) {
-    // Importante: el buscador automatico se queda con la PRIMERA. Con varias
-    // cuentas, elegir por orden alfabetico de una carpeta con nombre generado
-    // es elegir al azar.
+    // Desde la ingesta multi-cuenta se leen TODAS, no la primera. El aviso
+    // antiguo decia lo contrario y hacia pensar que faltaba configurar algo.
     say(
-      WARN,
-      `Hay ${found.length} cuentas y el diario coge la primera`,
+      OK,
+      `Hay ${found.length} cuentas y el diario las ingiere todas`,
       found.map((f) => `  ${f}`).join('\n') +
-        '\nFija cual quieres en .env:  QUANTOWER_TRADES_DB=<ruta completa>',
+        '\nPara limitar la ingesta, en .env:  QUANTOWER_TRADES_DB=<ruta1>;<ruta2>',
     );
   } else {
     say(

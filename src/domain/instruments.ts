@@ -39,9 +39,14 @@ const TABLE: Record<string, Instrument> = {
  * El vencimiento son siempre una letra de mes mas dos digitos de ano.
  */
 export function instrumentRoot(symbol: string): string {
-  const parts = symbol.split('.');
-  const short = (parts[parts.length - 1] ?? symbol).trim().toUpperCase();
-  return short.replace(/[FGHJKMNQUVXZ]\d{1,2}$/, '') || short;
+  // Quantower no siempre usa el mismo nombre. La cuenta de AMP llega como
+  // `F.US.MNQZ26`; la de MyFundedFutures, como `/MNQZ26:XCME`. Si no se quita
+  // el sufijo de exchange, el root sale `/MNQZ26:XCME` y no coincide con
+  // ninguna especificacion: ticks, valor del punto y PnL se quedan a null.
+  const withoutExchange = symbol.split(':')[0] ?? symbol;
+  const parts = withoutExchange.split('.');
+  const short = (parts[parts.length - 1] ?? withoutExchange).trim().toUpperCase();
+  return short.replace(/^\/+/, '').replace(/[FGHJKMNQUVXZ]\d{1,2}$/, '') || short;
 }
 
 /**

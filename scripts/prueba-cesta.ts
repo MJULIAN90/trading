@@ -201,5 +201,8 @@ comprobar('un marco de cero minutos no revienta', cesta(T0, T0 + MIN, 0).length 
 
 console.log('');
 console.log(`${ok} OK, ${fallos} fallos`);
+// En Windows SQLite mantiene el fichero abierto y rmSync da EPERM hasta que
+// se cierra la conexion.
+db().close();
 rmSync(dir, { recursive: true, force: true });
 if (fallos > 0) process.exit(1);

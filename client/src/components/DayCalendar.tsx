@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { num, signedUsd } from '../format';
+import { signedUsd } from '../format';
 import { celdasDelMes, COLUMNAS, weekdayMondayFirst } from '../calendario';
 
 /**
@@ -138,7 +138,7 @@ export function DayCalendar({
             className={monthTotal > 0 ? 'pos' : monthTotal < 0 ? 'neg' : ''}
             title={`Resultado ${basis === 'net' ? 'neto, con las comisiones ya descontadas' : 'bruto, antes de comisiones'} del mes`}
           >
-            <i>{basis === 'net' ? 'neto' : 'bruto'}</i> {signedUsd(monthTotal, 0)} <span className="note">USD</span>
+            <i>{basis === 'net' ? 'neto' : 'bruto'}</i> {signedUsd(monthTotal)} <span className="note">USD</span>
           </b>
         </span>
         <button
@@ -178,7 +178,7 @@ export function DayCalendar({
               onClick={() => onToggle(date)}
             >
               <span className="n">{c.day}</span>
-              <span className="v">{signedUsd(stat.pnl, 0)}</span>
+              <span className="v">{signedUsd(stat.pnl)}</span>
             </button>
           );
         })}
@@ -188,7 +188,7 @@ export function DayCalendar({
         <div className="cal-aviso">
           Hay {finDeSemana.length} jornada{finDeSemana.length === 1 ? '' : 's'} en fin de semana, que
           con el corte de las 18:00 no deberia existir:{' '}
-          {finDeSemana.map((d) => `${d.date} (${signedUsd(d.pnl, 0)})`).join(' · ')}
+          {finDeSemana.map((d) => `${d.date} (${signedUsd(d.pnl)})`).join(' · ')}
         </div>
       )}
 

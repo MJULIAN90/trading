@@ -22,6 +22,11 @@ function ayerAlpha(): string {
   return `${d.getUTCFullYear()}${p(d.getUTCMonth() + 1)}${p(d.getUTCDate())}T143000`;
 }
 
+/** Una fecha YYYY-MM-DD a `dias` de hoy. Relativa para que la prueba no caduque. */
+function diaRelativo(dias: number): string {
+  return new Date(Date.now() + dias * 86_400_000).toISOString().slice(0, 10);
+}
+
 /** El instante que deberia salir de `ayerAlpha()` una vez pasado a UTC. */
 function esperadoAyer(): number {
   const s = ayerAlpha();
@@ -110,8 +115,10 @@ globalThis.fetch = (async (url: string) => {
     // Ahora se pregunta por simbolo. El falso contesta como el de verdad:
     // solo la empresa que le piden.
     const s = /symbol=([A-Z]+)/.exec(u)?.[1] ?? '';
+    // Relativas a hoy, como las noticias: con fechas fijas la prueba se pone
+    // en rojo sola cuando pasa la ventana de siete dias.
     const fechas: Record<string, string> = {
-      NVDA: '2026-11-18', AAPL: '2026-10-29', MSFT: '2026-10-28', AMZN: '2026-10-30',
+      NVDA: diaRelativo(13), AAPL: diaRelativo(-1), MSFT: diaRelativo(-2), AMZN: diaRelativo(0),
     };
     const f = fechas[s];
     return ok({ earningsCalendar: f ? [{ symbol: s, date: f, hour: 'amc', epsEstimate: 1.4 }] : [] });

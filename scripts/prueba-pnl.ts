@@ -148,6 +148,19 @@ function pnlDe(primero: string): number {
   check('contrato desconocido: se respeta el PnL del broker', pnlDe(a) === 777, `${pnlDe(a)} USD`);
 }
 
+// --- 6b. simbolo con sufijo de exchange --------------------------------------
+// La cuenta de MyFundedFutures nombra el contrato `/MNQZ26:XCME`, no
+// `F.US.MNQZ26`. Antes el root se quedaba con el sufijo y el contrato parecia
+// desconocido: se usaba el PnL del broker y los ticks salian a null. Comprar 1
+// a 100 y vender 1 a 110 son 10 puntos x 2 $ = 20 $.
+{
+  const a = fill('/MNQZ26:XCME', COMPRA, 1, 100, null);
+  const b = fill('/MNQZ26:XCME', VENTA, 1, 110, 0);
+  operacion(a, b, '/MNQZ26:XCME', 0);
+  recomputarPnl();
+  check('simbolo con sufijo de exchange', pnlDe(a) === 20, `${pnlDe(a)} USD`);
+}
+
 // --- 7. idempotencia ---------------------------------------------------------
 // Corre en cada pasada de la ingesta, cada quince segundos. Si la segunda vez
 // volviera a escribir, el WAL crecería sin parar por nada.
@@ -160,8 +173,8 @@ function pnlDe(primero: string): number {
 // --- 8. el total cuadra ------------------------------------------------------
 {
   const t = d.prepare('SELECT ROUND(SUM(gross_pnl),2) s FROM operations').get() as { s: number };
-  // 40 + 20 + 32 - 120 + 60 + 777
-  check('el total de la base es la suma de los casos', t.s === 809, `${t.s} USD`);
+  // 40 + 20 + 32 - 120 + 60 + 777 + 20
+  check('el total de la base es la suma de los casos', t.s === 829, `${t.s} USD`);
 }
 
 console.log('\nbase temporal:', process.env.JOURNAL_DB);

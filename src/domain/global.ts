@@ -8,6 +8,7 @@ import {
 import { db } from '../db/index.js';
 import { getEarningsSettings, horasMedidas, momentoDe, type HoraMedida } from './earnings.js';
 import { marketOffsetAt } from './clock.js';
+import { calendarDate } from './sessions.js';
 import { clasificar, type Topic } from './news-topic.js';
 
 /**
@@ -328,7 +329,7 @@ function ultimaJornada(symbol: string): string | null {
  *   - La fecha de corte se pasa como argumento y no se saca de `date('now')`,
  *     para que la prueba pueda situarse en un dia concreto.
  */
-export function saveEarnings(rows: Earning[], hoy = new Date().toISOString().slice(0, 10)): void {
+export function saveEarnings(rows: Earning[], hoy = calendarDate(Date.now())): void {
   if (rows.length === 0) return;
 
   const stmt = db().prepare(
@@ -628,12 +629,18 @@ function metaValue(key: string): string | null {
   return row?.value ?? null;
 }
 
-/** Dias desde hoy hasta la fecha, en jornadas de calendario. Negativo = ya paso. */
-function daysTo(date: string): number {
-  const hoy = new Date();
-  const base = Date.UTC(hoy.getUTCFullYear(), hoy.getUTCMonth(), hoy.getUTCDate());
+/**
+ * Dias desde hoy hasta la fecha, en jornadas de calendario. Negativo = ya paso.
+ *
+ * La base es la fecha de Nueva York, no la de UTC. A partir de las 20:00 de
+ * Nueva York el reloj UTC ya esta en el dia siguiente, y con `date('now')` una
+ * presentacion de HOY se contaba como manana: la alarma decia "presenta
+ * manana" justo cuando estaba a punto de publicar.
+ */
+function daysTo(date: string, hoy = calendarDate(Date.now())): number {
+  const base = Date.parse(hoy + 'T00:00:00Z');
   const [y, m, d] = date.split('-').map(Number);
-  if (!y || !m || !d) return 0;
+  if (!y || !m || !d || !Number.isFinite(base)) return 0;
   return Math.round((Date.UTC(y, m - 1, d) - base) / 86_400_000);
 }
 
@@ -664,6 +671,7 @@ export function globalReport(newsLimit = NEWS_MAX): GlobalReport {
   // ayer se explica con lo que presentaron anteanoche.
   const ajustesHora = getEarningsSettings();
   const horas = horasMedidas();
+  const hoy = calendarDate(Date.now());
 
   const earnings = (
     db()
@@ -675,10 +683,14 @@ export function globalReport(newsLimit = NEWS_MAX): GlobalReport {
           -- Hasta 90 dias: los resultados son trimestrales, asi que con una
           -- ventana de 30 la columna "Prox. resultados" sale vacia la mayor
           -- parte del trimestre y parece que el dato no se trae.
-          WHERE date >= date('now', '-7 day') AND date <= date('now', '+90 day')
+          --
+          -- La fecha de corte es la de Nueva York, no date('now') (UTC). Si
+          -- no, a partir de las 20:00 de Nueva York el UTC ya es manana y una
+          -- presentacion de hace siete dias se cae de la ventana un dia antes.
+          WHERE date >= date(?, '-7 day') AND date <= date(?, '+90 day')
           ORDER BY date`,
       )
-      .all() as Earning[]
+      .all(hoy, hoy) as Earning[]
   ).map((e) => {
     // La misma hora de CONVENCION que usa la franja de arriba, calculada en el
     // mismo sitio. Si cada pantalla se la inventara por su cuenta, la tabla y
@@ -687,7 +699,7 @@ export function globalReport(newsLimit = NEWS_MAX): GlobalReport {
     const ny = at === null ? null : new Date(at + marketOffsetAt(at) * 3_600_000);
     return {
       ...e,
-      daysTo: daysTo(e.date),
+      daysTo: daysTo(e.date, hoy),
       at,
       medido: (e.when ?? '').toLowerCase().includes('bmo') ? null : (horas[e.symbol] ?? null),
       hhmm:
