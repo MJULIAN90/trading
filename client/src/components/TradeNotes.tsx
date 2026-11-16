@@ -54,6 +54,13 @@ export function TradeNotes({
   const [data, setData] = useState<OperationNote | null>(null);
   const [note, setNote] = useState('');
   const [tags, setTags] = useState<string[]>([]);
+  // Las que puso una regla. Se pintan distinto y no se pueden quitar desde aqui.
+  const [derivadas, setDerivadas] = useState<string[]>([]);
+  const [calculando, setCalculando] = useState(false);
+  const [avisoAuto, setAvisoAuto] = useState<string | null>(null);
+  // Por que lleva cada derivada, para poder ensenarlo al pasar por encima.
+  const [porQue, setPorQue] = useState<Record<string, { porque: string; vigente: boolean }>>({});
+  const [explicando, setExplicando] = useState<string | null>(null);
   const [draft, setDraft] = useState('');
   const [saved, setSaved] = useState(false);
   // Etiquetas que existen en alguna operacion aunque no esten en ajustes.
@@ -67,6 +74,8 @@ export function TradeNotes({
       setData(d);
       setNote(d.note);
       setTags(d.tags);
+      setDerivadas(d.derivadas ?? []);
+      setPorQue(Object.fromEntries((d.porQue ?? []).map((x) => [x.tag, x])));
     });
     return () => { cancelled = true; };
   }, [operationId]);
@@ -150,6 +159,44 @@ export function TradeNotes({
    * de una operacion la borrara del catalogo, la proxima vez se escribiria
    * parecido pero distinto y las dos tendrian la mitad de los casos.
    */
+  /**
+   * Recalcula las etiquetas automaticas de ESTA operacion.
+   *
+   * Hace lo mismo que el boton de Ajustes pero sobre una fila, y eso es lo que
+   * lo hace util: al revisar una operacion se ve en el momento lo que las
+   * reglas le ponen, que es la unica forma de saber si una regla dice lo que
+   * crees que dice. El de Ajustes hay que ir a buscarlo y devuelve un total.
+   */
+  async function calcularEstaOperacion() {
+    setCalculando(true);
+    setAvisoAuto(null);
+
+    try {
+      const r = await api.calcularAutotagsDe(operationId);
+
+      // Las etiquetas se toman de la nota que devuelve el servidor, no de un
+      // apano local: asi lo que se pinta es lo que quedo guardado.
+      setTags(r.nota.tags);
+      setDerivadas(r.nota.derivadas ?? []);
+      setPorQue(Object.fromEntries((r.nota.porQue ?? []).map((x) => [x.tag, x])));
+      setData(r.nota);
+
+      const partes: string[] = [];
+      if (r.puestas.length > 0) partes.push(`puestas: ${r.puestas.join(', ')}`);
+      if (r.quitadas.length > 0) partes.push(`retiradas: ${r.quitadas.join(', ')}`);
+
+      setAvisoAuto(
+        partes.length > 0
+          ? partes.join(' · ')
+          : `ninguna de las ${r.reglas} reglas encaja con esta operacion`,
+      );
+    } catch {
+      setAvisoAuto('no se pudo calcular');
+    } finally {
+      setCalculando(false);
+    }
+  }
+
   function removeTag(tag: string) {
     const next = tags.filter((t) => t !== tag);
     setTags(next);
@@ -162,20 +209,65 @@ export function TradeNotes({
     <div className="notes">
       {/* Las puestas, juntas arriba y en el mismo orden de siempre. */}
       <div className="notes-tags">
-        {sortByPolarity(tags, prefs.tagPolarity).map((t) => (
-          <button
-            key={t}
-            className={`tag on ${
-              tagClass(t, prefs.tagPolarity, prefs.tagKind)
-            }`}
-            onClick={() => removeTag(t)}
-            title="Quitar de ESTA operacion. La categoria no se borra: vuelve abajo para reutilizarla."
-          >
-            {t} ×
-          </button>
-        ))}
+        {sortByPolarity(tags, prefs.tagPolarity).map((t) => {
+          // Una derivada no se quita desde aqui: la puso una regla y el
+          // siguiente "Calcular" la volveria a poner. Se pinta sin ✕ y sin
+          // onClick en vez de con una ✕ que no hace nada, que seria peor.
+          const derivada = derivadas.includes(t);
+
+          return (
+            <button
+              key={t}
+              className={`tag on ${tagClass(t, prefs.tagPolarity, prefs.tagKind)}${
+                derivada ? ' derivada' : ''
+              }`}
+              onClick={derivada ? undefined : () => removeTag(t)}
+              // El globo nativo del navegador tarda casi un segundo en salir y
+              // no se puede estilar; en una derivada, ademas, el raton pasa por
+              // encima y sigue, porque no hay nada que pulsar. La explicacion
+              // se ensena abajo, en el sitio fijo que ya usa el aviso del
+              // calculo, y aparece al instante.
+              onMouseEnter={derivada ? () => setExplicando(t) : undefined}
+              onMouseLeave={derivada ? () => setExplicando(null) : undefined}
+              title={
+                derivada
+                  ? undefined
+                  : 'Quitar de ESTA operacion. La categoria no se borra: vuelve abajo para reutilizarla.'
+              }
+            >
+              {derivada ? `⚙ ${t}` : `${t} ×`}
+            </button>
+          );
+        })}
         {tags.length === 0 && <span className="note">sin etiquetas todavia</span>}
+
+        {/* Va con los chips y no abajo del todo: lo que hace es ANADIR chips a
+            esa misma fila, y un boton lejos de lo que cambia obliga a buscar
+            con la vista que se movio. */}
+        <button
+          className="calcular-una"
+          onClick={calcularEstaOperacion}
+          disabled={calculando}
+          title="Aplica a ESTA operacion las reglas de Ajustes. Las que pusiste tu no se tocan."
+        >
+          {calculando ? '...' : '⚙ calcular'}
+        </button>
       </div>
+
+      {/* Un solo sitio para las dos cosas: al pasar por encima de una derivada,
+          por que la lleva; despues de calcular, que cambio. Si cada una tuviera
+          su hueco, la fila de etiquetas saltaria de sitio al mover el raton. */}
+      {(explicando || avisoAuto) && (
+        <div
+          className={`note auto-por-que${
+            explicando && porQue[explicando]?.vigente === false ? ' caduca' : ''
+          }`}
+        >
+          {explicando
+            ? `${explicando} — ${porQue[explicando]?.porque ?? 'la puso una regla'}`
+            : avisoAuto}
+        </div>
+      )}
 
       {/* EL CUADRO DE TEXTO VA AQUI ARRIBA, NO AL FINAL.
           Es lo que se escribe mirando la vela, asi que tiene que caber en la
@@ -202,6 +294,8 @@ export function TradeNotes({
         La <b>×</b> de arriba quita la etiqueta de esta operacion; la categoria sigue en la
         lista de abajo. Las categorias solo se borran o se renombran desde Ajustes, y ahi
         tambien se marca cual es buena y cual es mala.
+        {' '}Las que llevan <b>⚙</b> las puso una regla sola y no se quitan a mano: se
+        cambia la regla en Ajustes y se vuelve a pulsar «Calcular».
       </div>
 
       {/* El catalogo, en tres bloques. Buenas arriba y malas abajo porque al

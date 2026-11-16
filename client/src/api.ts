@@ -380,6 +380,8 @@ export interface ChartPrefs {
   showSessions: boolean;
   /** Con que reloj se pintan las horas. Solo presentacion. */
   clock: 'local' | 'mercado';
+  /** Con que base arranca el selector de arriba. Solo el arranque: el selector sigue. */
+  basePorDefecto: 'net' | 'gross';
   /** Cuentas que cuentan para las metricas. Vacia = todas. */
   metricAccounts: string[];
 }
@@ -499,8 +501,102 @@ export interface Replay {
 export interface OperationNote {
   operationId: number;
   note: string;
+  /** Todas las de la operacion, manuales y derivadas. */
   tags: string[];
+  /**
+   * Las que puso una regla. Subconjunto de `tags`.
+   *
+   * La pantalla las pinta SIN la ✕: una derivada no se quita a mano, se quita
+   * cambiando la regla. Una ✕ que no hace nada es peor que no tener ✕.
+   */
+  derivadas: string[];
+  /** Por que lleva cada derivada. Se calcula al leer, con las reglas de AHORA. */
+  porQue?: Array<{ tag: string; porque: string; cuando: Cuando; vigente: boolean }>;
   updatedAt: number | null;
+}
+
+// --- Yahoo Finance: la segunda fuente ---------------------------------------
+
+export interface FilaYahoo {
+  symbol: string;
+  que: string;
+  /** Mismo vocabulario que News, para que las dos pantallas se lean igual. */
+  grupo: 'materia' | 'bono' | 'indice' | 'accion';
+  /** Un ETF contra un futuro del mismo subyacente NO son comparables. */
+  proxy: boolean;
+  /** Peso en el QQQ, en %. Foto a mano, no dato del proveedor. Null si no hay. */
+  peso: number | null;
+  yahoo: {
+    price: number | null;
+    prevClose: number | null;
+    cambioPct: number | null;
+    currency: string;
+    exchange: string;
+    edadMin: number | null;
+    pedidoHaceMin: number | null;
+  } | null;
+  propio: { symbol: string; price: number | null; cambioPct: number | null; edadMin: number | null } | null;
+  difPct: number | null;
+}
+
+export interface VistaYahoo {
+  filas: FilaYahoo[];
+  ultimo: number | null;
+  refrescoMin: number;
+  discrepan: number;
+  /** De cuando es la foto de pesos. Null = no se sabe. */
+  pesosFecha: string | null;
+}
+
+export interface ParteYahoo {
+  pedidos: number;
+  guardados: number;
+  fallos: Array<{ symbol: string; error: string }>;
+  ms: number;
+  vista: VistaYahoo;
+}
+
+// --- Etiquetas que se ponen solas -------------------------------------------
+
+/** Si el campo se conocia ANTES de entrar o solo DESPUES de cerrar. */
+export type Cuando = 'decision' | 'resultado';
+
+export interface CampoSpec {
+  campo: string;
+  etiqueta: string;
+  cuando: Cuando;
+  unidad: string;
+}
+
+export interface Condicion {
+  campo: string;
+  operador: string;
+  valor: number;
+  valor2?: number;
+}
+
+export interface ReglaEtiqueta {
+  id: number;
+  tag: string;
+  condiciones: Condicion[];
+  activa: boolean;
+  cuando: Cuando;
+}
+
+export interface ResultadoUna {
+  operationId: number;
+  reglas: number;
+  puestas: string[];
+  quitadas: string[];
+  nota: OperationNote;
+}
+
+export interface ResultadoCalculo {
+  reglas: number;
+  operaciones: number;
+  puestas: number;
+  quitadas: number;
+  porEtiqueta: Array<{ tag: string; n: number; cuando: Cuando }>;
 }
 
 export interface TagImpact {
@@ -633,6 +729,53 @@ export const api = {
   },
 
   tags: () => get<{ impact: TagImpact[]; all: string[] }>('/api/tags'),
+
+  yahoo: () => get<VistaYahoo>('/api/yahoo'),
+
+  /** Pide a Yahoo y devuelve la vista YA recalculada, para no pintar lo de antes. */
+  refrescarYahoo: async () => {
+    const res = await fetch('/api/yahoo/refrescar', { method: 'POST' });
+    if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+    return (await res.json()) as ParteYahoo;
+  },
+
+  autotags: () =>
+    get<{ reglas: ReglaEtiqueta[]; campos: CampoSpec[]; operadores: string[] }>('/api/autotags'),
+
+  saveAutotag: async (regla: { id?: number; tag: string; condiciones: Condicion[]; activa?: boolean }) => {
+    const res = await fetch('/api/autotags', {
+      method: 'POST',
+      headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(regla),
+    });
+    if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+    return (await res.json()) as { regla: ReglaEtiqueta; reglas: ReglaEtiqueta[] };
+  },
+
+  deleteAutotag: async (id: number) => {
+    const res = await fetch(`/api/autotags/${id}`, { method: 'DELETE' });
+    if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+    return (await res.json()) as { tag: string; etiquetasQuitadas: number; reglas: ReglaEtiqueta[] };
+  },
+
+  /**
+   * "Calcular" de UNA operacion, para pulsarlo mientras se revisa.
+   *
+   * Devuelve la nota ya actualizada para que la pantalla no tenga que volver a
+   * pedirla: entre las dos peticiones habria un instante pintando lo de antes.
+   */
+  calcularAutotagsDe: async (id: number) => {
+    const res = await fetch(`/api/operations/${id}/autotags`, { method: 'POST' });
+    if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+    return (await res.json()) as ResultadoUna;
+  },
+
+  /** El boton "Calcular". Recalcula TODAS las derivadas; las manuales no se tocan. */
+  calcularAutotags: async () => {
+    const res = await fetch('/api/autotags/calcular', { method: 'POST' });
+    if (!res.ok) throw new Error(`${res.status} ${res.statusText}`);
+    return (await res.json()) as ResultadoCalculo;
+  },
 
   /**
    * Renombra una etiqueta. Toca las operaciones Y la lista de sugerencias.

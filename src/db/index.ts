@@ -1,4 +1,5 @@
 import Database from 'better-sqlite3';
+import { REGLAS_DE_ARRANQUE } from '../domain/autotagsSeed.js';
 import { mkdirSync, readFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -351,6 +352,86 @@ function migrate(target: Database.Database): void {
     }
   }
 
+  // --- Etiquetas que se ponen solas ----------------------------------------
+  //
+  // `origen` separa lo que marcaste tu de lo que calculo una regla. Sin esa
+  // columna no hay forma de recalcular: borrar para volver a poner se llevaria
+  // por delante lo que marcaste a mano, y no borrar deja etiquetas viejas de
+  // reglas que ya cambiaron. Por defecto 'manual', que es lo que son todas las
+  // que ya existen.
+  const etiquetas = new Set(
+    (target.prepare('PRAGMA table_info("operation_tags")').all() as Array<{ name: string }>).map(
+      (c) => c.name,
+    ),
+  );
+
+  if (!etiquetas.has('origen')) {
+    target.exec("ALTER TABLE operation_tags ADD COLUMN origen TEXT NOT NULL DEFAULT 'manual'");
+  }
+
+  target.exec('CREATE INDEX IF NOT EXISTS idx_optags_origen ON operation_tags (origen)');
+
+  // Las REGLAS viven en la base, no en el codigo, porque el diario se comparte
+  // entre ordenadores y una regla es un ajuste. `condiciones` es un JSON con la
+  // lista de (campo, operador, valor), validado al guardarlo en `autotags.ts`.
+  target.exec(`
+    CREATE TABLE IF NOT EXISTS tag_rules (
+      id          INTEGER PRIMARY KEY AUTOINCREMENT,
+      tag         TEXT NOT NULL,
+      condiciones TEXT NOT NULL,
+      activa      INTEGER NOT NULL DEFAULT 1,
+      creada_en   INTEGER NOT NULL
+    )
+  `);
+
+  // --- Yahoo Finance: su propia tabla, nunca mezclada -----------------------
+  //
+  // Tabla aparte de `global_quotes` a proposito, y es la decision de diseno que
+  // sostiene toda la pestana: las dos fuentes se ENFRENTAN en pantalla, no se
+  // sustituyen ni se promedian a escondidas. Es el mismo criterio que ya hay
+  // con `broker_pnl` guardado al lado del PnL calculado desde los precios, y
+  // con la polaridad de una etiqueta al lado de su impacto medido.
+  //
+  // Si manana se decide que Yahoo gana para una serie, ese cambio se hace a la
+  // vista y con datos, no por el camino de que una fuente empiece a escribir
+  // encima de la otra.
+  //
+  // `quote_ts` es cuando se formo el dato EN EL MERCADO y `fetched_at` cuando
+  // lo pedimos. Los dos, porque la diferencia es justo lo que decide si una
+  // fuente es mejor: un numero bueno de hace nueve horas es peor que uno
+  // regular de hace cinco minutos.
+  target.exec(`
+    CREATE TABLE IF NOT EXISTS yahoo_quotes (
+      symbol     TEXT PRIMARY KEY,
+      price      REAL NOT NULL,
+      prev_close REAL,
+      currency   TEXT,
+      exchange   TEXT,
+      quote_ts   INTEGER,
+      fetched_at INTEGER NOT NULL
+    )
+  `);
+
+  // La semilla se escribe UNA vez y queda marcada en `meta`. Si se repitiera en
+  // cada arranque, una regla que el borre volveria a aparecer sola, y una que
+  // edite volveria a su valor de fabrica: las reglas dejarian de ser suyas.
+  const sembradas = target.prepare("SELECT value FROM meta WHERE key = 'tag_rules_semilla'").get();
+
+  if (!sembradas) {
+    const insert = target.prepare(
+      'INSERT INTO tag_rules (tag, condiciones, activa, creada_en) VALUES (?, ?, 1, ?)',
+    );
+    const ahora = Date.now();
+    let n = 0;
+
+    for (const r of REGLAS_DE_ARRANQUE) {
+      insert.run(r.tag, JSON.stringify(r.condiciones), ahora);
+      n++;
+    }
+
+    target.prepare("INSERT INTO meta (key, value) VALUES ('tag_rules_semilla', ?)").run(String(n));
+    console.log(`[etiquetas] ${n} reglas de arranque escritas en tag_rules`);
+  }
 }
 
 /** Abre la base de Quantower en solo lectura. Nunca escribimos ahi. */

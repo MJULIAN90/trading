@@ -8,6 +8,9 @@ import {
   type EarningsSettings,
   type EmaSetting,
   type TagImpact,
+  type ReglaEtiqueta,
+  type CampoSpec,
+  type ResultadoCalculo,
 } from '../api';
 import { signClass, signedUsd } from '../format';
 import { useSticky } from '../sticky';
@@ -401,6 +404,17 @@ export function SettingsPanel({
             killzones encendidas
           </label>
 
+          <label title="Con que base arranca el selector de arriba al abrir el diario. El selector sigue estando: esto solo decide con cual empieza.">
+            Base al abrir
+            <select
+              value={draft.basePorDefecto ?? 'gross'}
+              onChange={(e) => setDraft({ ...draft, basePorDefecto: e.target.value as 'net' | 'gross' })}
+            >
+              <option value="gross">bruto</option>
+              <option value="net">neto</option>
+            </select>
+          </label>
+
           <label title="Con que reloj se pintan TODAS las horas de la aplicacion. No cambia ninguna metrica.">
             Reloj
             <select
@@ -767,6 +781,8 @@ export function SettingsPanel({
         </div>
 
         {renameMsg && <div className="note" style={{ marginTop: 8 }}>{renameMsg}</div>}
+
+        <ReglasDeEtiqueta />
       </div>
       )}
 
@@ -980,5 +996,165 @@ export function SettingsPanel({
       </div>
       )}
     </>
+  );
+}
+
+
+/**
+ * Las reglas que ponen etiquetas solas, y el boton de recalcular.
+ *
+ * Va dentro de Ajustes -> Etiquetas porque una regla ES una categoria: decide
+ * cuando aparece una etiqueta igual que renombrar decide como se llama. Tenerla
+ * en otra pestana separaria dos mitades de la misma decision.
+ */
+function ReglasDeEtiqueta() {
+  const [reglas, setReglas] = useState<ReglaEtiqueta[] | null>(null);
+  const [campos, setCampos] = useState<CampoSpec[]>([]);
+  const [calculando, setCalculando] = useState(false);
+  const [resultado, setResultado] = useState<ResultadoCalculo | null>(null);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    let cancelado = false;
+    api.autotags()
+      .then((r) => {
+        if (cancelado) return;
+        setReglas(r.reglas);
+        setCampos(r.campos);
+      })
+      .catch(() => { if (!cancelado) setError('no se pudieron leer las reglas'); });
+    return () => { cancelado = true; };
+  }, []);
+
+  const porCampo = new Map(campos.map((c) => [c.campo, c]));
+
+  /** La condicion en palabras. Una regla que no se lee no se puede revisar. */
+  function enPalabras(r: ReglaEtiqueta): string {
+    return r.condiciones
+      .map((c) => {
+        const nombre = porCampo.get(c.campo)?.etiqueta ?? c.campo;
+        if (c.operador === 'entre') return `${nombre} entre ${c.valor} y ${c.valor2}`;
+        return `${nombre} ${c.operador} ${c.valor}`;
+      })
+      .join('  Y  ');
+  }
+
+  async function calcular() {
+    setCalculando(true);
+    setError(null);
+    try {
+      setResultado(await api.calcularAutotags());
+    } catch {
+      setError('fallo al calcular');
+    } finally {
+      setCalculando(false);
+    }
+  }
+
+  async function alternar(r: ReglaEtiqueta) {
+    try {
+      const out = await api.saveAutotag({
+        id: r.id,
+        tag: r.tag,
+        condiciones: r.condiciones,
+        activa: !r.activa,
+      });
+      setReglas(out.reglas);
+    } catch {
+      setError('no se pudo guardar la regla');
+    }
+  }
+
+  async function borrar(r: ReglaEtiqueta) {
+    try {
+      const out = await api.deleteAutotag(r.id);
+      setReglas(out.reglas);
+      setResultado(null);
+      setError(`regla borrada · ${out.etiquetasQuitadas} etiquetas retiradas`);
+    } catch {
+      setError('no se pudo borrar la regla');
+    }
+  }
+
+  if (reglas === null) return <div className="note" style={{ marginTop: 20 }}>cargando reglas...</div>;
+
+  const hayResultado = reglas.some((r) => r.activa && r.cuando === 'resultado');
+
+  return (
+    <div style={{ marginTop: 26 }}>
+      <h2>Etiquetas que se ponen solas</h2>
+
+      <div className="note" style={{ marginBottom: 10, lineHeight: 1.5 }}>
+        Lo que la maquina puede deducir no hace falta marcarlo a mano, y marcado a mano solo
+        aparece en las operaciones de las que te acordaste &mdash; que es medir tu memoria, no tu
+        operativa. Estas reglas lo ponen en <b>todas</b>, tambien hacia atras.
+        <br />
+        <b>Calcular reemplaza, no suma:</b> borra las derivadas y las vuelve a poner con las reglas
+        de ahora. <b>Lo que marcaste tu no se toca nunca.</b>
+      </div>
+
+      {hayResultado && (
+        <div className="note" style={{ marginBottom: 10, lineHeight: 1.5 }}>
+          <b>Aviso.</b> Hay reglas marcadas <i>resultado</i>: miran algo que solo se sabe al cerrar
+          la operacion. Son utiles para describir un habito, pero <b>no se pueden usar para
+          explicar el resultado</b> &mdash; seria la misma frase dos veces.
+        </div>
+      )}
+
+      <table>
+        <thead>
+          <tr>
+            <th>etiqueta</th>
+            <th>cuando se pone</th>
+            <th>mira</th>
+            <th />
+          </tr>
+        </thead>
+        <tbody>
+          {reglas.map((r) => (
+            <tr key={r.id} style={r.activa ? undefined : { opacity: 0.45 }}>
+              <td><b>{r.tag}</b></td>
+              <td className="izq">{enPalabras(r)}</td>
+              <td>{r.cuando === 'resultado' ? 'el resultado' : 'la decision'}</td>
+              <td>
+                <button onClick={() => alternar(r)}>
+                  {r.activa ? 'desactivar' : 'activar'}
+                </button>{' '}
+                <button onClick={() => borrar(r)}>borrar</button>
+              </td>
+            </tr>
+          ))}
+          {reglas.length === 0 && (
+            <tr><td colSpan={4} className="note">sin reglas</td></tr>
+          )}
+        </tbody>
+      </table>
+
+      <div style={{ marginTop: 12 }}>
+        <button onClick={calcular} disabled={calculando}>
+          {calculando ? 'calculando...' : 'Calcular'}
+        </button>
+      </div>
+
+      {resultado && (
+        <div className="note" style={{ marginTop: 10, lineHeight: 1.6 }}>
+          {resultado.operaciones} operaciones revisadas con {resultado.reglas} reglas ·{' '}
+          <b>{resultado.puestas} etiquetas puestas</b>, {resultado.quitadas} retiradas antes de
+          recalcular.
+          {resultado.porEtiqueta.length > 0 && (
+            <div style={{ marginTop: 6 }}>
+              {resultado.porEtiqueta.map((e) => (
+                <div key={e.tag}>
+                  {e.tag}: {e.n}
+                  {e.cuando === 'resultado' ? ' · mira el resultado' : ''}
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {error && <div className="note" style={{ marginTop: 8 }}>{error}</div>}
+    </div>
   );
 }

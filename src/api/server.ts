@@ -50,6 +50,18 @@ import {
   saveNote,
   tagImpact,
 } from '../domain/notes.js';
+import { traerYahoo } from '../ingest/yahoo.js';
+import { vistaYahoo } from '../domain/yahoo.js';
+import {
+  CAMPOS,
+  OPERADORES,
+  borrarRegla,
+  calcularEtiquetas,
+  calcularEtiquetasDe,
+  explicarDerivadas,
+  guardarRegla,
+  listarReglas,
+} from '../domain/autotags.js';
 import { applyCosts, costSummary, getCostSettings, setCostSettings } from '../domain/costs.js';
 import { excursionOf, excursionSummary } from '../domain/excursion.js';
 import { narrate } from '../domain/narrative.js';
@@ -737,7 +749,11 @@ app.get('/api/scalper', async (req) => {
 
 app.get('/api/operations/:id/notes', async (req) => {
   const { id } = req.params as { id: string };
-  return getNote(Number(id));
+  // La explicacion de cada derivada se compone AQUI y no en `notes.ts`: esa
+  // capa no tiene por que saber que existen las reglas, y asi `getNote` sigue
+  // sirviendo igual a quien solo quiera la nota.
+  const n = Number(id);
+  return { ...getNote(n), porQue: explicarDerivadas(n) };
 });
 
 app.put('/api/operations/:id/notes', async (req) => {
@@ -752,6 +768,111 @@ app.put('/api/operations/:id/notes', async (req) => {
 
 /** Cuanto suma cada etiqueta, y el catalogo para autocompletar. */
 app.get('/api/tags', async () => ({ impact: tagImpact(), all: allTags() }));
+
+// ---------------------------------------------------------------------------
+// Etiquetas que se ponen solas
+// ---------------------------------------------------------------------------
+
+/**
+ * Las reglas y el vocabulario con el que se escriben.
+ *
+ * Los campos se mandan con su `cuando` ('decision' o 'resultado') para que la
+ * pantalla pueda avisar: una etiqueta derivada de algo que solo se sabe al
+ * cerrar no se puede usar despues para explicar el resultado.
+ */
+app.get('/api/autotags', async () => ({
+  reglas: listarReglas(),
+  campos: CAMPOS,
+  operadores: OPERADORES,
+}));
+
+app.post('/api/autotags', async (req, reply) => {
+  const body = (req.body ?? {}) as { id?: unknown; tag?: unknown; condiciones?: unknown; activa?: unknown };
+
+  const regla = guardarRegla({
+    id: typeof body.id === 'number' ? body.id : undefined,
+    tag: typeof body.tag === 'string' ? body.tag : '',
+    condiciones: body.condiciones,
+    activa: body.activa !== false,
+  });
+
+  // `guardarRegla` devuelve null cuando la etiqueta esta vacia o cuando NINGUNA
+  // condicion es valida. Se contesta 400 en vez de guardar una regla muerta:
+  // una fila que no dispara nunca y parece que si es peor que un error.
+  if (!regla) return reply.code(400).send({ error: 'regla sin etiqueta o sin condiciones validas' });
+
+  return { regla, reglas: listarReglas() };
+});
+
+app.delete('/api/autotags/:id', async (req, reply) => {
+  const { id } = req.params as { id: string };
+  const n = Number(id);
+  if (!Number.isInteger(n)) return reply.code(400).send({ error: 'id invalido' });
+
+  const out = borrarRegla(n);
+  if (out.tag === null) return reply.code(404).send({ error: 'no existe' });
+
+  return { ...out, reglas: listarReglas() };
+});
+
+/**
+ * El boton "Calcular".
+ *
+ * Recalcula TODAS las derivadas y reemplaza las anteriores; las manuales no se
+ * tocan. Es idempotente: dos pulsaciones seguidas dejan la base igual.
+ */
+app.post('/api/autotags/calcular', async () => calcularEtiquetas());
+
+// ---------------------------------------------------------------------------
+// Yahoo Finance: la segunda fuente
+// ---------------------------------------------------------------------------
+
+/** Lo guardado, ya cruzado con lo que el diario tiene de Finnhub y Alpha. */
+app.get('/api/yahoo', async () => vistaYahoo());
+
+/**
+ * Refresca a mano.
+ *
+ * Devuelve la vista YA recalculada ademas del parte de la peticion: la pantalla
+ * acaba de cambiar los datos y pedirselos en una segunda llamada seria una
+ * ventana en la que pintaria los de antes.
+ *
+ * Nunca lanza. Si Yahoo no contesta -- y lo hara, porque esos endpoints no son
+ * oficiales -- lo que llega es una lista de fallos y la tabla de antes, no un
+ * error que deje la pestana en blanco.
+ */
+app.post('/api/yahoo/refrescar', async () => {
+  try {
+    const parte = await traerYahoo();
+    return { ...parte, vista: vistaYahoo() };
+  } catch (err) {
+    return {
+      pedidos: 0,
+      guardados: 0,
+      fallos: [{ symbol: '(todos)', error: err instanceof Error ? err.message : 'fallo' }],
+      ms: 0,
+      vista: vistaYahoo(),
+    };
+  }
+});
+
+/**
+ * El mismo boton, de UNA operacion, para pulsarlo mientras se revisa.
+ *
+ * Devuelve ademas la nota ya actualizada: la pantalla acaba de cambiar las
+ * etiquetas de esa operacion y pedirselas otra vez en una segunda peticion
+ * seria una ventana en la que podria pintar lo de antes.
+ */
+app.post('/api/operations/:id/autotags', async (req, reply) => {
+  const { id } = req.params as { id: string };
+  const n = Number(id);
+  if (!Number.isInteger(n)) return reply.code(400).send({ error: 'id invalido' });
+
+  const out = calcularEtiquetasDe(n);
+  if (!out) return reply.code(404).send({ error: 'no existe esa operacion' });
+
+  return { ...out, nota: { ...getNote(n), porQue: explicarDerivadas(n) } };
+});
 
 /**
  * Renombra una etiqueta en las operaciones Y en la lista de sugerencias, en la

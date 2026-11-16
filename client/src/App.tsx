@@ -23,6 +23,7 @@ import { TodayBand } from './components/TodayBand';
 import { useSort } from './sortable';
 import { AlignmentPanel } from './components/AlignmentPanel';
 import { Boundary } from './components/Boundary';
+import YahooPanel from './components/YahooPanel';
 import { EarningsStrip } from './components/EarningsStrip';
 import { ScalperPanel } from './components/ScalperPanel';
 import { ReportPanel } from './components/ReportPanel';
@@ -252,6 +253,7 @@ type Tab =
   | 'global'
   | 'calendario'
   | 'mercado'
+  | 'yahoo'
   | 'informe'
   | 'operaciones'
   | 'cuando'
@@ -274,6 +276,11 @@ const SECCIONES: Seccion[] = [
       { id: 'global', label: 'News' },
       { id: 'calendario', label: 'Calendario' },
       { id: 'mercado', label: 'Estudio' },
+      // Yahoo va aqui y no en una seccion propia: es contexto de mercado, como
+      // News y Calendario. Y va DETRAS de Estudio porque es la mas nueva y la
+      // que menos se mira: las pestanas se recuerdan por posicion, y meter una
+      // nueva en medio mueve todas las demas bajo la mano.
+      { id: 'yahoo', label: 'Yahoo' },
     ],
   },
   {
@@ -346,14 +353,31 @@ function FlagTable({ rows }: { rows: Array<{ code: string; title: string; count:
 }
 
 export default function App() {
-  // Misma BASE que ensena Quantower en la cuenta: bruto. El selector de Base
-  // sigue ahi para mirar el neto cuando haga falta.
+  // La BASE de arranque es un ajuste (Ajustes -> Grafico -> "Base al abrir").
+  // Antes estaba cocida a bruto, que es lo que ensena Quantower en la cuenta,
+  // y eso valia mientras la demo no cobrara comision. Desde que la mesa cobra
+  // 1,74 $ por contrato ida y vuelta, bruto y neto ya no se parecen.
+  //
+  // Aqui sigue arrancando en bruto porque las prefs no han llegado todavia:
+  // se piden con el primer `load()`. En cuanto llegan, el efecto de mas abajo
+  // aplica la suya UNA sola vez.
   //
   // El CORTE, en cambio, es el de mercado -18:00 de Nueva York- en todas
   // partes, calendario incluido. Con el corte a medianoche aparecian domingos
   // sueltos en el calendario, y ninguna mesa de fondeo cuenta asi: lo que abre
   // el domingo por la tarde y cierra el lunes es la sesion del lunes.
   const [filters, setFilters] = useState<Filters>({ basis: 'gross' });
+
+  /**
+   * Si ya se aplico la base guardada en esta sesion de pantalla.
+   *
+   * UNA sola vez, y por eso es una ref y no un estado. El panel se recarga
+   * solo cada pocos segundos y cada recarga trae las prefs otra vez: sin este
+   * cerrojo, cambiar la base a mano volveria sola a la guardada en la
+   * siguiente recarga, que es de los fallos mas desesperantes que hay — el
+   * desplegable se mueve solo y parece que la aplicacion te lleva la contraria.
+   */
+  const baseAplicada = useRef(false);
   // La seccion vive tambien en la URL (`#informe`): recargar devuelve donde
   // estabas en vez de a Resumen, y se puede guardar un marcador.
   const [tab, setTab] = useState<Tab>(() => tabDeLaUrl() ?? 'resumen');
@@ -436,6 +460,23 @@ export default function App() {
   const prefsKey = data ? JSON.stringify(data.chartPrefs) : '';
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const chartPrefs = useMemo(() => data?.chartPrefs ?? null, [prefsKey]);
+
+  /**
+   * La base guardada, aplicada en cuanto llegan las prefs y solo esa vez.
+   *
+   * No se puede hacer en el `useState` de arriba porque las prefs vienen del
+   * servidor y el primer pintado ocurre antes de que lleguen. Y no se puede
+   * repetir en cada llegada porque el panel se recarga solo: sobrescribiria lo
+   * que acabe de elegir en el desplegable.
+   */
+  useEffect(() => {
+    if (baseAplicada.current || !chartPrefs) return;
+    baseAplicada.current = true;
+
+    const guardada = chartPrefs.basePorDefecto;
+    if (guardada && guardada !== filters.basis) setFilters((f) => ({ ...f, basis: guardada }));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [chartPrefs]);
 
   // Los dos sentidos: al cambiar de seccion se escribe en la URL, y al usar
   // las flechas del navegador se lee de ella.
@@ -589,6 +630,12 @@ export default function App() {
               la llevara, no habria forma de irse a otra pestaña.
               `key={tab}` limpia el error al cambiar de pestaña. */}
           <Boundary key={tab} nombre={tab}>
+
+          {tab === 'yahoo' && (
+            <Boundary nombre="Yahoo">
+              <YahooPanel />
+            </Boundary>
+          )}
 
           {tab === 'mercado' && (
             <>

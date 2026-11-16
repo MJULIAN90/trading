@@ -149,7 +149,24 @@ export interface ChartPrefs {
    * dijera, y una operacion de las 09:11 salia como las 10:11.
    */
   clock: Reloj;
+
+  /**
+   * Con que BASE arranca el selector de arriba: neto o bruto.
+   *
+   * Hasta ahora estaba cocido a `bruto` en `App.tsx`, que es lo que ensena
+   * Quantower en la cuenta. Pero desde que la mesa cobra comision de verdad
+   * -1,74 $ por contrato ida y vuelta- el bruto y el neto ya no se parecen: en
+   * octubre, en demo, el bruto decia +1.621 $ y con esa comision habrian sido
+   * -420 $. Mirar siempre el bruto es mirar siempre el numero bonito.
+   *
+   * Es solo el valor de ARRANQUE. El selector sigue estando, porque comparar
+   * las dos bases es justo como se ve cuanto se lleva la comision.
+   */
+  basePorDefecto: Base;
 }
+
+/** Sobre que cifra se ensenan los resultados. */
+export type Base = 'net' | 'gross';
 
 /** Reloj con el que se pintan las horas. */
 export type Reloj = 'local' | 'mercado';
@@ -178,6 +195,10 @@ export const DEFAULT_CHART: ChartPrefs = {
   rightOffset: 6,
   entryShare: 0.70,
   clock: 'local',
+  // Arranca en bruto, que es lo que habia cocido antes de que esto fuera un
+  // ajuste: cambiar el valor de fabrica por la puerta de atras habria movido
+  // las cifras de todas las pantallas sin que nadie lo pidiera.
+  basePorDefecto: 'gross',
   // Vacia = todas. Arrancar filtrando sin que nadie lo haya pedido escondería
   // operaciones sin avisar.
   metricAccounts: [],
@@ -336,6 +357,7 @@ export function getChartPrefs(): ChartPrefs {
       tagPolarity: polarityOr(raw.tagPolarity),
       tagKind: kindOr(raw.tagKind),
       clock: raw.clock === 'mercado' ? 'mercado' : 'local',
+      basePorDefecto: raw.basePorDefecto === 'net' ? 'net' : 'gross',
       // Se recortan y se acota la longitud, pero no se comprueba que existan:
       // ver el comentario del campo.
       metricAccounts: Array.isArray(raw.metricAccounts)

@@ -14,7 +14,17 @@ import { getChartPrefs } from './prefs.js';
 export interface OperationNote {
   operationId: number;
   note: string;
+  /** TODAS las de la operacion, manuales y derivadas. Es lo que se pinta. */
   tags: string[];
+  /**
+   * Las que puso una regla. Subconjunto de `tags`.
+   *
+   * Va aparte para que la pantalla pueda pintarlas distinto y SIN la ✕: una
+   * derivada no se quita a mano, se quita cambiando la regla. Si se pudiera
+   * quitar a mano volveria sola en el siguiente "Calcular", y una ✕ que no
+   * hace nada es peor que no tener ✕.
+   */
+  derivadas: string[];
   updatedAt: number | null;
 }
 
@@ -29,13 +39,14 @@ export function getNote(operationId: number): OperationNote {
     .get(operationId) as { note: string; updated_at: number } | undefined;
 
   const tags = db()
-    .prepare('SELECT tag FROM operation_tags WHERE operation_id = ? ORDER BY tag')
-    .all(operationId) as Array<{ tag: string }>;
+    .prepare('SELECT tag, origen FROM operation_tags WHERE operation_id = ? ORDER BY tag')
+    .all(operationId) as Array<{ tag: string; origen: string }>;
 
   return {
     operationId,
     note: row?.note ?? '',
     tags: tags.map((t) => t.tag),
+    derivadas: tags.filter((t) => t.origen === 'derivada').map((t) => t.tag),
     updatedAt: row?.updated_at ?? null,
   };
 }
@@ -66,8 +77,23 @@ function onlyOneStrategy(tags: string[]): string[] {
 export function saveNote(operationId: number, note: string, tags: string[]): OperationNote {
   const target = db();
 
+  // Lo que llega del formulario trae TODAS las etiquetas pintadas, derivadas
+  // incluidas. Las derivadas se quitan de la lista antes de guardar: no son
+  // suyas, y tratarlas como manuales las convertiria en permanentes -- un
+  // "Calcular" posterior ya no podria retirarlas aunque su regla cambiara.
+  const derivadas = new Set(
+    (
+      db()
+        .prepare("SELECT tag FROM operation_tags WHERE operation_id = ? AND origen = 'derivada'")
+        .all(operationId) as Array<{ tag: string }>
+    ).map((t) => t.tag),
+  );
+
   const unique = onlyOneStrategy(
-    Array.from(new Set(tags.map(cleanTag).filter((t) => t.length > 0))).slice(0, 20),
+    Array.from(new Set(tags.map(cleanTag).filter((t) => t.length > 0 && !derivadas.has(t)))).slice(
+      0,
+      20,
+    ),
   );
 
   target.transaction(() => {
@@ -78,9 +104,22 @@ export function saveNote(operationId: number, note: string, tags: string[]): Ope
       )
       .run(operationId, note.slice(0, 8000), Date.now());
 
-    target.prepare('DELETE FROM operation_tags WHERE operation_id = ?').run(operationId);
+    // Solo las MANUALES. Guardar una nota no puede borrar lo que calculo una
+    // regla: sin el `origen` en este DELETE, escribir una coma en el texto se
+    // llevaba por delante todas las derivadas de esa operacion y no volvian
+    // hasta el siguiente "Calcular". El fallo ni siquiera daria error.
+    target
+      .prepare("DELETE FROM operation_tags WHERE operation_id = ? AND origen = 'manual'")
+      .run(operationId);
 
-    const insert = target.prepare('INSERT OR IGNORE INTO operation_tags (operation_id, tag) VALUES (?, ?)');
+    const insert = target.prepare(
+      "INSERT OR IGNORE INTO operation_tags (operation_id, tag, origen) VALUES (?, ?, 'manual')",
+    );
+
+    // El OR IGNORE importa aqui: si una regla ya puso esa misma etiqueta, la
+    // fila existe con origen 'derivada' y la clave (operation_id, tag) impide
+    // duplicarla. Ponerla a mano sobre una derivada no cambia nada visible, y
+    // al siguiente "Calcular" la regla la volvera a poner igual.
     for (const tag of unique) insert.run(operationId, tag);
   })();
 
@@ -95,7 +134,7 @@ export function notesFor(ids: number[]): Map<number, OperationNote> {
   const marks = ids.map(() => '?').join(',');
 
   for (const id of ids) {
-    out.set(id, { operationId: id, note: '', tags: [], updatedAt: null });
+    out.set(id, { operationId: id, note: '', tags: [], derivadas: [], updatedAt: null });
   }
 
   const notes = db()
@@ -111,10 +150,17 @@ export function notesFor(ids: number[]): Map<number, OperationNote> {
   }
 
   const tags = db()
-    .prepare(`SELECT operation_id, tag FROM operation_tags WHERE operation_id IN (${marks}) ORDER BY tag`)
-    .all(...ids) as Array<{ operation_id: number; tag: string }>;
+    .prepare(
+      `SELECT operation_id, tag, origen FROM operation_tags WHERE operation_id IN (${marks}) ORDER BY tag`,
+    )
+    .all(...ids) as Array<{ operation_id: number; tag: string; origen: string }>;
 
-  for (const t of tags) out.get(t.operation_id)?.tags.push(t.tag);
+  for (const t of tags) {
+    const entry = out.get(t.operation_id);
+    if (!entry) continue;
+    entry.tags.push(t.tag);
+    if (t.origen === 'derivada') entry.derivadas.push(t.tag);
+  }
 
   return out;
 }

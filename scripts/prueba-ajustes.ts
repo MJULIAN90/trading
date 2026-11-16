@@ -111,3 +111,32 @@ check(
 check('una cuenta que no existe no devuelve nada', listOperations({ accounts: ['ZZZ'] }).length === 0);
 
 console.log('\nbase temporal:', process.env.JOURNAL_DB);
+
+// --- La BASE con la que arranca la pantalla ----------------------------------
+//
+// Es solo un valor de arranque, pero pasa por el mismo saneado que todo lo
+// demas: estas prefs llegan de una peticion HTTP y la base se comparte entre
+// ordenadores. Un valor raro no puede dejar la pantalla sin base.
+{
+  check('de fabrica arranca en bruto', getChartPrefs().basePorDefecto === 'gross', getChartPrefs().basePorDefecto);
+
+  setChartPrefs({ basePorDefecto: 'net' });
+  check('se guarda neto', getChartPrefs().basePorDefecto === 'net');
+
+  setChartPrefs({ basePorDefecto: 'gross' });
+  check('y se puede volver a bruto', getChartPrefs().basePorDefecto === 'gross');
+
+  // Cualquier cosa que no sea exactamente 'net' cae en bruto, que es el valor
+  // de siempre. Un `undefined` colandose hasta el desplegable lo dejaria vacio.
+  setChartPrefs({ basePorDefecto: 'neto' as unknown as 'net' });
+  check('un valor invalido cae en bruto, no en vacio', getChartPrefs().basePorDefecto === 'gross', String(getChartPrefs().basePorDefecto));
+
+  setChartPrefs({ basePorDefecto: null as unknown as 'net' });
+  check('null tambien', getChartPrefs().basePorDefecto === 'gross');
+
+  // Y no puede llevarse por delante el resto de ajustes al guardarse.
+  setChartPrefs({ clock: 'mercado' });
+  setChartPrefs({ basePorDefecto: 'net' });
+  check('guardar la base no toca el reloj', getChartPrefs().clock === 'mercado');
+  check('  y la base sigue puesta', getChartPrefs().basePorDefecto === 'net');
+}

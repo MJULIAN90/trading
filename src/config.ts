@@ -401,20 +401,167 @@ export const COMPANY_NAMES: Record<string, string> = {
  * Se puede sobreescribir sin tocar codigo:
  *   QQQ_WEIGHTS=NVDA:8.6,AAPL:7.1,...
  */
-export const QQQ_WEIGHTS: Record<string, number> = (() => {
-  const base: Record<string, number> = {
-    NVDA: 8.3, AAPL: 7.4, MSFT: 5.8, MU: 5.0, AMD: 4.2,
-    AMZN: 4.1, META: 3.3, GOOGL: 3.1, GOOG: 2.8, TSLA: 2.8,
-  };
+const QQQ_WEIGHTS_BASE: Record<string, number> = {
+  NVDA: 8.3, AAPL: 7.4, MSFT: 5.8, MU: 5.0, AMD: 4.2,
+  AMZN: 4.1, META: 3.3, GOOGL: 3.1, GOOG: 2.8, TSLA: 2.8,
+};
 
+const PESOS_EN_USO = (() => {
   const crudo = process.env.QQQ_WEIGHTS;
-  if (!crudo) return base;
+  const puesta = process.env.QQQ_WEIGHTS_FECHA?.trim() || null;
 
-  const out: Record<string, number> = {};
-  for (const par of crudo.split(',')) {
-    const [s, w] = par.split(':');
-    const peso = Number(w);
-    if (s && Number.isFinite(peso)) out[s.trim().toUpperCase()] = peso;
+  if (crudo) {
+    const out: Record<string, number> = {};
+    for (const par of crudo.split(',')) {
+      const [s, w] = par.split(':');
+      const peso = Number(w);
+      if (s && Number.isFinite(peso)) out[s.trim().toUpperCase()] = peso;
+    }
+    // Si lo que viene del .env no tiene ni una entrada valida, los pesos que
+    // se usan SIGUEN SIENDO los de fabrica, y por tanto la fecha tambien.
+    if (Object.keys(out).length > 0) return { pesos: out, fecha: puesta };
   }
-  return Object.keys(out).length > 0 ? out : base;
+
+  return { pesos: QQQ_WEIGHTS_BASE, fecha: puesta ?? 'octubre de 2026' };
 })();
+
+export const QQQ_WEIGHTS: Record<string, number> = PESOS_EN_USO.pesos;
+
+/**
+ * De cuando es la foto de pesos que se esta usando. Null = no se sabe.
+ *
+ * Existe porque el peso se ensena en pantalla y no es un dato medido: es una
+ * cifra copiada a mano que envejece sola. El numero sin su fecha se lee con la
+ * autoridad de los que vienen del proveedor, y no la tiene.
+ *
+ * Null cuando alguien sobreescribe los pesos por .env y no dice de cuando son.
+ * Seguir firmando "octubre de 2026" sobre unos numeros que ya no son los de
+ * octubre seria peor que no poner fecha: mentiria con cara de dato. Sin fecha
+ * al menos se ve que no se sabe.
+ */
+export const QQQ_WEIGHTS_FECHA: string | null = PESOS_EN_USO.fecha;
+
+// ---------------------------------------------------------------------------
+// Yahoo Finance: la segunda fuente
+// ---------------------------------------------------------------------------
+
+/**
+ * Un simbolo de Yahoo, con que es y contra que se contrasta.
+ *
+ * `compara` es el simbolo con el que el diario guarda HOY ese mismo dato, de
+ * Finnhub o de Alpha. Vacio = no hay con que comparar, es informacion nueva.
+ *
+ * `proxy` marca los pares donde las dos cifras NO son comparables aunque hablen
+ * de lo mismo. USO es un ETF y CL=F es el futuro del crudo: tienen que dar
+ * numeros distintos, y ensenar esa diferencia como si fuera un error de
+ * precision seria mentir. La pantalla lo dice en vez de pintarlo en rojo.
+ */
+export interface SimboloYahoo {
+  symbol: string;
+  que: string;
+  compara: string;
+  proxy: boolean;
+  /**
+   * El grupo con el que se agrupa en pantalla.
+   *
+   * Mismo vocabulario que usa News -- materia, bono, indice, accion -- y no uno
+   * nuevo. Dos pantallas del mismo diario que llamen "materias primas" y
+   * "commodities" a lo mismo obligan a traducir mentalmente cada vez.
+   */
+  grupo: GrupoYahoo;
+}
+
+export type GrupoYahoo = 'materia' | 'bono' | 'indice' | 'accion';
+
+/**
+ * Que se le pide a Yahoo.
+ *
+ * Se puede cambiar entero desde el .env sin tocar codigo, porque el diario se
+ * comparte entre ordenadores y una lista de simbolos es un ajuste, no una
+ * decision de quien programa. Formato:
+ *
+ *   YAHOO_SIMBOLOS=CL=F|WTI futuro|WTI|0,BZ=F|Brent futuro|BRENT|0
+ *                  simbolo|que es|contra que|es proxy|grupo
+ *
+ * Los de fabrica salen de donde el diario esta peor servido hoy:
+ *   - el crudo, que va por ETF y se actualiza una vez al dia
+ *   - los bonos, que vienen de las series que fabricaron 21 cierres falsos
+ *   - y cuatro referencias que no hay en ningun sitio del diario
+ *
+ * LAS ACCIONES NO SE ESCRIBEN AQUI: salen de `MARKET_TICKERS`.
+ *
+ * Y no es por ahorrar tecleo. Una segunda lista de acciones escrita a mano en
+ * este fichero empieza igual que la primera y se separa de ella en cuanto
+ * alguien cambia una sola: a partir de ese dia News mira unas empresas y Yahoo
+ * mira otras, las dos pantallas dicen "acciones", y nada avisa. Peor aun, la
+ * columna de contraste de las que sobren saldria vacia para siempre, porque lo
+ * que el diario guarda en `global_quotes` es exactamente `MARKET_TICKERS`.
+ *
+ * Derivandolas, cambiar MARKET_TICKERS en el .env mueve las dos pantallas a la
+ * vez y cada accion tiene con que compararse por construccion.
+ */
+export const YAHOO_SIMBOLOS: SimboloYahoo[] = (() => {
+  const crudo = process.env.YAHOO_SIMBOLOS;
+
+  if (crudo) {
+    return crudo
+      .split(',')
+      .map((t) => t.split('|').map((x) => x.trim()))
+      .filter((p) => p.length >= 2 && p[0])
+      .map((p) => ({
+        symbol: p[0] as string,
+        que: p[1] ?? '',
+        compara: p[2] ?? '',
+        proxy: p[3] === '1',
+        grupo: (['materia', 'bono', 'indice', 'accion'] as const).includes(p[4] as GrupoYahoo)
+          ? (p[4] as GrupoYahoo)
+          : 'indice',
+      }));
+  }
+
+  // Las mismas empresas que mira el resto del diario, en el mismo orden, con
+  // el nombre que ya tienen puesto. `compara` es el propio simbolo porque es
+  // asi como el diario las guarda: `traerCotizaciones()` mete `MARKET_TICKERS`
+  // en `global_quotes` con su ticker tal cual.
+  //
+  // El orden de MARKET_TICKERS viene de mayor a menor peso en el QQQ, asi que
+  // la tabla se abre ya ordenada por la que mas mueve el indice. Pero el peso
+  // NO se trae aqui: `QQQ_WEIGHTS` esta documentado como una foto a mano que se
+  // queda vieja, y una cifra que caduca repetida en dos pantallas caduca el
+  // doble. Para "cual va mas fuerte HOY" ya esta la columna del dia, que es un
+  // dato medido y se ordena de un clic.
+  const acciones: SimboloYahoo[] = MARKET_TICKERS.map((t) => ({
+    symbol: t,
+    que: COMPANY_NAMES[t] ?? t,
+    compara: t,
+    proxy: false,
+    grupo: 'accion' as const,
+  }));
+
+  return [
+    { symbol: 'CL=F', que: 'WTI, futuro real', compara: 'WTI', proxy: true, grupo: 'materia' },
+    { symbol: 'BZ=F', que: 'Brent, futuro real', compara: 'BRENT', proxy: true, grupo: 'materia' },
+    { symbol: 'USO', que: 'ETF del crudo (el que usa el diario)', compara: 'USO', proxy: false, grupo: 'materia' },
+    { symbol: 'BNO', que: 'ETF del Brent', compara: 'BNO', proxy: false, grupo: 'materia' },
+    { symbol: '^FVX', que: 'bono 5 anos', compara: 'US5Y', proxy: false, grupo: 'bono' },
+    { symbol: '^TNX', que: 'bono 10 anos', compara: 'US10Y', proxy: false, grupo: 'bono' },
+    { symbol: '^TYX', que: 'bono 30 anos', compara: 'US30Y', proxy: false, grupo: 'bono' },
+    ...acciones,
+    // Lo que el diario no tiene por ningun lado.
+    { symbol: 'NQ=F', que: 'futuro Nasdaq (lo que operas)', compara: '', proxy: false, grupo: 'indice' },
+    { symbol: '^IXIC', que: 'Nasdaq Composite', compara: '', proxy: false, grupo: 'indice' },
+    { symbol: 'DX-Y.NYB', que: 'indice del dolar', compara: '', proxy: false, grupo: 'indice' },
+    { symbol: 'GC=F', que: 'oro', compara: '', proxy: false, grupo: 'materia' },
+    { symbol: '^VIX', que: 'volatilidad', compara: '', proxy: false, grupo: 'indice' },
+  ];
+})();
+
+/**
+ * Cada cuantos minutos se refresca Yahoo.
+ *
+ * 0 lo apaga del todo y la pestana queda vacia, que es lo que tiene que pasar
+ * si alguien no quiere salir a internet por aqui. Quince minutos por defecto:
+ * no hay cuota diaria que gastar, pero tampoco hay motivo para pedirle a un
+ * servicio gratuito mas de lo que se va a mirar.
+ */
+export const YAHOO_REFRESH_MIN = Number(process.env.YAHOO_REFRESH_MIN ?? 15);

@@ -2204,3 +2204,56 @@ tbody tr.apagada { opacity: 0.5; }
   font-size: 11.5px;
   padding: 1px 4px;
 }
+
+
+/* -----------------------------------------------------------------------
+   Etiquetas puestas por una regla.
+   
+   Se distinguen por el BORDE y por el engranaje del texto, no por el color:
+   el color de una etiqueta ya significa otra cosa -- buena, mala, sin
+   calificar -- y repintarla por ser automatica borraria esa informacion, que
+   es la que de verdad se lee de un vistazo.
+   
+   Sin cursor de mano porque no se pueden quitar desde ahi. Un boton que
+   parece pulsable y no hace nada se intenta pulsar tres veces antes de
+   entender que no va.
+   ----------------------------------------------------------------------- */
+.tag.on.derivada {
+  border-style: dashed;
+  cursor: default;
+  opacity: .92;
+}
+
+.tag.on.derivada:hover { border-color: inherit; }
+
+
+/* El "calcular" de una sola operacion, pegado a sus etiquetas.
+   
+   Discreto a proposito: esta al lado de los chips y no debe competir con
+   ellos, que son el contenido. Solo se nota al pasar por encima. */
+.calcular-una {
+  font-size: 11px;
+  padding: 2px 8px;
+  opacity: .62;
+}
+
+.calcular-una:hover:not(:disabled) { opacity: 1; }
+
+
+/* La linea que explica por que una operacion lleva una etiqueta automatica.
+   
+   Altura minima fija: comparte hueco con el aviso de "calcular" y, sin ella,
+   la fila de chips daba un salto de doce pixeles cada vez que el raton entraba
+   o salia de un chip. Un boton que se mueve justo cuando vas a pulsarlo es la
+   peor clase de defecto de interfaz, porque parece culpa tuya. */
+.auto-por-que {
+  margin-top: 2px;
+  margin-bottom: 6px;
+  min-height: 15px;
+  line-height: 15px;
+}
+
+/* La etiqueta sigue puesta pero su regla ya no la justifica: se edito la regla
+   y falta volver a calcular. Se avisa en ambar, que es "pendiente", no en rojo:
+   no esta mal, esta sin actualizar. */
+.auto-por-que.caduca { color: var(--warn); }
